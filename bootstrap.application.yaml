@@ -1,0 +1,23 @@
+# Apply this bootstrap manifest with kubectl apply -f bootstrap.yaml
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: argocd-bootstrap
+  namespace: unique
+spec:
+  project: default
+  sources:
+    # The system dependencies like kong, databases, redis, etc.
+    # Reserved Sync Waves: 0-5
+    - repoURL: https://github.com/Unique-AG/hpe-hosted-trial
+      targetRevision: main
+      path: 1-system
+    # The application services
+    # Reserved Sync Waves: 6-10
+    - repoURL: https://github.com/Unique-AG/hpe-hosted-trial
+      targetRevision: main
+      path: 2-applications
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: unique
+  syncPolicy: {}

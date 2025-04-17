@@ -1,0 +1,35 @@
+spec:
+  name: redis
+  autoSync: true
+  source:
+    chart: redis
+    repoURL: registry-1.docker.io/bitnamicharts
+    targetRevision: 20.12.1
+    helm:
+      releaseName: redis
+      valuesObject:
+        global:
+          defaultStorageClass: gl4f-filesystem
+        architecture: standalone
+        auth:
+          enabled: false
+        master:
+          resources:
+            limits:
+              memory: 2Gi
+            requests:
+              cpu: 500m
+              memory: 2Gi
+          persistence:
+            enabled: true
+            storageClass: gl4f-filesystem
+            size: 10Gi
+        metrics:
+          enabled: true
+          service:
+            enabled: true
+          serviceMonitor:
+            enabled: true
+            namespace: unique
+              
+              
