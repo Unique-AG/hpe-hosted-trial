@@ -16,7 +16,7 @@ spec:
       - path: "1-system/**/app.yaml"
   template:
     metadata:
-      name: '{% raw %}{{.spec.name}}{% endraw %}'
+      name: '{{.spec.name}}'
       namespace: unique
     spec:
       project: default
@@ -24,7 +24,7 @@ spec:
         server: https://kubernetes.default.svc
         namespace: unique
   templatePatch: |
-    {% raw %}{{- if hasKey .spec "metadata" }}
+    {{- if hasKey .spec "metadata" }}
     metadata:
       {{- .spec.metadata | toYaml | nindent 2 }}
     {{- end }}
@@ -51,4 +51,4 @@ spec:
           {{- if hasKey .spec "syncOptions" }}
           {{- .spec.syncOptions | toYaml | nindent 6 }}
           {{- end }}
-      {{- end }}{% endraw %}
+      {{- end }}
