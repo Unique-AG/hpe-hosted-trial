@@ -1,0 +1,25 @@
+spec:
+  name: reloader
+  metadata:
+    argocd.argoproj.io/sync-wave: "1"
+  autoSync: true
+  source:
+    repoURL: https://stakater.github.io/stakater-charts
+    chart: reloader
+    targetRevision: 2.0.0
+    helm:
+      releaseName: reloader
+      valuesObject:
+        reloader:
+          watchGlobally: false
+          logFormat: json
+          reloadStrategy: annotations
+          namespaceSelector: unique
+          deployment:
+            resources:
+              requests:
+                cpu: 100m
+                memory: 128Mi
+              limits:
+                cpu: 100m
+                memory: 512Mi

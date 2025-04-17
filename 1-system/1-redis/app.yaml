@@ -1,9 +1,11 @@
 spec:
   name: redis
+  metadata:
+    argocd.argoproj.io/sync-wave: "1"
   autoSync: true
   source:
-    chart: redis
     repoURL: registry-1.docker.io/bitnamicharts
+    chart: redis
     targetRevision: 20.12.1
     helm:
       releaseName: redis
