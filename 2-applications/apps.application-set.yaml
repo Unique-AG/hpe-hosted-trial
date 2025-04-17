@@ -1,0 +1,54 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: applications
+  namespace: unique
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+spec:
+  goTemplate: true
+  goTemplateOptions: ["missingkey=error"]
+  generators:
+  - git:
+      repoURL: https://github.com/Unique-AG/hpe-hosted-trial
+      revision: HEAD
+      files:
+      - path: "2-applications/**/app.yaml"
+  template:
+    metadata:
+      name: '{% raw %}{{.spec.name}}{% endraw %}'
+      namespace: unique
+    spec:
+      project: default
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: unique
+  templatePatch: |
+    {% raw %}{{- if hasKey .spec "metadata" }}
+    metadata:
+      {{- .spec.metadata | toYaml | nindent 2 }}
+    {{- end }}
+    spec:
+      {{- if hasKey .spec "sources" }}
+      sources:
+        {{- .spec.sources | toYaml | nindent 4 }}
+      {{- else }}
+      source:
+        {{- .spec.source | toYaml | nindent 4 }}
+      {{- end }}
+      {{- if hasKey .spec "additionalValues" }}
+      {{- .spec.additionalValues | toYaml | nindent 2 }}
+      {{- end }}
+      {{- if or .spec.autoSync (hasKey .spec "syncOptions") }}
+      syncPolicy:
+        {{- if .spec.autoSync }}
+        automated:
+          prune: true
+          selfHeal: true
+        {{- end }}
+        syncOptions:
+          - CreateNamespace=true
+          {{- if hasKey .spec "syncOptions" }}
+          {{- .spec.syncOptions | toYaml | nindent 6 }}
+          {{- end }}
+      {{- end }}{% endraw %}
