@@ -2,7 +2,7 @@ spec:
   name: redis
   metadata:
     argocd.argoproj.io/sync-wave: "2"
-  autoSync: true
+  autoSync: false
   source:
     repoURL: registry-1.docker.io/bitnamicharts
     chart: redis

@@ -2,7 +2,7 @@ spec:
   name: sealed-secrets
   metadata:
     argocd.argoproj.io/sync-wave: "1"
-  autoSync: true
+  autoSync: false
   sources:
     - repoURL: https://bitnami-labs.github.io/sealed-secrets
       chart: sealed-secrets

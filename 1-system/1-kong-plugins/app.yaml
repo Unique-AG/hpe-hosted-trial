@@ -2,7 +2,7 @@ spec:
   name: unique-kong-plugins
   metadata:
     argocd.argoproj.io/sync-wave: "1"
-  autoSync: true
+  autoSync: false
   source:
     repoURL: https://unique-ag.github.io/helm-charts
     chart: kong-plugins
