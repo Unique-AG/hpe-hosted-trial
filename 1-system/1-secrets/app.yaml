@@ -1,0 +1,13 @@
+spec:
+  name: secrets
+  metadata:
+    argocd.argoproj.io/sync-wave: "1"
+  autoSync: false
+  sources:
+    - repoURL: https://github.com/Unique-AG/hpe-hosted-trial
+      targetRevision: HEAD
+      path: "1-system/1-secrets"
+      directory:
+        recurse: true
+        include: '*.yaml'
+        exclude: '{app.yaml}'
