@@ -1,12 +1,12 @@
 apiVersion: networking.istio.io/v1alpha3
 kind: VirtualService
 metadata:
-  name: unique-kong-virtual-service
+  name: minio-virtual-service
 spec:
   gateways:
     - istio-system/ezaf-gateway
   hosts:
-    - unique.ingress.pcai0201.fr2.hpecolo.net
+    - minio.ingress.pcai0201.fr2.hpecolo.net
   http:
     - match:
         - uri:
@@ -15,6 +15,6 @@ spec:
         uri: /
       route:
         - destination:
-            host: kong-gateway-proxy.unique.svc.cluster.local
+            host: minio-console.unique.svc.cluster.local
             port:
-              number: 80
+              number: 9001

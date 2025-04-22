@@ -15,6 +15,6 @@ spec:
         uri: /
       route:
         - destination:
-            host: harbor.unique.svc
+            host: harbor.unique.svc.cluster.local
             port:
               number: 80

@@ -1,0 +1,56 @@
+spec:
+  name: minio
+  metadata:
+    argocd.argoproj.io/sync-wave: "2"
+  autoSync: false
+  sources:
+    - repoURL: https://github.com/Unique-AG/hpe-hosted-trial
+      targetRevision: HEAD
+      path: "1-system/2-minio"
+      directory:
+        recurse: true
+        include: '*.yaml'
+        exclude: '{app.yaml}'
+    - repoURL: https://charts.min.io
+      chart: minio
+      targetRevision: 5.4.0
+      helm:
+        releaseName: minio
+        valuesObject:
+          mode: standalone
+          existingSecret: minio-password-secret
+          replicas: 1
+          persistence:
+            storageClass: gl4f-filesystem
+            size: 1Ti
+          resources:
+            requests:
+              cpu: 2
+              memory: 16Gi
+            limits:
+              cpu: 4
+              memory: 18Gi
+          policies:
+            - name: ingestion-readwrite-policy
+              statements:
+                - effect: Allow
+                  actions:
+                    - "s3:GetObject"
+                    - "s3:PutObject"
+                    - "s3:DeleteObject"
+                    - "s3:ListBucket"
+                    - "s3:ListMultipartUploadParts"
+                    - "s3:AbortMultipartUpload"
+                  resources:
+                    - "arn:aws:s3:::ingestion-bucket/*"
+                    - "arn:aws:s3:::ingestion-bucket"
+          users:
+            - accessKey: ingestion-user-access-key
+              existingSecret: minio-ingestion-user
+              existingSecretKey: secretKey
+              policy: ingestion-readwrite-policy
+          svcaccts: []
+          buckets:
+            - name: ingestion-bucket
+              policy: none
+              purge: false
