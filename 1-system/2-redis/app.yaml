@@ -1,7 +1,7 @@
 spec:
   name: redis
   metadata:
-    argocd.argoproj.io/sync-wave: "1"
+    argocd.argoproj.io/sync-wave: "2"
   autoSync: true
   source:
     repoURL: registry-1.docker.io/bitnamicharts

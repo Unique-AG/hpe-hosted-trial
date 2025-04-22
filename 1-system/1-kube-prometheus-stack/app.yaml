@@ -1,0 +1,92 @@
+spec:
+  name: kube-prometheus-stack
+  metadata:
+    annotations:
+      argocd.argoproj.io/sync-wave: "1"
+  autoSync: false
+  source:
+    chart: kube-prometheus-stack
+    repoURL: https://prometheus-community.github.io/helm-charts
+    targetRevision: 70.4.2
+    helm:
+      releaseName: kube-prometheus-stack
+      valuesObject:
+        cleanPrometheusOperatorObjectNames: true
+        crds:
+          enabled: false
+        alertmanager:
+          alertmanagerSpec:
+            replicas: 1
+            resources:
+              limits:
+                cpu: 400m
+                memory: 256Mi
+              requests:
+                cpu: 100m
+                memory: 64Mi
+            storage:
+              volumeClaimTemplate:
+                spec:
+                  storageClassName: gl4f-filesystem
+                  accessModes:
+                    - ReadWriteOnce
+                  resources:
+                    requests:
+                      storage: 5Gi
+          ingress:
+            enabled: false
+        grafana:
+          sidecar:
+            dashboards:
+              annotations:
+                grafana_folder: kubernetes
+              folderAnnotation: grafana_folder
+              provider:
+                foldersFromFilesStructure: true
+          ingress:
+            enabled: false # TODO: decide how to expose internal grafana
+        kubernetesServiceMonitors:
+          enabled: false # Disable k8s service monitors on private cloud ai
+        nodeExporter:
+          enabled: false # Disable node exporter on private cloud ai
+        prometheusOperator:
+          namespaces:
+            releaseNamespace: true
+          resources:
+            limits:
+              cpu: 200m
+              memory: 200Mi
+            requests:
+              cpu: 100m
+              memory: 100Mi
+        prometheus:
+          ingress:
+            enabled: false
+          prometheusSpec:
+            retention_size: 42GB
+            enableAdminAPI: true
+            replicaExternalLabelName: replica
+            probeSelectorNilUsesHelmValues: false
+            scrapeConfigSelectorNilUsesHelmValues: false
+            ruleSelectorNilUsesHelmValues: false
+            resources:
+              limits:
+                cpu: 1
+                memory: 4Gi
+              requests:
+                cpu: 100m
+                memory: 64Mi
+            # By default the selectors are {}. Without setting the next two values to false,
+            # the serviceMonitor and podMonitor selectors will default to the app namespace
+            # and name and monitors will not be discovered.
+            serviceMonitorSelectorNilUsesHelmValues: false
+            podMonitorSelectorNilUsesHelmValues: false
+            storageSpec:
+              volumeClaimTemplate:
+                spec:
+                  storageClassName: gl4f-filesystem
+                  accessModes:
+                    - ReadWriteOnce
+                  resources:
+                    requests:
+                      storage: 50Gi
