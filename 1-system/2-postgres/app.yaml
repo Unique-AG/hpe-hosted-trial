@@ -1,0 +1,36 @@
+spec:
+  name: postgres
+  metadata:
+    argocd.argoproj.io/sync-wave: "1"
+  autoSync: true
+  sources:
+    - repoURL: https://github.com/Unique-AG/hpe-hosted-trial
+      targetRevision: HEAD
+      path: "1-system/2-postgres"
+      directory:
+        recurse: true
+        include: '*.yaml'
+        exclude: '{app.yaml}'
+    - repoURL: registry-1.docker.io/bitnamicharts
+      chart: postgresql
+      targetRevision: 16.6.3
+      helm:
+        releaseName: postgres
+        valuesObject:
+          global:
+            postgresql:
+              auth:
+                existingSecret: postgres-secret
+                secretKeys:
+                  adminPasswordKey: ADMIN_POSTGRES_PASSWORD
+            defaultStorageClass: gl4f-filesystem
+          primary:
+            persistence:
+              size: 20Gi
+            resources:
+              limits:
+                cpu: 4
+                memory: 32Gi
+              requests:
+                cpu: 2
+                memory: 28Gi

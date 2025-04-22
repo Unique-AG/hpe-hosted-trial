@@ -8,3 +8,12 @@ This repository contains the ArgoCD configuration for the Unique application.
 * Step 3: Monitor Argo during deployment
 
 The integer prefixes in the system and applications folders show the sync wave for each service.
+
+## Sealed Secrets
+
+To encrypt secrets, run:
+
+```
+echo -n bar | kubectl create secret generic mysecret --dry-run=client --from-file=foo=/dev/stdin -o yaml >mysecret.yaml
+kubeseal --cert ./public.sealed-secrets.cert.pem -f mysecret.yaml -o yaml -w mysealedsecret.yaml -n namespace
+```
