@@ -1,0 +1,24 @@
+spec:
+  name: sealed-secrets
+  metadata:
+    argocd.argoproj.io/sync-wave: "1"
+  autoSync: true
+  sources:
+    - repoURL: https://bitnami-labs.github.io/sealed-secrets
+      chart: sealed-secrets
+      targetRevision: 2.17.2
+      helm:
+        releaseName: sealed-secrets
+        valuesObject:
+          rbac:
+            clusterRole: false
+            namespacedRoles: true
+          additionalNamespaces:
+            - unique
+          resources:
+            limits:
+              cpu: 150m
+              memory: 256Mi
+            requests:
+              cpu: 100m
+              memory: 128Mi
