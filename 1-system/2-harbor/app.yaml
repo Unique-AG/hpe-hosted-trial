@@ -1,0 +1,121 @@
+spec:
+  name: harbor
+  metadata:
+    argocd.argoproj.io/sync-wave: "2"
+  autoSync: false
+  sources:
+    - repoURL: https://github.com/Unique-AG/hpe-hosted-trial
+      targetRevision: HEAD
+      path: "1-system/2-harbor"
+      directory:
+        recurse: true
+        include: '*.yaml'
+        exclude: '{app.yaml}'
+    - repoURL: https://helm.goharbor.io
+      chart: harbor
+      targetRevision: 1.17.0
+      helm:
+        releaseName: harbor
+        valuesObject:
+          expose:
+            type: clusterIP
+            tls:
+              enabled: false
+              certSource: none
+
+          externalURL: https://harbor.ingress.pcai0201.fr2.hpecolo.net
+
+          existingSecretAdminPassword: harbor-password-secret
+
+          persistence:
+            persistentVolumeClaim:
+              registry:
+                storageClass: gl4f-filesystem
+                size: 500Gi
+              chartmuseum:
+                storageClass: gl4f-filesystem
+              jobservice:
+                storageClass: gl4f-filesystem
+              database:
+                storageClass: gl4f-filesystem
+              redis:
+                storageClass: gl4f-filesystem
+              trivy:
+                storageClass: gl4f-filesystem
+
+          nginx:
+            resources:
+              limits:
+                cpu: 100m
+                memory: 256Mi
+              requests:
+                cpu: 100m
+                memory: 128Mi
+
+          portal:
+            resources:
+              limits:
+                cpu: 200m
+                memory: 512Mi
+              requests:
+                cpu: 100m
+                memory: 256Mi
+
+          core:
+            resources:
+              limits:
+                cpu: 1000m
+                memory: 2Gi
+              requests:
+                cpu: 500m
+                memory: 1Gi
+
+          jobservice:
+            resources:
+              limits:
+                cpu: 500m
+                memory: 1Gi
+              requests:
+                cpu: 200m
+                memory: 512Mi
+
+          registry:
+            resources:
+              limits:
+                cpu: 1000m
+                memory: 2Gi
+              requests:
+                cpu: 500m
+                memory: 1Gi
+
+          trivy:
+            enabled: false
+
+          database:
+            internal:
+              resources:
+                limits:
+                  cpu: 1000m
+                  memory: 2Gi
+                requests:
+                  cpu: 500m
+                  memory: 1Gi
+
+          redis:
+            internal:
+              resources:
+                limits:
+                  cpu: 200m
+                  memory: 512Mi
+                requests:
+                  cpu: 100m
+                  memory: 256Mi
+
+          exporter:
+            resources:
+              limits:
+                cpu: 100m
+                memory: 128Mi
+              requests:
+                cpu: 50m
+                memory: 64Mi
