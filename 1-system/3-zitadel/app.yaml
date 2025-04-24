@@ -21,13 +21,7 @@ spec:
             tag: v2.71.7
           
           ingress:
-            enabled: true
-            className: kong
-            hosts:
-              - host: id.ingress.pcai0201.fr2.hpecolo.net
-                paths:
-                  - path: /
-                    pathType: Prefix
+            enabled: false
 
           resources:
             requests:

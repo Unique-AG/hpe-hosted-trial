@@ -15,6 +15,10 @@ spec:
         uri: /
       route:
         - destination:
-            host: kong-gateway-proxy.unique.svc.cluster.local
+            host: zitadel.unique.svc.cluster.local
             port:
-              number: 80
+              number: 8080
+          headers:
+            request:
+              set:
+                X-Forwarded-Proto: https
