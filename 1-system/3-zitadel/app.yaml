@@ -1,0 +1,230 @@
+spec:
+  name: zitadel
+  metadata:
+    argocd.argoproj.io/sync-wave: "3"
+  autoSync: false
+  sources:
+    - repoURL: https://github.com/Unique-AG/hpe-hosted-trial
+      targetRevision: HEAD
+      path: "1-system/3-zitadel"
+      directory:
+        recurse: true
+        include: '*.yaml'
+        exclude: '{app.yaml}'
+    - repoURL: https://charts.zitadel.com
+      chart: zitadel
+      targetRevision: 8.13.1
+      helm:
+        releaseName: zitadel
+        valuesObject:
+          image:
+            tag: v2.71.7
+          
+          ingress:
+            enabled: true
+            className: kong
+            hosts:
+              - host: id.ingress.pcai0201.fr2.hpecolo.net
+                paths:
+                  - path: /
+                    pathType: Prefix
+
+          resources:
+            requests:
+              cpu: 1
+              memory: 6Gi
+            limits:
+              memory: 6Gi
+
+          zitadel:
+            masterkeySecretName: zitadel-masterkey-secret
+            debug:
+              enabled: true
+            configmapConfig:
+              ExternalSecure: true
+              ExternalDomain: id.ingress.pcai0201.fr2.hpecolo.net
+              TLS:
+                Enabled: false
+              Log:
+                Level: 'info'
+              LogStore:
+                Access:
+                  Stdout:
+                    Enabled: true
+              Database:
+                Postgres:
+                  Host: postgres-postgresql.unique.svc.cluster.local
+                  Port: 5432
+                  Database: zitadel
+                  MaxOpenConns: 50
+                  MaxIdleConns: 10
+                  MaxConnLifetime: 1h
+                  MaxConnIdleTime: 5m
+                  User:
+                    Username: unique
+                    SSL:
+                      Mode: disable
+                  Admin:
+                    SSL:
+                      Mode: disable
+              UserAgentCookie:
+                Name: uniqueid.useragent
+              Login:
+                LanguageCookieName: uniqueid.login.lang
+                CSRFCookieName: uniqueid.login.csrf
+              Quotas:
+                Access:
+                  ExhaustedCookieKey: uniqueid.quota.exhausted
+              SystemDefaults:
+                Multifactors:
+                  OTP:
+                    Issuer: UNIQUE
+                KeyConfig:
+                  # 90 days
+                  PrivateKeyLifetime: 2160h
+                  # 1year. Public key lifetime must be min 2x private key lifetime
+                  PublicKeyLifetime: 8760h
+              DefaultInstance:
+                InstanceName: UNIQUE
+                DefaultLanguage: en
+                DomainPolicy:
+                  UserLoginMustBeDomain: false
+                  ValidateOrgDomain: false
+                LoginPolicy:
+                  AllowDomainDiscovery: true
+                  AllowRegister: false
+                PrivacyPolicy:
+                  TOSLink: https://www.unique.ai/terms
+                  PrivacyLink: https://www.unique.ai/privacy
+                  SupportEmail: support@unique.ai
+                LabelPolicy:
+                  PrimaryColor: "#ffffff"
+                  BackgroundColor: "#fafafa"
+                  WarnColor: "#d71c1c"
+                  FontColor: "#000000"
+                  PrimaryColorDark: "#1fb7ea"
+                  BackgroundColorDark: "#02161d"
+                  WarnColorDark: "#ed315d"
+                  FontColorDark: "#ffffff"
+                  HideLoginNameSuffix: true
+                  ErrorMsgPopup: false
+                  DisableWatermark: true
+                SMTPConfiguration:
+                    SMTP:
+                      Host: smtp.sendgrid.net:465
+                      User: apikey
+                    TLS: true
+                    From: 'no-reply@unique.app'
+                    FromName: Unique
+                MessageTexts:
+                  - MessageTextType: InitCode
+                    Language: de
+                    Title: Unique - User initialisieren
+                    PreHeader: User initialisieren
+                    Subject: User initialisieren
+                    Greeting: Hallo {{ "{{" }}.DisplayName{{ "}}" }},
+                    Text: Dieser Benutzer wurde soeben im Unique erstellt. Mit dem Benutzernamen &lt;br&gt;&lt;strong&gt;{{ "{{" }}.PreferredLoginName{{ "}}" }}&lt;/strong&gt;&lt;br&gt; kannst du dich anmelden. Nutze den untenstehenden Button, um die Initialisierung abzuschliessen &lt;br&gt;(Code &lt;strong&gt;{{ "{{" }}.Code{{ "}}" }}&lt;/strong&gt;).&lt;br&gt; Falls du dieses Mail nicht angefordert hast, kannst du es einfach ignorieren.
+                    ButtonText: Initialisierung abschliessen
+                  - MessageTextType: PasswordReset
+                    Language: de
+                    Title: Unique - Passwort zurücksetzen
+                    PreHeader: Passwort zurücksetzen
+                    Subject: Passwort zurücksetzen
+                    Greeting: Hallo {{ "{{" }}.DisplayName{{ "}}" }},
+                    Text: Wir haben eine Anfrage für das Zurücksetzen deines Passwortes bekommen. Du kannst den untenstehenden Button verwenden, um dein Passwort zurückzusetzen &lt;br&gt;(Code &lt;strong&gt;{{ "{{" }}.Code{{ "}}" }}&lt;/strong&gt;).&lt;br&gt; Falls du dieses Mail nicht angefordert hast, kannst du es ignorieren.
+                    ButtonText: Passwort zurücksetzen
+                  - MessageTextType: VerifyEmail
+                    Language: de
+                    Title: Unique - Email verifizieren
+                    PreHeader: Email verifizieren
+                    Subject: Email verifizieren
+                    Greeting: Hallo {{ "{{" }}.DisplayName{{ "}}" }},
+                    Text: Eine neue E-Mail Adresse wurde hinzugefügt. Bitte verwende den untenstehenden Button um diese zu verifizieren &lt;br&gt;(Code &lt;strong&gt;{{ "{{" }}.Code{{ "}}" }}&lt;/strong&gt;).&lt;br&gt; Falls du deine E-Mail Adresse nicht selber hinzugefügt hast, kannst du dieses E-Mail ignorieren.
+                    ButtonText: Email verifizieren
+                  - MessageTextType: VerifyPhone
+                    Language: de
+                    Title: Unique - Telefonnummer verifizieren
+                    PreHeader: Telefonnummer verifizieren
+                    Subject: Telefonnummer verifizieren
+                    Greeting: Hallo {{ "{{" }}.DisplayName{{ "}}" }},
+                    Text: Eine Telefonnummer wurde hinzugefügt. Bitte verifiziere diese in dem du folgenden Code eingibst (Code {{ "{{" }}.Code{{ "}}" }})
+                    ButtonText: Telefon verifizieren
+                  - MessageTextType: DomainClaimed
+                    Language: de
+                    Title: Unique - Domain wurde beansprucht
+                    PreHeader: Email / Username ändern
+                    Subject: Domain wurde beansprucht
+                    Greeting: Hallo {{ "{{" }}.DisplayName{{ "}}" }},
+                    Text: Die Domain {{ "{{" }}.Domain{{ "}}" }} wurde von einer Organisation beansprucht. Dein derzeitiger User {{ "{{" }}.Username{{ "}}" }} ist nicht Teil dieser Organisation. Daher musst du beim nächsten Login eine neue Email hinterlegen. Für diesen Login haben wir dir einen temporären Usernamen ({{ "{{" }}.TempUsername{{ "}}" }}) erstellt.
+                    ButtonText: Login
+                  - MessageTextType: PasswordChange
+                    Language: de
+                    Title: Unique - Passwort von Benutzer wurde geändert
+                    PreHeader: Passwort Änderung
+                    Subject: Passwort von Benutzer wurde geändert
+                    Greeting: Hallo {{ "{{" }}.DisplayName{{ "}}" }},
+                    Text: Das Password vom Benutzer wurde geändert. Wenn diese Änderung von jemand anderem gemacht wurde, empfehlen wir die sofortige Zurücksetzung ihres Passworts.
+                    ButtonText: Login
+                  - MessageTextType: InitCode
+                    Language: en
+                    Title: Unique - Initialize User
+                    PreHeader: Initialize User
+                    Subject: Initialize User
+                    Greeting: Hello {{ "{{" }}.DisplayName{{ "}}" }},
+                    Text: This user was created in Unique. Use the username {{ "{{" }}.PreferredLoginName{{ "}}" }} to login. Please click the button below to finish the initialization process. (Code {{ "{{" }}.Code{{ "}}" }}) If you didn't ask for this mail, please ignore it.
+                    ButtonText: Finish initialization
+                  - MessageTextType: PasswordReset
+                    Language: en
+                    Title: Unique - Reset password
+                    PreHeader: Reset password
+                    Subject: Reset password
+                    Greeting: Hello {{ "{{" }}.DisplayName{{ "}}" }},
+                    Text: We received a password reset request. Please use the button below to reset your password. (Code {{ "{{" }}.Code{{ "}}" }}) If you didn't ask for this mail, please ignore it.
+                    ButtonText: Reset password
+                  - MessageTextType: VerifyEmail
+                    Language: en
+                    Title: Unique - Verify email
+                    PreHeader: Verify email
+                    Subject: Verify email
+                    Greeting: Hello {{ "{{" }}.DisplayName{{ "}}" }},
+                    Text: A new email has been added. Please use the button below to verify your mail. (Code {{ "{{" }}.Code{{ "}}" }}) If you din't add a new email, please ignore this email.
+                    ButtonText: Verify email
+                  - MessageTextType: VerifyPhone
+                    Language: en
+                    Title: Unique - Verify phone
+                    PreHeader: Verify phone
+                    Subject: Verify phone
+                    Greeting: Hello {{ "{{" }}.DisplayName{{ "}}" }},
+                    Text: A new phonenumber has been added. Please use the following code to verify it {{ "{{" }}.Code{{ "}}" }}.
+                    ButtonText: Verify phone
+                  - MessageTextType: DomainClaimed
+                    Language: en
+                    Title: Unique - Domain has been claimed
+                    PreHeader: Change email / username
+                    Subject: Domain has been claimed
+                    Greeting: Hello {{ "{{" }}.DisplayName{{ "}}" }},
+                    Text: The domain {{ "{{" }}.Domain{{ "}}" }} has been claimed by an organisation. Your current user {{ "{{" }}.UserName{{ "}}" }} is not part of this organisation. Therefore you'll have to change your email when you login. We have created a temporary username ({{ "{{" }}.TempUsername{{ "}}" }}) for this login.
+                    ButtonText: Login
+                  - MessageTextType: PasswordChange
+                    Language: en
+                    Title: Unique - Password of user has changed
+                    PreHeader: Change password
+                    Subject: Password of user has changed
+                    Greeting: Hello {{ "{{" }}.DisplayName{{ "}}" }},
+                    Text: The password of your user has changed. If this change was not done by you, please be advised to immediately reset your password.
+                    ButtonText: Login
+              FirstInstance:
+                InstanceName: UNIQUE
+                DefaultLanguage: en
+                DomainPolicy:
+                  UserLoginMustBeDomain: false
+                  ValidateOrgDomain: false
+                LoginPolicy:
+                  AllowDomainDiscovery: true
+                  AllowRegister: false
+                Org:
+                  Name: Cluster IAM
+                  Human:
+                    Username: root@cluster-iam.localhost
+                    Password: "RootPassword1!" # must be changed on first login so not a problem
+            configSecretName: zitadel-secret-config

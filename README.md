@@ -23,3 +23,21 @@ There is a convenience script that will find all the secrets in the repo and enc
 ```
 ./seal-secrets.sh
 ```
+
+## Zitadel Superuser
+
+The Zitadel superuser is used to bootstrap the Zitadel instance. Create a private key like this:
+
+```
+# Generate the private key
+openssl genrsa -out superuser.pem 2048
+
+# Extract the public key from the private key
+openssl rsa -in superuser.pem -pubout -out superuser.pub
+
+# Encode the public key in base64
+cat superuser.pub | base64
+cat superuser.pem | base64
+```
+
+Paste the values into the secrets.
