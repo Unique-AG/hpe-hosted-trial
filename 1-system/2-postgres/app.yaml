@@ -27,6 +27,8 @@ spec:
                   userPasswordKey: USER_POSTGRES_PASSWORD
             defaultStorageClass: gl4f-filesystem
           primary:
+            extendedConfiguration: |
+              max_connections = 200
             annotations:
               argocd.argoproj.io/sync-wave: "3"
             initdb:
