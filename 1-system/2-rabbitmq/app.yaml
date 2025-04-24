@@ -1,0 +1,39 @@
+spec:
+  name: rabbitmq
+  metadata:
+    argocd.argoproj.io/sync-wave: "2"
+  autoSync: false
+  sources:
+    - repoURL: https://github.com/Unique-AG/hpe-hosted-trial
+      targetRevision: HEAD
+      path: "1-system/2-rabbitmq"
+      directory:
+        recurse: true
+        include: '*.yaml'
+        exclude: '{app.yaml}'
+    - repoURL: registry-1.docker.io/bitnamicharts
+      chart: rabbitmq
+      targetRevision: 16.0.0
+      helm:
+        releaseName: rabbitmq
+        valuesObject:
+          global:
+            defaultStorageClass: gl4f-filesystem
+          replicaCount: 1
+          auth:
+            existingPasswordSecret: rabbitmq-password-secret
+            existingErlangSecret: rabbitmq-password-secret
+          memoryHighWatermark:
+            enabled: true
+            type: absolute
+            value: 20Gi
+          persistence:
+            enabled: true
+            size: 50Gi
+          resources:
+            requests:
+              memory: 24Gi
+              cpu: 1
+            limits:
+              memory: 24Gi
+              cpu: 1

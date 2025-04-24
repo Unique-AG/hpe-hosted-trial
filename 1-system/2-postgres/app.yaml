@@ -17,8 +17,6 @@ spec:
       helm:
         releaseName: postgres
         valuesObject:
-          image:
-            debug: true
           global:
             postgresql:
               auth:
