@@ -1,7 +1,7 @@
 spec:
   name: postgres
   metadata:
-    argocd.argoproj.io/sync-wave: "1"
+    argocd.argoproj.io/sync-wave: "2"
   autoSync: false
   sources:
     - repoURL: https://github.com/Unique-AG/hpe-hosted-trial
@@ -17,14 +17,22 @@ spec:
       helm:
         releaseName: postgres
         valuesObject:
+          image:
+            debug: true
           global:
             postgresql:
               auth:
+                username: unique
                 existingSecret: postgres-secret
                 secretKeys:
                   adminPasswordKey: ADMIN_POSTGRES_PASSWORD
+                  userPasswordKey: USER_POSTGRES_PASSWORD
             defaultStorageClass: gl4f-filesystem
           primary:
+            annotations:
+              argocd.argoproj.io/sync-wave: "3"
+            initdb:
+              scriptsConfigMap: postgres-initdb
             persistence:
               size: 20Gi
             resources:

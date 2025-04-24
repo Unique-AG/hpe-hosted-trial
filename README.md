@@ -17,3 +17,9 @@ To encrypt secrets, run:
 echo -n bar | kubectl create secret generic mysecret --dry-run=client --from-file=foo=/dev/stdin -o yaml >mysecret.yaml
 kubeseal --cert ./public.sealed-secrets.cert.pem -f mysecret.yaml -o yaml -w mysealedsecret.yaml -n namespace
 ```
+
+There is a convenience script that will find all the secrets in the repo and encrypt them:
+
+```
+./seal-secrets.sh
+```

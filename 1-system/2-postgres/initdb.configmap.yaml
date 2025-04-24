@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: postgres-initdb
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+data:
+  init.sql: |
+    SELECT 'CREATE DATABASE chat OWNER "unique"' WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'chat')\gexec
+    SELECT 'CREATE DATABASE theme OWNER "unique"' WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'theme')\gexec
+    SELECT 'CREATE DATABASE scope_management OWNER "unique"' WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'scope_management')\gexec
+    SELECT 'CREATE DATABASE app_repository OWNER "unique"' WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'app_repository')\gexec
+    SELECT 'CREATE DATABASE ingestion OWNER "unique"' WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'ingestion')\gexec
+    SELECT 'CREATE DATABASE zitadel OWNER "unique"' WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'zitadel')\gexec 
