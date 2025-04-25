@@ -1,0 +1,103 @@
+{{- if .Values.cronJob.enabled -}}
+{{- $fullName := include "backend-service.fullname" . -}}
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  {{- if .Values.cronJob.name }}
+  name: {{ $fullName }}-{{ .Values.cronJob.name }}
+  {{- else }}
+  name: {{ $fullName }}
+  {{- end }}
+  labels:
+    {{- include "backend-service.labels" . | nindent 4 }}
+    app.kubernetes.io/component: cron-job
+spec:
+  suspend: {{ .Values.cronJob.suspend }}
+  schedule: {{ .Values.cronJob.schedule | quote }}
+  timeZone: {{ .Values.cronJob.timeZone | quote }}
+  concurrencyPolicy: {{ .Values.cronJob.concurrencyPolicy | quote }}
+  successfulJobsHistoryLimit: {{ .Values.cronJob.successfulJobsHistoryLimit }}
+  failedJobsHistoryLimit: {{ .Values.cronJob.failedJobsHistoryLimit }}
+  startingDeadlineSeconds: {{ .Values.cronJob.startingDeadlineSeconds }}
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            {{- include "backend-service.labels" . | nindent 12 }}
+            app.kubernetes.io/component: cron-job
+        spec:
+          {{- with .Values.imagePullSecrets }}
+          imagePullSecrets:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          restartPolicy: {{ .Values.cronJob.jobTemplate.restartPolicy | quote }}
+          {{- if .Values.cronJob.initContainers }}
+          initContainers:
+          {{- range .Values.cronJob.initContainers }}
+            - name: {{ .name | default (printf "init-%s" $fullName) }}
+              image: "{{ .image | default "busybox:1.28" }}"
+              restartPolicy: "{{ .restartPolicy | default "Always" }}"
+              command: {{ .command | toYaml | nindent 16 }}
+              {{- if .volumeMounts }}
+              volumeMounts:
+              {{- range .volumeMounts }}
+                - name: {{ .name}}
+                  mountPath: {{ .mountPath}}   
+              {{- end }}
+              {{- end }}
+          {{- end }}
+          {{- end }}
+          containers:
+            - name: {{ .Values.cronJob.jobTemplate.containers.name | quote }}
+              image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+              imagePullPolicy: {{ .Values.image.pullPolicy }}
+              resources:
+                {{- toYaml .Values.resources | nindent 16 }}
+              volumeMounts:
+              {{- with .Values.volumeMounts }}
+                {{- toYaml . | nindent 16 }}
+              {{- end }}
+              {{- if .Values.secretProvider }}
+              {{- range $k, $v := .Values.secretProvider.vaults }}
+                - name: {{ $fullName }}-{{ $k }}
+                  mountPath: "/mnt/{{ $fullName }}-{{ $k }}"
+                  readOnly: true
+              {{- end }}
+              {{- end }}
+              securityContext: {{- toYaml .Values.securityContext | nindent 16 }}
+              envFrom:
+                - configMapRef:
+                    name: {{ $fullName }}
+                {{- if .Values.externalSecret.enabled }}
+                - secretRef:
+                    name: {{ $fullName }}
+                {{- end }}
+                {{- if .Values.secretFrom }}
+                - secretRef:
+                    name: {{ .Values.secretFrom.name }}
+                {{- end }}
+              {{- if .Values.cronJob.env }}
+              env:
+                {{- range $key, $value := .Values.cronJob.env }}
+                - name: {{ $key }}
+                  value: {{ $value | quote }}
+                {{- end }}
+              {{- end }}
+          {{- with .Values.nodeSelector }}
+          nodeSelector:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.tolerations }}
+          tolerations:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.affinity }}
+          affinity:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.volumes }}
+          volumes:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+{{- end }}

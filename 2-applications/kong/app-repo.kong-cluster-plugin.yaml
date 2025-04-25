@@ -1,0 +1,9 @@
+apiVersion: configuration.konghq.com/v1
+kind: KongClusterPlugin
+metadata:
+  name: unique-app-repo-auth
+  annotations:
+    kubernetes.io/ingress.class: kong
+plugin: unique-app-repo-auth
+config:
+  app_repository_url: http://service-app-repository.unique.svc.cluster.local

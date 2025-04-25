@@ -1,0 +1,10 @@
+spec:
+  name: unique-kong-configuration
+  autoSync: false
+  source:
+    repoURL: https://github.com/Unique-AG/hpe-hosted-trial
+    targetRevision: HEAD
+    path: "2-applications/kong"
+    directory:
+      recurse: true
+      exclude: '{app.yaml}'

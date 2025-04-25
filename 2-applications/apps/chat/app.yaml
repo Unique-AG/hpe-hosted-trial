@@ -1,0 +1,75 @@
+spec:
+  name: unique-web-app-chat
+  autoSync: false
+  source:
+    repoURL: https://github.com/Unique-AG/hpe-hosted-trial
+    targetRevision: HEAD
+    path: "helm/web-app"
+    helm:
+      releaseName: web-app-chat
+      valuesObject:
+        nameOverride: web-app-chat
+        image:
+          repository: harbor.ingress.pcai0201.fr2.hpecolo.net/library/chat
+          tag: "2025.17-ab449"
+        env:
+          SELF_URL: https://unique.ingress.pcai0201.fr2.hpecolo.net/chat
+          KNOWLEDGE_UPLOAD_APP_URL: https://unique.ingress.pcai0201.fr2.hpecolo.net/knowledge-upload
+          CHAT_APP_URL: https://unique.ingress.pcai0201.fr2.hpecolo.net/chat
+          ADMIN_APP_URL: https://unique.ingress.pcai0201.fr2.hpecolo.net/admin
+          INGESTION_BACKEND_API_URL: https://api.ingress.pcai0201.fr2.hpecolo.net/ingestion
+          SCOPE_MANAGEMENT_BACKEND_API_URL: https://api.ingress.pcai0201.fr2.hpecolo.net/scope-management
+          THEME_BACKEND_API_URL: https://api.ingress.pcai0201.fr2.hpecolo.net/theme
+          CHAT_BACKEND_API_URL: https://api.ingress.pcai0201.fr2.hpecolo.net/chat
+          ZITADEL_ISSUER: https://id.ingress.pcai0201.fr2.hpecolo.net
+          ZITADEL_CLIENT_ID: "317217950350287705"
+          ZITADEL_PROJECT_ID: "null" # Not required any more, as Kong extracts roles from JWT
+          CONTENT_SECURITY_POLICY_VALUE: "default-src 'self'; img-src https: blob: data: *.unique.ingress.pcai0201.fr2.hpecolo.net; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; font-src 'self' data:; connect-src 'self' blob: *.unique.ingress.pcai0201.fr2.hpecolo.net wss://*.unique.ingress.pcai0201.fr2.hpecolo.net; media-src 'self' *.unique.ingress.pcai0201.fr2.hpecolo.net; frame-ancestors 'self'; frame-src 'self' *.unique.ingress.pcai0201.fr2.hpecolo.net;"
+          STATIC_THEME_COLORS: >-
+            {"color-primary-cta": "#D63384", "color-primary-variant": "#B2447A", "color-secondary": "#042834", "color-secondary-variant": "#03212B", "color-background": "#F7F7F7", "color-background-variant": "#EBEBED", "color-surface": "#FFFFFF", "color-control": "#D8D8D8", "color-info": "#0A96E6", "color-success-light": "#A0C855", "color-success-dark": "#3D9E3F", "color-error-light": "#F65D67", "color-error-dark": "#DC3545", "color-attention": "#FFC65C", "color-attention-variant": "#19AADA",
+            "color-on-primary": "#FFFFFF", "color-on-secondary": "#FFFFFF", "color-on-background-main": "#02161D", "color-on-background-dimmed": "#1F505F", "color-on-surface": "#02161D", "color-on-control-main": "#02161D", "color-on-control-dimmed": "#9C9C9C", "color-on-info": "#FFFFFF", "color-on-success-light": "#FFFFFF", "color-on-success-dark": "#FFFFFF", "color-on-error-light": "#FFFFFF", "color-on-error-dark": "#FFFFFF", "color-on-attention": "#02161D", "color-on-attention-variant": "#FFFFFF"}
+        resources:
+          requests:
+            cpu: 100m
+            memory: 300Mi
+          limits:
+            memory: 350Mi
+        livenessProbe:
+          httpGet:
+            path: /chat/api/health
+          initialDelaySeconds: 5
+        readinessProbe:
+          httpGet:
+            path: /chat/api/health
+          initialDelaySeconds: 5
+        httproute:
+          enabled: true
+          hostnames:
+            - unique.ingress.pcai0201.fr2.hpecolo.net
+          gatewayName: unique
+          gatewayNamespace: unique
+          rules:
+            - matches:
+                - path:
+                    type: PathPrefix
+                    value: /chat
+          additionalRoutes:
+            - name: web-app-root
+              hostnames:
+                - unique.ingress.pcai0201.fr2.hpecolo.net
+              rules:
+                - matches:
+                    - path:
+                        type: PathPrefix
+                        value: /
+                  filters:
+                    - type: RequestRedirect
+                      requestRedirect:
+                        scheme: https
+                        hostname: unique.ingress.pcai0201.fr2.hpecolo.net
+                        path:
+                          type: ReplaceFullPath
+                          replaceFullPath: /chat
+                        statusCode: 302 # Temporary Redirect, as we might change the root path in the future
+                        port: 443
+

@@ -1,0 +1,175 @@
+replicaCount: 1
+
+image:
+  repository: ""
+  pullPolicy: IfNotPresent
+  tag: ""
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+env: {}
+  
+secretFrom: {}
+  # name: the name of the secret to mount
+
+serviceAccount:
+  create: true
+  automount: true
+  annotations: {}
+  name: ""
+
+podAnnotations: {}
+podLabels: {}
+
+podSecurityContext: {}
+
+securityContext:
+  capabilities:
+    drop:
+    - ALL
+  readOnlyRootFilesystem: true
+  runAsNonRoot: true
+  runAsUser: 1000
+
+ports:
+  # -- application port, this is the port that the deployed application listens on
+  application: 8080
+  # -- service port, this is the port that the service will be exposed on
+  service: 80
+
+service:
+  enabled: true
+  type: ClusterIP
+  port: 80
+
+httproute:
+  enabled: false
+  annotations: {}
+  gatewayName: kong
+  gatewayNamespace: kong-system
+  hostnames: []
+  rules:
+    - matches:
+      - path:
+          type: PathPrefix
+          value: /
+      # backendRefs can be omitted to use the default service
+      # backendRefs:
+      #   - name: custom-service
+      #     kind: Service
+      #     port: 8080
+    # Example of a more complex rule
+    # - matches:
+    #   - headers:
+    #       - name: "X-Version"
+    #         value: "v3"
+    #     path:
+    #       type: PathPrefix
+    #       value: /test
+    #   backendRefs:
+    #     - name: api-v2
+    #       kind: Service
+    #       port: 8081
+    
+  # Additional HTTPRoutes
+  additionalRoutes: []
+
+resources: {}
+
+probes:
+  enabled: true
+  livenessProbe:
+    httpGet:
+      path: /probe
+      port: http
+  readinessProbe:
+    httpGet:
+      path: /probe
+      port: http
+
+volumes: []
+
+volumeMounts: []
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+externalSecret:
+  enabled: false
+  refreshInterval: 5m
+  secretStoreRef:
+    kind: ClusterSecretStore
+    name: default-secret-store
+  target:
+    template:
+      data: {}
+  data: []
+
+objectBucketClaims:
+  enabled: false
+  buckets:
+    - name: example-bucket
+      storageClassName: ceph-bucket
+
+hooks:
+  migration:
+    enabled: false
+    # name: "" defaults to db-migration
+    command: ""
+    # initContainers:
+    #   - command:
+    #       - sh
+    #       - -c
+    #       - export MY_VARIABLE="some_value" && sleep 1
+    #     volumeMounts:
+    #       - name: data
+    #         mountPath: /opt
+
+cronJob:
+  enabled: false
+  name: ""
+  suspend: false
+  schedule: ""
+  timeZone: "Europe/Zurich"
+  concurrencyPolicy: Allow
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 1
+  startingDeadlineSeconds: 60
+  jobTemplate:
+    restartPolicy: OnFailure
+    containers:
+      name: ""
+  env: {}
+  # initContainers: 
+  #   - command:
+  #       - sh
+  #       - -c
+  #       - export MY_VARIABLE="some_value" && sleep 1
+  #     volumeMounts:
+  #       - name: data
+  #         mountPath: /opt
+
+persistentVolumeClaims:
+  enabled: false
+  claims:
+    # - name: data
+    #   accessModes:
+    #     - ReadWriteOnce
+    #   storageClassName: ceph-block
+    #   resources:
+    #     requests:
+    #       storage: 1Gi
+
+initContainers: []
+# - name: init-myservice
+#   image: busybox:1.28
+#   command: ['sh', '-c', "until nslookup myservice.$(cat /var/run/secrets/kubernetes.io/serviceaccount/namespace).svc.cluster.local; do echo waiting for myservice; sleep 2; done"]
+#   volumeMounts:
+#     - name: data
+#       mountPath: /data
+

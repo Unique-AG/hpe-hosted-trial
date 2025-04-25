@@ -1,0 +1,15 @@
+{{- if .Values.objectBucketClaims.enabled }}
+{{- range .Values.objectBucketClaims.buckets }}
+---
+apiVersion: objectbucket.io/v1alpha1
+kind: ObjectBucketClaim
+metadata:
+  name: {{ .name }}
+  namespace: {{ $.Release.Namespace }}
+  labels:
+    {{- include "backend-service.labels" $ | nindent 4 }}
+spec:
+  bucketName: {{ .name }}
+  storageClassName: {{ .storageClassName }}
+{{- end }}
+{{- end }}

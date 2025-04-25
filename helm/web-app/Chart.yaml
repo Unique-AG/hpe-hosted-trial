@@ -1,0 +1,5 @@
+apiVersion: v2
+name: web-app
+description: OnPremise Cluster Web App Helm Chart
+type: application
+version: 0.11.0
