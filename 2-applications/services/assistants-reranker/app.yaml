@@ -1,0 +1,91 @@
+spec:
+  name: unique-service-assistants-reranker
+  autoSync: false
+  sources:
+    - repoURL: https://github.com/Unique-AG/hpe-hosted-trial
+      targetRevision: HEAD
+      path: "2-applications/services/assistants-reranker"
+      directory:
+        recurse: true
+        include: '*.yaml'
+        exclude: '{app.yaml}'
+    - repoURL: https://github.com/Unique-AG/hpe-hosted-trial
+      targetRevision: HEAD
+      path: "helm/backend-service"
+      helm:
+        releaseName: service-assistants-reranker
+        valuesObject:
+          nameOverride: service-assistants-reranker
+          image:
+            repository: harbor.ingress.pcai0201.fr2.hpecolo.net/library/assistants-reranker
+            tag: "2025.17-1c5de"
+          env:
+            API_BASE: http://service-chat.unique.svc.cluster.local/public
+            GUNICORN_THREADS: 4
+            GUNICORN_WORKERS: 1
+            RERANKER_MODEL: cross-encoder/msmarco-MiniLM-L12-en-de-v1
+          replicaCount: 1
+          resources:
+            requests:
+              cpu: '4'
+              memory: 12Gi
+            limits:
+              memory: 12Gi
+          probes:
+            enabled: false
+          podSecurityContext:
+            fsGroup: 1000
+          volumeMounts:
+            - name: assistants-cache
+              mountPath: /artifacts
+            - name: tmp-app-cache
+              mountPath: /home/app/.cache
+            - name: tmp-folder
+              mountPath: /tmp
+          volumes:
+            - name: tmp-app-cache
+              emptyDir:
+                sizeLimit: 10Gi
+            - name: tmp-folder
+              emptyDir:
+                sizeLimit: 10Gi
+            - name: assistants-cache
+              persistentVolumeClaim:
+                claimName: assistants-cache
+          initContainers:
+            - name: download-artifacts
+              image: curlimages/curl:8.6.0
+              command:
+                - /bin/sh
+                - -c
+              args:
+                - |
+                  echo "Checking and downloading artifact files if needed..."
+                  cd /artifacts
+                  
+                  download_if_missing() {
+                    local file=$1
+                    local url=$2
+                    if [ ! -f "$file" ]; then
+                      echo "Downloading $file..."
+                      for i in 1 2 3; do
+                        if curl -f -o "$file" "$url"; then
+                          echo "$file downloaded successfully"
+                          return 0
+                        fi
+                        echo "Attempt $i failed, retrying..."
+                        sleep 5
+                      done
+                      echo "Failed to download $file after 3 attempts"
+                      return 1
+                    else
+                      echo "$file already exists, skipping download"
+                    fi
+                  }
+
+                  download_if_missing "reranker_cross_encoder_msmarco" "https://huggingface.co/cross-encoder/msmarco-MiniLM-L12-en-de-v1/resolve/main/pytorch_model.bin" && \
+                  download_if_missing "reranker_mixedbread_ai_rerank" "https://huggingface.co/mixedbread-ai/mxbai-rerank-xsmall-v1/resolve/main/model.safetensors"
+              volumeMounts:
+                - name: assistants-cache
+                  mountPath: /artifacts
+                  readOnly: false

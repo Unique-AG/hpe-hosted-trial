@@ -1,0 +1,12 @@
+# TODO: Replace with minio
+# apiVersion: objectbucket.io/v1alpha1
+# kind: ObjectBucketClaim
+# metadata:
+#   name: ingestion-storage-bucket
+#   namespace: document-chat
+#   annotations:
+#     argocd.argoproj.io/sync-wave: "0"
+#     argocd.argoproj.io/sync-options: Prune=false
+# spec:
+#   bucketName: ingestion-storage-bucket
+#   storageClassName: ceph-bucket-retain

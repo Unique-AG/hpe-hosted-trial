@@ -1,0 +1,130 @@
+spec:
+  name: unique-service-chat
+  autoSync: false
+  sources:
+    - repoURL: https://github.com/Unique-AG/hpe-hosted-trial
+      targetRevision: HEAD
+      path: "2-applications/services/chat"
+      directory:
+        recurse: true
+        include: '*.yaml'
+        exclude: '{app.yaml}'
+    - repoURL: https://github.com/Unique-AG/hpe-hosted-trial
+      targetRevision: HEAD
+      path: "helm/backend-service"
+      helm:
+        releaseName: service-chat
+        valuesObject:
+          nameOverride: service-chat
+          image:
+            repository: harbor.ingress.pcai0201.fr2.hpecolo.net/library/node-chat
+            tag: "2025.17-ab449"
+          env:
+            MAX_HEAP_MB: 8400
+            LOG_LEVEL: info
+            CORS_ALLOWED_ORIGINS: '[]' # Not required, as Kong handles CORS
+            INGESTION_API_URL: 'http://service-ingestion.unique.svc.cluster.local'
+            SCOPE_MANAGEMENT_API_URL: 'http://service-scope-management.unique.svc.cluster.local'
+            LITELLM_ENDPOINT: 'http://litellm.unique.svc.cluster.local:4000'
+            PUBSUB_BACKEND: redis
+            PUBSUB_REDIS_DB: 2
+            PUBSUB_REDIS_HOST: redis-master.redis.svc.cluster.local
+            PUBSUB_REDIS_PORT: '6379'
+            S3_BUCKET_ENDPOINT: 'http://minio.unique.svc.cluster.local:9000'
+            S3_BUCKET_REGION: 'us-east-1'
+            S3_BUCKET_NAME: 'ingestion-bucket'
+            BENCHMARKS_PER_MINUTE_PER_PROCESS: "1"
+            AMQP_BENCHMARK_PREFETCH: "1"
+            ANONYMIZED_CHAT_INTERACTIONS_EXPORT: "true"
+            ENABLE_CLIENT_INSIGHT_SHIPPER: "false"
+            FEATURE_FLAG_NET_PROMOTER_SCORE_UI_UN_7747: "true"
+            MIN_NO_OF_MESSAGES_BY_USER_BEFORE_NPS_TRIGGER: "30"
+            EXPORT_PROMPTS_ACCESS_CONTROL: "false"
+            INTERNAL_MODULES_CONFIG: >- 
+              [
+              {"name": "SearchInVectorDBV2", "apiURL": "http://assistants-core.unique.svc.cluster.local/core/search"},
+              {"name": "ImageSummarizer", "apiURL": "http://assistants-core.unique.svc.cluster.local/core/image_summarizer"},
+              {"name": "TranslationOneToOne", "apiURL": "http://assistants-core.unique.svc.cluster.local/core/translation_one_to_one"},
+              {"name": "WebSearch", "apiURL": "http://assistants-core.unique.svc.cluster.local/core/web_search"},
+              {"name": "ComplianceCheck", "apiURL": "http://assistants-core.unique.svc.cluster.local/core/compliance_check"},
+              {"name": "QuestionExtractor", "apiURL": "http://assistants-core.unique.svc.cluster.local/core/question_extractor"},
+              {"name": "QuestionAnswerer", "apiURL": "http://assistants-core.unique.svc.cluster.local/core/question_answerer"},
+              {"name": "QuestionPredictor", "apiURL": "http://assistants-core.unique.svc.cluster.local/core/question_predictor"},
+              {"name": "DocumentSummarizerV2", "apiURL": "http://assistants-core.unique.svc.cluster.local/core/document_summarizer"},
+              {"name": "ImageUpload", "apiURL": "http://assistants-core.unique.svc.cluster.local/core/image_upload"},
+              {"name": "DocumentTranslator", "apiURL": "http://assistants-core.unique.svc.cluster.local/core/document_translator"},
+              {"name": "AgenticSearch", "apiURL": "http://assistants-core.unique.svc.cluster.local/core/agentic_search"},
+              {"name": "TranslatorV2", "apiURL": "http://assistants-core.unique.svc.cluster.local/core/translator_v2"},
+              {"name": "InvestmentResearch", "apiURL": "http://assistants-core.unique.svc.cluster.local/core/investment_research"},
+              {"name": "EarningCallsBeta", "apiURL": "http://assistants-core.unique.svc.cluster.local/core/earning_calls"}
+              ]
+            AZURE_OPENAI_API_ENDPOINTS_JSON: >-
+              {
+                "gpt-35-turbo-0125": ["http://litellm.litellm.svc:4000/"],
+                "gpt-35-turbo-0301": ["http://litellm.litellm.svc:4000/"],
+                "gpt-35-turbo-0613": ["http://litellm.litellm.svc:4000/"],
+                "gpt-35-turbo-16k-0613": ["http://litellm.litellm.svc:4000/"],
+                "gpt-4-0613": ["http://litellm.litellm.svc:4000/"],
+                "gpt-4-32k-0613": ["http://litellm.litellm.svc:4000/"],
+                "gpt-4-1106-Preview": ["http://litellm.litellm.svc:4000/"],
+                "gpt-4-vision-preview": ["http://litellm.litellm.svc:4000/"],
+                "gpt-35-turbo-instruct-0914": [],
+                "gpt-4-turbo-2024-04-09": ["http://litellm.litellm.svc:4000/"],
+                "gpt-4o-2024-05-13": ["http://litellm.litellm.svc:4000/"],
+                "gpt-4o-mini-2024-07-18": ["http://litellm.litellm.svc:4000/"],
+                "gpt-4o-2024-08-06": ["http://litellm.litellm.svc:4000/"]
+              }
+          replicaCount: 1
+          resources:
+            requests:
+              cpu: 500m
+              memory: 12Gi
+            limits:
+              memory: 12Gi
+          hooks:
+            migration:
+              enabled: true
+              command: |
+                cd /node/dist/apps/node-chat; npx prisma migrate deploy
+          httproute:
+            enabled: true
+            hostnames:
+              - api.ingress.pcai0201.fr2.hpecolo.net
+            gatewayName: unique
+            gatewayNamespace: unique
+            annotations:
+              konghq.com/strip-path: "true"
+              konghq.com/plugins: unique-jwt-auth
+            rules:
+              - matches:
+                  - path:
+                      type: PathPrefix
+                      value: /chat
+            additionalRoutes:
+              - name: service-chat-public-api
+                hostnames:
+                  - api.ingress.pcai0201.fr2.hpecolo.net
+                gatewayName: unique
+                gatewayNamespace: unique
+                annotations:
+                  konghq.com/plugins: unique-app-repo-auth
+                rules:
+                  - matches:
+                      - path:
+                          type: PathPrefix
+                          value: /public/chat
+                    filters:
+                    - type: URLRewrite
+                      urlRewrite:
+                        path:
+                          type: ReplacePrefixMatch
+                          replacePrefixMatch: /public
+                    - type: RequestHeaderModifier
+                      requestHeaderModifier:
+                        add:
+                          - name: x-api-version
+                            value: 2023-12-06
+                    backendRefs:
+                      - name: service-chat
+                        port: 80
+                        kind: Service

@@ -1,0 +1,48 @@
+spec:
+  name: unique-service-ingestion-worker-chat
+  autoSync: false
+  sources:
+    - repoURL: https://github.com/Unique-AG/hpe-hosted-trial
+      targetRevision: HEAD
+      path: "2-applications/services/ingestion-worker-chat"
+      directory:
+        recurse: true
+        include: '*.yaml'
+        exclude: '{app.yaml}'
+    - repoURL: https://github.com/Unique-AG/hpe-hosted-trial
+      targetRevision: HEAD
+      path: "helm/backend-service"
+      helm:
+        releaseName: service-ingestion-worker-chat
+        valuesObject:
+          nameOverride: service-ingestion-worker-chat
+          image:
+            repository: harbor.ingress.pcai0201.fr2.hpecolo.net/library/ingestion-worker
+            tag: "2025.17-736d0"
+          env:
+            LOG_LEVEL: info
+            INGESTION_API_URL: 'http://service-ingestion.unique.svc.cluster.local'
+            MAX_HEAP_MB: 16800
+            CONVERT_OFFICE_FILES_TO_PDF: 'true'
+            INGESTION_QUEUE: 'chat_queue'
+            MAX_RETRIES: 1
+            NUMBER_OF_PDF_PAGES_IN_PARALLEL: 3
+            CUSTOM_API_DEFINITIONS: >-
+              []
+          replicaCount: 1
+          service:
+            enabled: false
+          resources:
+            requests:
+              cpu: 2
+              memory: 24Gi
+            limits:
+              memory: 24Gi
+          terminationGracePeriodSeconds: 900 # 15 minutes
+          volumes:
+            - name: tmp-volume
+              emptyDir:
+                sizeLimit: 100Gi
+          volumeMounts:
+            - mountPath: /tmp
+              name: tmp-volume

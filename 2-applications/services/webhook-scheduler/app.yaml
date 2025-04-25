@@ -1,0 +1,36 @@
+spec:
+  name: unique-service-webhook-scheduler
+  autoSync: false
+  sources:
+    - repoURL: https://github.com/Unique-AG/hpe-hosted-trial
+      targetRevision: HEAD
+      path: "2-applications/services/webhook-scheduler"
+      directory:
+        recurse: true
+        include: '*.yaml'
+        exclude: '{app.yaml}'
+    - repoURL: https://github.com/Unique-AG/hpe-hosted-trial
+      targetRevision: HEAD
+      path: "helm/backend-service"
+      helm:
+        releaseName: service-webhook-scheduler
+        valuesObject:
+          nameOverride: service-webhook-scheduler
+          image:
+            repository: harbor.ingress.pcai0201.fr2.hpecolo.net/library/webhook-scheduler
+            tag: "2025.17-1c5de"
+          env:
+            LOG_LEVEL: info
+            MAX_HEAP_MB: 2100
+            APP_REPOSITORY_URL: 'http://service-app-repository.unique.svc.cluster.local'
+          replicaCount: 1
+          service:
+            enabled: false
+          probes:
+            enabled: false
+          resources:
+            requests:
+              cpu: 100m
+              memory: 3Gi
+            limits:
+              memory: 3Gi

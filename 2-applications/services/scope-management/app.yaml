@@ -1,0 +1,72 @@
+spec:
+  name: unique-service-scope-management
+  autoSync: false
+  sources:
+    - repoURL: https://github.com/Unique-AG/hpe-hosted-trial
+      targetRevision: HEAD
+      path: "2-applications/services/scope-management"
+      directory:
+        recurse: true
+        include: '*.yaml'
+        exclude: '{app.yaml}'
+    - repoURL: https://github.com/Unique-AG/hpe-hosted-trial
+      targetRevision: HEAD
+      path: "helm/backend-service"
+      helm:
+        releaseName: service-scope-management
+        valuesObject:
+          nameOverride: service-scope-management
+          image:
+            repository: harbor.ingress.pcai0201.fr2.hpecolo.net/library/node-scope-management
+            tag: "2025.17-b6e55"
+          env:
+            LOG_LEVEL: info
+            MAX_HEAP_MB: 4200
+            ZITADEL_PROJECT_ID: 'null' # Not required any more, as Kong extracts roles from JWT
+            INGESTION_API_URL: 'http://service-ingestion.unique.svc.cluster.local'
+            CHAT_API_URL: 'http://service-chat.unique.svc.cluster.local'
+            ZITADEL_INTERNAL_HOST: 'http://zitadel.unique.svc.cluster.local'
+            ZITADEL_HOST: 'https://id.ingress.pcai0201.fr2.hpecolo.net'
+            CORS_ALLOWED_ORIGINS: '[]' # Not required any more. Kong handles CORS.
+          replicaCount: 1
+          resources:
+            requests:
+              cpu: 500m
+              memory: 6Gi
+            limits:
+              memory: 6Gi
+          hooks:
+            migration:
+              enabled: true
+              command: |
+                cd /node/dist/apps/node-scope-management; npx prisma migrate deploy
+          cronJob:
+            enabled: true
+            name: user-sync
+            suspend: false
+            schedule: "*/5 * * * *"
+            timeZone: Europe/Zurich
+            concurrencyPolicy: Forbid
+            successfulJobsHistoryLimit: 1
+            failedJobsHistoryLimit: 1
+            env:
+              RUNNING_MODE: 'user-sync'
+            startingDeadlineSeconds: 10
+            jobTemplate:
+              restartPolicy: Never
+              containers:
+                name: service-scope-management-user-sync
+          httproute:
+            enabled: true
+            hostnames:
+              - api.ingress.pcai0201.fr2.hpecolo.net
+            gatewayName: unique
+            gatewayNamespace: unique
+            annotations:
+              konghq.com/strip-path: "true"
+              konghq.com/plugins: unique-jwt-auth
+            rules:
+              - matches:
+                  - path:
+                      type: PathPrefix
+                      value: /scope-management

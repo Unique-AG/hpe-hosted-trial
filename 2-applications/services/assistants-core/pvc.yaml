@@ -1,0 +1,12 @@
+# This PVC is shared with assistants-reranker, hence we don't use helm to create it.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: assistants-cache
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: gl4f-filesystem
+  resources:
+    requests:
+      storage: 100Gi

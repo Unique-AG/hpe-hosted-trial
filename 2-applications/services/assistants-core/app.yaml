@@ -1,0 +1,81 @@
+spec:
+  name: unique-service-assistants-core
+  autoSync: false
+  sources:
+    - repoURL: https://github.com/Unique-AG/hpe-hosted-trial
+      targetRevision: HEAD
+      path: "2-applications/services/assistants-core"
+      directory:
+        recurse: true
+        include: '*.yaml'
+        exclude: '{app.yaml}'
+    - repoURL: https://github.com/Unique-AG/hpe-hosted-trial
+      targetRevision: HEAD
+      path: "helm/backend-service"
+      helm:
+        releaseName: service-assistants-core
+        valuesObject:
+          nameOverride: service-assistants-core
+          image:
+            repository: harbor.ingress.pcai0201.fr2.hpecolo.net/library/assistants-core
+            tag: "2025.17-f944c"
+          env:
+            API_BASE: http://service-chat.unique.svc.cluster.local/public
+            GUNICORN_THREADS: 4
+            GUNICORN_WORKERS: 2
+            ENABLED_MIME_TYPES_DOCUMENT_TRANSLATION: '["DOCX", "MSEXCEL", "EXCEL"]'
+          replicaCount: 1
+          resources:
+            requests:
+              cpu: '4'
+              memory: 24Gi
+            limits:
+              memory: 24Gi
+          probes:
+            enabled: false
+          podSecurityContext:
+            fsGroup: 1000
+          volumeMounts:
+            - name: assistants-cache
+              mountPath: /artifacts
+          volumes:
+            - name: assistants-cache
+              persistentVolumeClaim:
+                claimName: assistants-cache
+          initContainers:
+            - name: download-artifacts
+              image: curlimages/curl:8.6.0
+              command:
+                - /bin/sh
+                - -c
+              args:
+                - |
+                  echo "Checking and downloading artifact files if needed..."
+                  cd /artifacts
+                  
+                  download_if_missing() {
+                    local file=$1
+                    local url=$2
+                    if [ ! -f "$file" ]; then
+                      echo "Downloading $file..."
+                      for i in 1 2 3; do
+                        if curl -f -o "$file" "$url"; then
+                          echo "$file downloaded successfully"
+                          return 0
+                        fi
+                        echo "Attempt $i failed, retrying..."
+                        sleep 5
+                      done
+                      echo "Failed to download $file after 3 attempts"
+                      return 1
+                    else
+                      echo "$file already exists, skipping download"
+                    fi
+                  }
+
+                  download_if_missing "encoding_o200k_base" "https://openaipublic.blob.core.windows.net/encodings/o200k_base.tiktoken" && \
+                  download_if_missing "encoding_cl100k_base" "https://openaipublic.blob.core.windows.net/encodings/cl100k_base.tiktoken"
+              volumeMounts:
+                - name: assistants-cache
+                  mountPath: /artifacts
+                  readOnly: false

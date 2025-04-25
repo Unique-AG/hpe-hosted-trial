@@ -1,0 +1,115 @@
+spec:
+  name: unique-service-ingestion
+  autoSync: false
+  sources:
+    - repoURL: https://github.com/Unique-AG/hpe-hosted-trial
+      targetRevision: HEAD
+      path: "2-applications/services/ingestion"
+      directory:
+        recurse: true
+        include: '*.yaml'
+        exclude: '{app.yaml}'
+    - repoURL: https://github.com/Unique-AG/hpe-hosted-trial
+      targetRevision: HEAD
+      path: "helm/backend-service"
+      helm:
+        releaseName: service-ingestion
+        valuesObject:
+          nameOverride: service-ingestion
+          image:
+            repository: harbor.ingress.pcai0201.fr2.hpecolo.net/library/ingestion
+            tag: "2025.17-1c5de"
+          env:
+            LOG_LEVEL: info
+            MAX_HEAP_MB: 8400
+            CHAT_URL: "http://service-chat.unique.svc.cluster.local"
+            SCOPE_MANAGEMENT_URL: "http://service-scope-management.unique.svc.cluster.local"
+            QDRANT_URL: "http://qdrant.unique.svc.cluster.local:6333"
+            INGESTION_UPLOAD_API_URL: "https://api.ingress.pcai0201.fr2.hpecolo.net/ingestion/upload"
+            AZURE_OPENAI_API_DEPLOYMENT_NAME: llama-3-2-embedqa-v2-search
+            OPTIONAL_DEPLOYMENT_NAME_FOR_INGESTION: llama-3-2-embedqa-v2-ingest
+            AZURE_OPENAI_API_VERSION: noVersion
+            AZURE_OPENAI_API_ENDPOINT: "http://litellm.unique.svc.cluster.local:4000"
+            SCORE_THRESHOLD: "0"
+            AUDIT_LOG_DESTINATION: "/dev/null"
+            EMBEDDING_DIMENSION: 2048
+            USE_NEW_FTS_QUERY_APPROACH: "true"
+            ENABLE_MALWARE_SCAN: "false"
+            REPLICATION_FACTOR: 1
+            FILE_RETENTION_IN_DAYS: 7
+            ADDITIONAL_INGESTION_QUEUES: '["chat_queue"]'
+            ZITADEL_PROJECT_ID: "null" # Not required any more, as Kong extracts roles from JWT
+            ZITADEL_ROOT_ORG_ID: "317112520949212115" # Required for maintenance tasks. Needs to be set to the CLUSTER_IAM org_id to allow maintenance tasks.
+            USE_SCOPE_MANAGEMENT: "true"
+            CORS_ALLOWED_ORIGINS: '[]' # Not required. Kong handles CORS.
+            TRUSTED_DOMAINS: '["*.ingress.pcai0201.fr2.hpecolo.net"]'
+            RERANKER_CONFIGURATION: '[{"deploymentName": "crossencoder_reranker", "apiUrl": "http://assistants-reranker.unique.svc.cluster.local/reranker/rerank"}]'
+            S3_BUCKET_ENDPOINT: 'http://minio.unique.svc.cluster.local:9000'
+            S3_BUCKET_REGION: "us-east-1"
+            S3_BUCKET_BUCKET_NAME: "ingestion-bucket"
+            CHUNK_MAX_TOKENS: 376
+            CHUNK_MAX_TOKENS_ONE_PAGER: 376
+          replicaCount: 1
+          resources:
+            requests:
+              cpu: 500m
+              memory: 12Gi
+            limits:
+              memory: 12Gi
+          hooks:
+            migration:
+              enabled: true
+              command: |
+                cd /node/dist/apps/node-ingestion; npx prisma migrate deploy
+          cronJob:
+            enabled: true
+            name: expired-content-deletion
+            suspend: false
+            schedule: "*/5 * * * *"
+            timeZone: Europe/Zurich
+            concurrencyPolicy: Forbid
+            successfulJobsHistoryLimit: 1
+            failedJobsHistoryLimit: 1
+            env:
+              RUNNING_MODE: "expired-content-deletion"
+            startingDeadlineSeconds: 10
+            jobTemplate:
+              restartPolicy: Never
+              containers:
+                name: ingestion-service-expired-content-deletion
+          httproute:
+            enabled: true
+            hostnames:
+              - api.ingress.pcai0201.fr2.hpecolo.net
+            gatewayName: unique
+            gatewayNamespace: unique
+            annotations:
+              konghq.com/strip-path: "true"
+              konghq.com/plugins: unique-jwt-auth
+            rules:
+              - matches:
+                  - path:
+                      type: PathPrefix
+                      value: /ingestion
+            additionalRoutes:
+              - name: service-ingestion-upload
+                hostnames:
+                  - api.ingress.pcai0201.fr2.hpecolo.net
+                gatewayName: unique
+                gatewayNamespace: unique
+                annotations: {}
+                rules:
+                  - matches:
+                      - path:
+                          type: Exact
+                          value: /ingestion/upload
+                    filters:
+                      - type: URLRewrite
+                        urlRewrite:
+                          path:
+                            type: ReplaceFullPath
+                            replaceFullPath: /scoped/upload
+                    backendRefs:
+                      - name: service-ingestion
+                        port: 80
+                        kind: Service

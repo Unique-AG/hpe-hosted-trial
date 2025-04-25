@@ -34,8 +34,7 @@ uniqueapp.azurecr.io:
     admin: ^2025\.17-\w*$
     chat: ^2025\.17-\w*$
     knowledge-upload: ^2025\.17-\w*$
-    theme: ^2025\.17-\w*$
-    debug: ^2025\.17-\w*$
+    theme: ^2025\.09-\w*$
     # AI Services
     assistants-core: ^2025\.17-\w*$
     assistants-reranker: ^2025\.17-\w*$
