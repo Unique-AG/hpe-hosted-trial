@@ -1,0 +1,13 @@
+spec:
+  name: zitadel-init
+  metadata:
+    argocd.argoproj.io/sync-wave: "4"
+  autoSync: false
+  sources:
+    - repoURL: https://github.com/Unique-AG/hpe-hosted-trial
+      targetRevision: HEAD
+      path: "1-system/4-zitadel-init"
+      directory:
+        recurse: true
+        include: '*.yaml'
+        exclude: '{app.yaml}'
