@@ -24,6 +24,16 @@ There is a convenience script that will find all the secrets in the repo and enc
 ./seal-secrets.sh
 ```
 
+!WARNING: Sealed secrets in the `2-applications` folder are synced too late by ArgoCD, so the secrets are not available when the application is deployed.
+To fix that you need to manually add the annotations to the sealed secrets in the `2-applications` folder.
+
+```
+annotations:
+    argocd.argoproj.io/hook: PreSync
+```
+
+Re-running `seal-secrets.sh` will override the secrets and remove the annotations. Ensure they are added back after running the script.
+
 ## Zitadel Superuser
 
 The Zitadel superuser is used to bootstrap the Zitadel instance. Create a private key like this:

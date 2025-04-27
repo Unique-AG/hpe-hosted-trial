@@ -29,6 +29,8 @@ spec:
             NUMBER_OF_PDF_PAGES_IN_PARALLEL: 3
             CUSTOM_API_DEFINITIONS: >-
               []
+          secretFrom:
+            name: service-ingestion-worker-chat
           replicaCount: 1
           service:
             enabled: false

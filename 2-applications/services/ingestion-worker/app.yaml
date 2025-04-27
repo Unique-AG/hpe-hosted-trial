@@ -30,6 +30,8 @@ spec:
             EMBEDDING_BATCH_SIZE: 1
             CUSTOM_API_DEFINITIONS: >-
               []
+          secretFrom:
+            name: service-ingestion-worker
           replicaCount: 1
           service:
             enabled: false

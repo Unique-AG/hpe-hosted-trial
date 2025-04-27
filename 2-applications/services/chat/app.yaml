@@ -74,6 +74,8 @@ spec:
                 "gpt-4o-mini-2024-07-18": ["http://litellm.litellm.svc:4000/"],
                 "gpt-4o-2024-08-06": ["http://litellm.litellm.svc:4000/"]
               }
+          secretFrom:
+            name: service-chat
           replicaCount: 1
           resources:
             requests:

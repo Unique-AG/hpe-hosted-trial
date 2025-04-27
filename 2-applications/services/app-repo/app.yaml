@@ -24,6 +24,8 @@ spec:
             MAX_HEAP_MB: 1400
             CORS_ALLOWED_ORIGINS: '[]' # Not required. Kong handles CORS.
             ZITADEL_PROJECT_ID: 'null' # Not required any more, as Kong extracts roles from JWT
+          secretFrom:
+            name: service-app-repository
           replicaCount: 1
           resources:
             requests:

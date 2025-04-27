@@ -28,6 +28,8 @@ spec:
             ZITADEL_INTERNAL_HOST: 'http://zitadel.unique.svc.cluster.local'
             ZITADEL_HOST: 'https://id.ingress.pcai0201.fr2.hpecolo.net'
             CORS_ALLOWED_ORIGINS: '[]' # Not required any more. Kong handles CORS.
+          secretFrom:
+            name: service-scope-management
           replicaCount: 1
           resources:
             requests:

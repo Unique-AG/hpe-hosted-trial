@@ -49,6 +49,8 @@ spec:
             S3_BUCKET_BUCKET_NAME: "ingestion-bucket"
             CHUNK_MAX_TOKENS: 376
             CHUNK_MAX_TOKENS_ONE_PAGER: 376
+          secretFrom:
+            name: service-ingestion
           replicaCount: 1
           resources:
             requests:

@@ -23,6 +23,8 @@ spec:
             LOG_LEVEL: info
             MAX_HEAP_MB: 2100
             APP_REPOSITORY_URL: 'http://service-app-repository.unique.svc.cluster.local'
+          secretFrom:
+            name: service-webhook-scheduler
           replicaCount: 1
           service:
             enabled: false

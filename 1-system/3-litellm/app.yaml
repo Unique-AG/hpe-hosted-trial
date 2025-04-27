@@ -36,11 +36,11 @@ spec:
           proxy_config:
             model_list:
               # At least one model must exist for the proxy to start.
-              - model_name: fake-openai-endpoint
+              - model_name: llama-3.1-70b-instruct
                 litellm_params:
-                  model: openai/fake
-                  api_key: fake-key
-                  api_base: https://exampleopenaiendpoint-production.up.railway.app/
+                  # TODO: Intermediate TogetherAI hosted model until model is deployed.
+                  model: together_ai/meta-llama/Meta-Llama-3.1-70B-Instruct-Turbo
+                  api_key: os.environ/TOGETHERAI_API_KEY
               - model_name: llama-3.1-8b-instruct
                 litellm_params:
                   model: nvidia_nim/nvidia/llama-3.1-8b-instruct
