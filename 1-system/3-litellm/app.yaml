@@ -1,0 +1,71 @@
+spec:
+  name: litellm
+  metadata:
+    argocd.argoproj.io/sync-wave: "3"
+  autoSync: false
+  sources:
+    - repoURL: https://github.com/Unique-AG/hpe-hosted-trial
+      targetRevision: HEAD
+      path: "1-system/3-litellm"
+      directory:
+        recurse: true
+        include: '*.yaml'
+        exclude: '{app.yaml}'
+    - repoURL: https://unique-ag.github.io/helm-charts
+      chart: litellm
+      targetRevision: 1.65.4
+      helm:
+        releaseName: litellm
+        valuesObject:
+          replicaCount: 1
+
+          env:
+            LITELLM_LOG: "INFO"
+            REDIS_URL: "redis://redis-master.unique.svc.cluster.local:6379/5"
+
+          secretFrom:
+            name: litellm
+
+          resources:
+            requests:
+              memory: 500Mi
+              cpu: 500m
+            limits:
+              memory: 1Gi
+  
+          proxy_config:
+            model_list:
+              # At least one model must exist for the proxy to start.
+              - model_name: fake-openai-endpoint
+                litellm_params:
+                  model: openai/fake
+                  api_key: fake-key
+                  api_base: https://exampleopenaiendpoint-production.up.railway.app/
+
+            general_settings:
+              alerting: []
+              alerting_threshold: 300 # sends alerts if requests hang for 5min+ and responses take 5min+
+              spend_report_frequency: "1d"
+
+              alerting_args:
+                daily_report_frequency: 43200 # 12 hours in seconds
+                report_check_interval: 3600 # 1 hour in seconds
+                budget_alert_ttl: 86400 # 24 hours in seconds
+                outage_alert_ttl: 60 # 1 minute in seconds
+                region_outage_alert_ttl: 60 # 1 minute in seconds
+                minor_outage_alert_threshold: 5
+                major_outage_alert_threshold: 10
+                max_outage_alert_list_size: 1000
+                log_to_console: false
+
+            litellm_settings:
+              turn_off_message_logging: False
+              json_logs: True
+              cache: True
+              cache_params:
+                type: redis
+                namespace: "litellm.caching.caching"
+              redact_messages_in_exceptions: True
+
+          ingress:
+            enabled: false

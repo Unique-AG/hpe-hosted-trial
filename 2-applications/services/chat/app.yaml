@@ -28,7 +28,7 @@ spec:
             LITELLM_ENDPOINT: 'http://litellm.unique.svc.cluster.local:4000'
             PUBSUB_BACKEND: redis
             PUBSUB_REDIS_DB: 2
-            PUBSUB_REDIS_HOST: redis-master.redis.svc.cluster.local
+            PUBSUB_REDIS_HOST: redis-master.unique.svc.cluster.local
             PUBSUB_REDIS_PORT: '6379'
             S3_BUCKET_ENDPOINT: 'http://minio.unique.svc.cluster.local:9000'
             S3_BUCKET_REGION: 'us-east-1'
