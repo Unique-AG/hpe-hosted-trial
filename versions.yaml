@@ -1,0 +1,47 @@
+# Unique Applications Versions
+# This file defines the versions of all applications and services used in the Unique platform.
+# It serves as the single source of truth for image versions.
+
+# Usage:
+# 1. To sync docker images to Harbor:
+#    skopeo sync --src yaml --dest docker --all versions.yaml harbor.ingress.pcai0201.fr2.hpecolo.net/library/
+#
+# 2. To update versions in app.yaml files:
+#    ./update-versions.sh
+
+# Syntax Reference for skopeo: https://github.com/containers/skopeo/blob/main/docs/skopeo-sync.1.md#yaml-file-content-used-source-for---src-yaml
+
+
+uniqueapp.azurecr.io:
+  images:
+    # Backend Services
+    app-repository:
+      - 2025.17-1c5de
+    ingestion-worker:
+      - 2025.17-736d0
+    ingestion:
+      - 2025.17-1c5de
+    node-chat:
+      - 2025.17-4fed2
+    node-scope-management:
+      - 2025.17-b6e55
+    node-theme:
+      - 2025.09-1a6e7
+    webhook-scheduler:
+      - 2025.17-1c5de
+    webhook-worker:
+      - 2025.17-1c5de
+    # Frontend Web Apps
+    admin:
+      - 2025.17-5a8af
+    chat:
+      - 2025.17-ab449
+    knowledge-upload:
+      - 2025.17-ab449
+    theme:
+      - 2025.17-ab449
+    # AI Services
+    assistants-core:
+      - 2025.17-f944c
+    assistants-reranker:
+      - 2025.17-1c5de

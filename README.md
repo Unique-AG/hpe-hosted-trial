@@ -41,3 +41,26 @@ cat superuser.pem | base64
 ```
 
 Paste the values into the secrets.
+
+## Version Management
+
+The Unique platform uses a centralized approach to manage all application and service versions in a single file: `versions.yaml`. This file contains a skopeo sync configuration section for syncing images to Harbor
+
+### Updating Versions
+
+To update a component's version:
+
+1. Edit the version in `versions.yaml`
+2. Run the update script to propagate the change to all app.yaml files:
+
+```bash
+./update-versions.sh
+```
+
+### Syncing Images to Harbor
+
+To sync images to Harbor:
+
+```bash
+skopeo sync --src yaml --dest docker --all versions.yaml harbor.ingress.pcai0201.fr2.hpecolo.net/library/
+```

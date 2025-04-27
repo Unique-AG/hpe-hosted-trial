@@ -18,7 +18,7 @@ spec:
           nameOverride: service-chat
           image:
             repository: harbor.ingress.pcai0201.fr2.hpecolo.net/library/node-chat
-            tag: "2025.17-ab449"
+            tag: "2025.17-4fed2"
           env:
             MAX_HEAP_MB: 8400
             LOG_LEVEL: info
