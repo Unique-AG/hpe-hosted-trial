@@ -12,4 +12,4 @@ config:
     - "https://id.ingress.pcai0201.fr2.hpecolo.net"
   algorithm: RS256
   well_known_template: "https://id.ingress.pcai0201.fr2.hpecolo.net/.well-known/openid-configuration"
-  zitadel_project_id: "317217950350222169"
+  zitadel_project_id: "317217514830472025"
