@@ -26,8 +26,8 @@ spec:
             SCOPE_MANAGEMENT_URL: "http://service-scope-management.unique.svc.cluster.local"
             QDRANT_URL: "http://qdrant.unique.svc.cluster.local:6333"
             INGESTION_UPLOAD_API_URL: "https://api.ingress.pcai0201.fr2.hpecolo.net/ingestion/upload"
-            AZURE_OPENAI_API_DEPLOYMENT_NAME: llama-3-2-embedqa-v2-search
-            OPTIONAL_DEPLOYMENT_NAME_FOR_INGESTION: llama-3-2-embedqa-v2-ingest
+            AZURE_OPENAI_API_DEPLOYMENT_NAME: nv-embedqa-e5-v5-search
+            OPTIONAL_DEPLOYMENT_NAME_FOR_INGESTION: nv-embedqa-e5-v5-ingest
             AZURE_OPENAI_API_VERSION: noVersion
             AZURE_OPENAI_API_ENDPOINT: "http://litellm.unique.svc.cluster.local:4000"
             SCORE_THRESHOLD: "0"

@@ -36,16 +36,23 @@ spec:
           proxy_config:
             model_list:
               # At least one model must exist for the proxy to start.
-              - model_name: llama-3.1-70b-instruct
-                litellm_params:
-                  # TODO: Intermediate TogetherAI hosted model until model is deployed.
-                  model: together_ai/meta-llama/Meta-Llama-3.1-70B-Instruct-Turbo
-                  api_key: os.environ/TOGETHERAI_API_KEY
               - model_name: llama-3.1-8b-instruct
                 litellm_params:
-                  model: nvidia_nim/nvidia/llama-3.1-8b-instruct
-                  api_base: https://llama-3-1-8b-d495a035-predictor-ezai-services.ingress.pcai0201.fr2.hpecolo.net
-
+                  model: openai/meta/llama-3.1-8b-instruct
+                  api_key: os.environ/NVIDIA_LLM_KEY
+                  api_base: https://llama-31-8b-instruct-predictor-nishant-chanduk-5a31eb6f.ingress.pcai0201.fr2.hpecolo.net/v1
+              - model_name: nv-embedqa-e5-v5-search
+                litellm_params:
+                  model: nvidia_nim/nvidia/nv-embedqa-e5-v5
+                  api_key: os.environ/NVIDIA_EMBEDDING_KEY
+                  api_base: https://nv-embedqa-e5-v5-predictor-nishant-chanduk-5a31eb6f.ingress.pcai0201.fr2.hpecolo.net/v1
+                  input_type: query
+              - model_name: nv-embedqa-e5-v5-ingest
+                litellm_params:
+                  model: nvidia_nim/nvidia/nv-embedqa-e5-v5
+                  api_key: os.environ/NVIDIA_EMBEDDING_KEY
+                  api_base: https://nv-embedqa-e5-v5-predictor-nishant-chanduk-5a31eb6f.ingress.pcai0201.fr2.hpecolo.net/v1
+                  input_type: passage
             general_settings:
               alerting: []
               alerting_threshold: 300 # sends alerts if requests hang for 5min+ and responses take 5min+
