@@ -49,7 +49,7 @@ spec:
                 ruler: loki-ruler
                 admin: loki-admin
               s3:
-                endpoint: http://minio.unique.svc.cluster.local:9000
+                endpoint: https://minio.ingress.pcai0201.fr2.hpecolo.net
                 secretAccessKey: ${S3_LOKI_SECRET_ACCESS_KEY}
                 accessKeyId: loki-user-access-key
                 s3ForcePathStyle: true
