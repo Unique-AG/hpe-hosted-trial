@@ -17,7 +17,7 @@ spec:
           KNOWLEDGE_UPLOAD_APP_URL: https://unique.ingress.pcai0201.fr2.hpecolo.net/knowledge-upload
           CHAT_APP_URL: https://unique.ingress.pcai0201.fr2.hpecolo.net/chat
           ADMIN_APP_URL: https://unique.ingress.pcai0201.fr2.hpecolo.net/admin
-          INGESTION_BACKEND_API_URL: https://api.pulsar.unique.app/ingestion
+          INGESTION_BACKEND_API_URL: https://api.ingress.pcai0201.fr2.hpecolo.net/ingestion
           SCOPE_MANAGEMENT_BACKEND_API_URL: https://api.ingress.pcai0201.fr2.hpecolo.net/scope-management
           THEME_BACKEND_API_URL: https://api.ingress.pcai0201.fr2.hpecolo.net/theme
           CHAT_BACKEND_API_URL: https://api.ingress.pcai0201.fr2.hpecolo.net/chat
