@@ -13,7 +13,7 @@ spec:
         exclude: '{app.yaml}'
     - repoURL: registry-1.docker.io/bitnamicharts
       chart: rabbitmq
-      targetRevision: 16.0.0
+      targetRevision: 15.5.3
       helm:
         releaseName: rabbitmq
         valuesObject:
@@ -36,6 +36,4 @@ spec:
               cpu: 1
             limits:
               memory: 24Gi
-              cpu: 1            
-          extraConfiguration: |
-            initial_frame_max = 4096
+              cpu: 1
