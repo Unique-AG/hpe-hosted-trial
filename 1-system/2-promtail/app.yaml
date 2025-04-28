@@ -1,0 +1,154 @@
+spec:
+  name: promtail
+  metadata:
+    annotations:
+      argocd.argoproj.io/sync-wave: "2"
+  autoSync: false
+  sources:
+    - repoURL: https://github.com/Unique-AG/hpe-hosted-trial
+      targetRevision: HEAD
+      path: "1-system/2-promtail"
+      directory:
+        recurse: true
+        include: '*.yaml'
+        exclude: '{app.yaml}'
+    - chart: promtail
+      repoURL: https://grafana.github.io/helm-charts
+      targetRevision: 6.16.6
+      helm:
+        releaseName: promtail
+        valuesObject:
+          resources:
+            limits:
+              cpu: 500m
+              memory: 512Mi
+            requests:
+              cpu: 200m
+              memory: 256Mi
+          configmap:
+            enabled: true # The config will be stored in a configmap instead of a secret
+          serviceMonitor:
+            enabled: false
+          config:
+            logFormat: json
+            clients:
+              - url: "http://loki-gateway.unique.svc.cluster.local/loki/api/v1/push"
+            snippets:
+              pipelineStages:
+                - cri: {}
+                - match:
+                    selector: '{helm_chart=~"backend-service.*"}'
+                    stages:
+                      - json:
+                          expressions:
+                            level: level # numeric pino level
+                            msg: msg
+                            context: context
+                            operation_name: operationName
+                            req: req
+
+                      - json:
+                          source: req
+                          expressions:
+                            req_id: id
+                            req_method: method
+                            req_url: url
+                            headers: headers
+                      
+                      - json:
+                          source: headers
+                          expressions:
+                            user_agent: '"user-agent"'
+                            sec_platform: '"sec-ch-ua-platform"'
+                            sec_ua: '"sec-ch-ua"'
+                            sec_ua_mobile: '"sec-ch-ua-mobile"'
+                            x_kong_request_id: '"x-kong-request-id"'
+                            x_user_id: '"x-user-id"'
+                            x_company_id: '"x-company-id"'
+                            x_company_name: '"x-company-name"'
+                            x_company_domain: '"x-company-domain"'
+                            x_user_roles: '"x-user-roles"'
+                            x_service_id: '"x-service-id"'
+                      
+                      # Remove query params from req_url
+                      - template:
+                          source: req_url
+                          template: '{{ regexReplaceAll "\\?.*" .req_url "" }}'
+
+                      - template:
+                          source: original
+                          template: '{{ .Entry }}'
+
+                      # Convert numeric level to human readable level
+                      - template:
+                          source: level_name
+                          template: '{{ if eq .level "10" }}trace{{ else if eq .level "20" }}debug{{ else if eq .level "30" }}info{{ else if eq .level "40" }}warn{{ else if eq .level "50" }}error{{ else if eq .level "60" }}fatal{{ else }}{{ .level }}{{ end }}'
+
+                      # Format output for Loki.
+                      # We try to parse the log line as JSON otherwise we output the original log line.
+                      # The output is opinionated and only includes fields that are commonly used in our 
+                      # logs. The full original log can be found in the metadata.
+                      - template:
+                          source: output
+                          template: "\
+                            {{- $parsed := .Entry | fromJson -}}\
+                            {{- if $parsed -}}\
+                              {{- if eq .level_name \"fatal\" -}}\u001b[31;1m[{{ ToUpper .level_name }}]\u001b[0m\
+                              {{- else if eq .level_name \"error\" -}}\u001b[31;1m[{{ ToUpper .level_name }}]\u001b[0m\
+                              {{- else if eq .level_name \"warn\" -}}\u001b[33;1m[{{ ToUpper .level_name }}]\u001b[0m\
+                              {{- else if eq .level_name \"info\" -}}\u001b[34;1m[{{ ToUpper .level_name }}]\u001b[0m\
+                              {{- else if eq .level_name \"debug\" -}}\u001b[35;1m[{{ ToUpper .level_name }}]\u001b[0m\
+                              {{- else if eq .level_name \"trace\" -}}\u001b[90;1m[{{ ToUpper .level_name }}]\u001b[0m\
+                              {{- else -}}[{{ ToUpper .level_name }}]\
+                              {{- end }} \
+                              {{ with .context }}\u001b[37;2m[{{ . }}]\u001b[0m {{ end }}\
+                              \u001b[37;1m{{ .msg }}\u001b[0m \u001b[36;1m|\u001b[0m \
+                              {{ if .req_method }}\u001b[37;2mrequest=\u001b[0m\"{{ .req_method }} {{ .req_url }}\" {{ end }}\
+                              {{ with .x_user_id }}\u001b[37;2muserId=\u001b[0m{{ . }} {{ end }}\
+                              {{ with .x_company_id }}\u001b[37;2mcompanyId=\u001b[0m{{ . }} {{ end }}\
+                              {{ with .x_service_id }}\u001b[37;2mserviceId=\u001b[0m{{ . }} {{ end }}\
+                              {{ range $key, $value := $parsed -}}\
+                                {{- if and (ne $key \"time\") (ne $key \"pid\") (ne $key \"hostname\") (ne $key \"req\") (ne $key \"res\") (ne $key \"headers\") (ne $key \"level\") (ne $key \"msg\") (ne $key \"context\") (ne $key \"operation_name\") -}}\
+                                  \u001b[37;2m{{ $key }}=\u001b[0m{{ $value | toJson }} \
+                                {{ end -}}\
+                              {{- end -}}\
+                            {{- else -}}\
+                              {{ .Entry }}\
+                            {{- end -}}"
+
+                # Be careful to only add labels that have a low cardinality.
+                - labels:
+                    level: level_name
+                    context: context
+                    operation_name: operation_name
+                    req_method: req_method
+                    x_service_id: x_service_id
+                    
+                # Fields with high cardinality belong into the structured_metadata section.
+                - structured_metadata:
+                    req_id: req_id
+                    user_agent: user_agent
+                    sec_platform: sec_platform
+                    sec_ua: sec_ua
+                    sec_ua_mobile: sec_ua_mobile
+                    x_kong_request_id: x_kong_request_id
+                    x_user_id: x_user_id
+                    x_company_id: x_company_id
+                    x_company_name: x_company_name
+                    x_company_domain: x_company_domain
+                    x_user_roles: x_user_roles
+                    helm_chart: helm_chart
+                    # Service discovery labels can also be added here and they will be excluded from the indexed labels.
+                    pod: pod
+                    __path__: __path__
+                    filename: filename
+                    # Full original log line.
+                    original: original
+
+                - output:
+                    source: output
+
+              extraRelabelConfigs:
+                - source_labels:
+                    - __meta_kubernetes_pod_label_helm_sh_chart
+                  target_label: helm_chart

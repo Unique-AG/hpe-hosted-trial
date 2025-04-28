@@ -44,13 +44,43 @@ spec:
                   resources:
                     - "arn:aws:s3:::ingestion-bucket/*"
                     - "arn:aws:s3:::ingestion-bucket"
+            - name: loki-bucket
+              statements:
+                - effect: Allow
+                  actions:
+                    - "s3:GetObject"
+                    - "s3:PutObject"
+                    - "s3:DeleteObject"
+                    - "s3:ListBucket"
+                    - "s3:ListMultipartUploadParts"
+                    - "s3:AbortMultipartUpload"
+                  resources:
+                    - "arn:aws:s3:::loki-chunks/*"
+                    - "arn:aws:s3:::loki-chunks"
+                    - "arn:aws:s3:::loki-ruler/*"
+                    - "arn:aws:s3:::loki-ruler"
+                    - "arn:aws:s3:::loki-admin/*"
+                    - "arn:aws:s3:::loki-admin"
           users:
             - accessKey: ingestion-user-access-key
               existingSecret: minio-ingestion-user
               existingSecretKey: secretKey
               policy: ingestion-readwrite-policy
+            - accessKey: loki-user-access-key
+              existingSecret: minio-loki-user
+              existingSecretKey: secretKey
+              policy: loki-bucket
           svcaccts: []
           buckets:
             - name: ingestion-bucket
+              policy: none
+              purge: false
+            - name: loki-chunks
+              policy: none
+              purge: false
+            - name: loki-ruler
+              policy: none
+              purge: false
+            - name: loki-admin
               policy: none
               purge: false
