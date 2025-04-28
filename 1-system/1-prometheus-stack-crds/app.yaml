@@ -1,0 +1,52 @@
+# This app is used to install the CRDs for the kube-prometheus-stack chart.
+# It is used to avoid the issue that ArgoCD tries to kubectl apply the CRDs
+# which leads to errors, because it tries to save the whole CRD object in 
+# the annotations as the last applied configuration.
+spec:
+  name: kube-prometheus-stack-crds
+  metadata:
+    annotations:
+      argocd.argoproj.io/sync-wave: "1"
+  autoSync: false
+  syncOptions:
+    - Replace=true
+  source:
+    chart: kube-prometheus-stack
+    repoURL: https://prometheus-community.github.io/helm-charts
+    targetRevision: 70.4.2
+    helm:
+      releaseName: kube-prometheus-stack
+      valuesObject:
+        crds:
+          enabled: true
+        alertmanager:
+          enabled: false
+        defaultRules:
+          create: false
+        grafana:
+          enabled: false
+        kubeApiServer:
+          enabled: false
+        kubelet:
+          enabled: false
+        kubeControllerManager:
+          enabled: false
+        kubeScheduler:
+          enabled: false
+        kubeProxy:
+          enabled: false
+        coreDns:
+          enabled: false
+        kubeEtcd:
+          enabled: false
+        kubeStateMetrics:
+          enabled: false
+        nodeExporter:
+          enabled: false
+        prometheusOperator:
+          enabled: false
+        prometheus:
+          enabled: false
+          
+          
+          

@@ -1,0 +1,62 @@
+spec:
+  name: kube-prometheus-stack
+  metadata:
+    annotations:
+      argocd.argoproj.io/sync-wave: "2"
+  autoSync: false
+  sources:
+    - repoURL: https://github.com/Unique-AG/hpe-hosted-trial
+      targetRevision: HEAD
+      path: "1-system/2-kube-prometheus-stack"
+      directory:
+        recurse: true
+        include: '*.yaml'
+        exclude: '{app.yaml}'
+    - chart: kube-prometheus-stack
+      repoURL: https://prometheus-community.github.io/helm-charts
+      targetRevision: 70.4.2
+      helm:
+        releaseName: kube-prometheus-stack
+        valuesObject:
+          cleanPrometheusOperatorObjectNames: true
+          crds:
+            enabled: false
+          alertmanager:
+            enabled: false
+          defaultRules:
+            create: false
+          grafana:
+            grafana.ini:
+              security:
+                allow_embedding: true
+            sidecar:
+              dashboards:
+                annotations:
+                  grafana_folder: kubernetes
+                folderAnnotation: grafana_folder
+                provider:
+                  foldersFromFilesStructure: true
+            ingress:
+              enabled: false
+          kubeApiServer:
+            enabled: false
+          kubelet:
+            enabled: false
+          kubeControllerManager:
+            enabled: false
+          kubeScheduler:
+            enabled: false
+          kubeProxy:
+            enabled: false
+          coreDns:
+            enabled: false
+          kubeEtcd:
+            enabled: false
+          kubeStateMetrics:
+            enabled: false
+          nodeExporter:
+            enabled: false
+          prometheusOperator:
+            enabled: false
+          prometheus:
+            enabled: false
