@@ -15,6 +15,6 @@ spec:
         uri: /
       route:
         - destination:
-            host: grafana.unique.svc.cluster.local
+            host: kube-prometheus-stack-grafana.unique.svc.cluster.local
             port:
               number: 80
