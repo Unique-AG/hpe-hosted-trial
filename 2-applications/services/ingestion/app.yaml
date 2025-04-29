@@ -32,7 +32,7 @@ spec:
             AZURE_OPENAI_API_ENDPOINT: "http://litellm.unique.svc.cluster.local:4000"
             SCORE_THRESHOLD: "0"
             AUDIT_LOG_DESTINATION: "/dev/null"
-            EMBEDDING_DIMENSION: 2048
+            EMBEDDING_DIMENSION: 1024
             USE_NEW_FTS_QUERY_APPROACH: "true"
             ENABLE_MALWARE_SCAN: "false"
             REPLICATION_FACTOR: 1
