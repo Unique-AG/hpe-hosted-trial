@@ -1,3 +1,4 @@
+# Qdrant is not secured. Only expose for debugging purposes.
 apiVersion: networking.istio.io/v1alpha3
 kind: VirtualService
 metadata:
