@@ -34,23 +34,29 @@ annotations:
 
 Re-running `seal-secrets.sh` will override the secrets and remove the annotations. Ensure they are added back after running the script.
 
-## Zitadel Superuser
+## Use custom models with Unique
 
-The Zitadel superuser is used to bootstrap the Zitadel instance. Create a private key like this:
+Most custom model configurations are stored in environment variables and configured via LiteLLM. However you need to ensure, that the 
+default fallback model for each assistant is set to a custom litellm model as well, or it will try to use OpenAI which is not available on premise. Use this GraphQL request to update each assistant:
+
+1. Copy the JWT from the browser console network tab. Use it as a Bearer token in the following GraphQL request.
+2. Execute the following GraphQL mutation against the Unique API endpoint `https://{api-domain}/chat/graphql`:
 
 ```
-# Generate the private key
-openssl genrsa -out superuser.pem 2048
-
-# Extract the public key from the private key
-openssl rsa -in superuser.pem -pubout -out superuser.pub
-
-# Encode the public key in base64
-cat superuser.pub | base64
-cat superuser.pem | base64
+mutation UpdateAssistant {
+    updateAssistant(
+        id: "{assistant-id}"
+        input: { languageModel: "litellm:{model-name}" }
+    ) {
+        id
+        name
+        languageModel
+        subtitle
+        title
+    }
+}
 ```
 
-Paste the values into the secrets.
 
 ## Version Management
 
