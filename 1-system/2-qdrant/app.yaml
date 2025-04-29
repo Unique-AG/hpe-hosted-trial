@@ -3,21 +3,28 @@ spec:
   metadata:
     argocd.argoproj.io/sync-wave: "2"
   autoSync: false
-  source:
-    chart: qdrant
-    repoURL: https://qdrant.github.io/qdrant-helm
-    targetRevision: 1.14.0
-    helm:
-      releaseName: qdrant
-      valuesObject:
-        resources:
-          requests:
-            cpu: 500m
-            memory: 6Gi
-          limits:
-            memory: 6Gi
-        persistence:
-          size: 100Gi
-          storageClassName: gl4f-filesystem
-        ingress:
-          enabled: false
+  sources:
+    - repoURL: https://github.com/Unique-AG/hpe-hosted-trial
+      targetRevision: HEAD
+      path: "1-system/2-qdrant"
+      directory:
+        recurse: true
+        include: '*.yaml'
+        exclude: '{app.yaml}'
+    - repoURL: https://qdrant.github.io/qdrant-helm
+      chart: qdrant
+      targetRevision: 1.14.0
+      helm:
+        releaseName: qdrant
+        valuesObject:
+          resources:
+            requests:
+              cpu: 500m
+              memory: 6Gi
+            limits:
+              memory: 6Gi
+          persistence:
+            size: 100Gi
+            storageClassName: gl4f-filesystem
+          ingress:
+            enabled: false
