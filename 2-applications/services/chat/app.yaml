@@ -42,37 +42,37 @@ spec:
             EXPORT_PROMPTS_ACCESS_CONTROL: "false"
             INTERNAL_MODULES_CONFIG: >- 
               [
-              {"name": "SearchInVectorDBV2", "apiURL": "http://assistants-core.unique.svc.cluster.local/core/search"},
-              {"name": "ImageSummarizer", "apiURL": "http://assistants-core.unique.svc.cluster.local/core/image_summarizer"},
-              {"name": "TranslationOneToOne", "apiURL": "http://assistants-core.unique.svc.cluster.local/core/translation_one_to_one"},
-              {"name": "WebSearch", "apiURL": "http://assistants-core.unique.svc.cluster.local/core/web_search"},
-              {"name": "ComplianceCheck", "apiURL": "http://assistants-core.unique.svc.cluster.local/core/compliance_check"},
-              {"name": "QuestionExtractor", "apiURL": "http://assistants-core.unique.svc.cluster.local/core/question_extractor"},
-              {"name": "QuestionAnswerer", "apiURL": "http://assistants-core.unique.svc.cluster.local/core/question_answerer"},
-              {"name": "QuestionPredictor", "apiURL": "http://assistants-core.unique.svc.cluster.local/core/question_predictor"},
-              {"name": "DocumentSummarizerV2", "apiURL": "http://assistants-core.unique.svc.cluster.local/core/document_summarizer"},
-              {"name": "ImageUpload", "apiURL": "http://assistants-core.unique.svc.cluster.local/core/image_upload"},
-              {"name": "DocumentTranslator", "apiURL": "http://assistants-core.unique.svc.cluster.local/core/document_translator"},
-              {"name": "AgenticSearch", "apiURL": "http://assistants-core.unique.svc.cluster.local/core/agentic_search"},
-              {"name": "TranslatorV2", "apiURL": "http://assistants-core.unique.svc.cluster.local/core/translator_v2"},
-              {"name": "InvestmentResearch", "apiURL": "http://assistants-core.unique.svc.cluster.local/core/investment_research"},
-              {"name": "EarningCallsBeta", "apiURL": "http://assistants-core.unique.svc.cluster.local/core/earning_calls"}
+              {"name": "SearchInVectorDBV2", "apiURL": "http://service-assistants-core.unique.svc.cluster.local/core/search"},
+              {"name": "ImageSummarizer", "apiURL": "http://service-assistants-core.unique.svc.cluster.local/core/image_summarizer"},
+              {"name": "TranslationOneToOne", "apiURL": "http://service-assistants-core.unique.svc.cluster.local/core/translation_one_to_one"},
+              {"name": "WebSearch", "apiURL": "http://service-assistants-core.unique.svc.cluster.local/core/web_search"},
+              {"name": "ComplianceCheck", "apiURL": "http://service-assistants-core.unique.svc.cluster.local/core/compliance_check"},
+              {"name": "QuestionExtractor", "apiURL": "http://service-assistants-core.unique.svc.cluster.local/core/question_extractor"},
+              {"name": "QuestionAnswerer", "apiURL": "http://service-assistants-core.unique.svc.cluster.local/core/question_answerer"},
+              {"name": "QuestionPredictor", "apiURL": "http://service-assistants-core.unique.svc.cluster.local/core/question_predictor"},
+              {"name": "DocumentSummarizerV2", "apiURL": "http://service-assistants-core.unique.svc.cluster.local/core/document_summarizer"},
+              {"name": "ImageUpload", "apiURL": "http://service-assistants-core.unique.svc.cluster.local/core/image_upload"},
+              {"name": "DocumentTranslator", "apiURL": "http://service-assistants-core.unique.svc.cluster.local/core/document_translator"},
+              {"name": "AgenticSearch", "apiURL": "http://service-assistants-core.unique.svc.cluster.local/core/agentic_search"},
+              {"name": "TranslatorV2", "apiURL": "http://service-assistants-core.unique.svc.cluster.local/core/translator_v2"},
+              {"name": "InvestmentResearch", "apiURL": "http://service-assistants-core.unique.svc.cluster.local/core/investment_research"},
+              {"name": "EarningCallsBeta", "apiURL": "http://service-assistants-core.unique.svc.cluster.local/core/earning_calls"}
               ]
             AZURE_OPENAI_API_ENDPOINTS_JSON: >-
               {
-                "gpt-35-turbo-0125": ["http://litellm.litellm.svc:4000/"],
-                "gpt-35-turbo-0301": ["http://litellm.litellm.svc:4000/"],
-                "gpt-35-turbo-0613": ["http://litellm.litellm.svc:4000/"],
-                "gpt-35-turbo-16k-0613": ["http://litellm.litellm.svc:4000/"],
-                "gpt-4-0613": ["http://litellm.litellm.svc:4000/"],
-                "gpt-4-32k-0613": ["http://litellm.litellm.svc:4000/"],
-                "gpt-4-1106-Preview": ["http://litellm.litellm.svc:4000/"],
-                "gpt-4-vision-preview": ["http://litellm.litellm.svc:4000/"],
+                "gpt-35-turbo-0125": ["http://litellm.unique.svc:4000/"],
+                "gpt-35-turbo-0301": ["http://litellm.unique.svc:4000/"],
+                "gpt-35-turbo-0613": ["http://litellm.unique.svc:4000/"],
+                "gpt-35-turbo-16k-0613": ["http://litellm.unique.svc:4000/"],
+                "gpt-4-0613": ["http://litellm.unique.svc:4000/"],
+                "gpt-4-32k-0613": ["http://litellm.unique.svc:4000/"],
+                "gpt-4-1106-Preview": ["http://litellm.unique.svc:4000/"],
+                "gpt-4-vision-preview": ["http://litellm.unique.svc:4000/"],
                 "gpt-35-turbo-instruct-0914": [],
-                "gpt-4-turbo-2024-04-09": ["http://litellm.litellm.svc:4000/"],
-                "gpt-4o-2024-05-13": ["http://litellm.litellm.svc:4000/"],
-                "gpt-4o-mini-2024-07-18": ["http://litellm.litellm.svc:4000/"],
-                "gpt-4o-2024-08-06": ["http://litellm.litellm.svc:4000/"]
+                "gpt-4-turbo-2024-04-09": ["http://litellm.unique.svc:4000/"],
+                "gpt-4o-2024-05-13": ["http://litellm.unique.svc:4000/"],
+                "gpt-4o-mini-2024-07-18": ["http://litellm.unique.svc:4000/"],
+                "gpt-4o-2024-08-06": ["http://litellm.unique.svc:4000/"]
               }
           secretFrom:
             name: service-chat
