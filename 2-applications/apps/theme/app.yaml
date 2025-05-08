@@ -16,6 +16,9 @@ spec:
           SELF_URL: https://unique.ingress.pcai0201.fr2.hpecolo.net/theme
           THEME_BACKEND_API_URL: https://api.ingress.pcai0201.fr2.hpecolo.net/theme
           CHAT_BACKEND_API_URL: https://api.ingress.pcai0201.fr2.hpecolo.net/chat
+          CHAT_APP_URL: https://unique.ingress.pcai0201.fr2.hpecolo.net/chat
+          KNOWLEDGE_UPLOAD_APP_URL: https://unique.ingress.pcai0201.fr2.hpecolo.net/knowledge-upload
+          ADMIN_APP_URL: https://unique.ingress.pcai0201.fr2.hpecolo.net/admin
           ZITADEL_ISSUER: https://id.ingress.pcai0201.fr2.hpecolo.net
           ZITADEL_CLIENT_ID: "319135753609257766"
           ZITADEL_PROJECT_ID: "null" # Not required any more, as Kong extracts roles from JWT
