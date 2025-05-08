@@ -5,7 +5,11 @@ This repository contains the ArgoCD configuration for the Unique application.
 
 * Step 1: Install ArgoCD
 * Step 2: Apply the bootstrap manifest
-* Step 3: Monitor Argo during deployment
+* Step 3: Sync only the sealed-secrets operator
+* Step 4: Copy the public cert to the repo (`public.sealed-secrets.cert.pem`), encrypt the secrets with `./seal-secrets.sh --all` and commit the changes
+* Step 5: Sync the rest of the system applications
+* Step 6: Copy docker images to Harbor (see README below)
+* Step 7: Sync the applications
 
 The integer prefixes in the system and applications folders show the sync wave for each service.
 

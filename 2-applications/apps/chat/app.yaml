@@ -22,7 +22,7 @@ spec:
           THEME_BACKEND_API_URL: https://api.ingress.pcai0201.fr2.hpecolo.net/theme
           CHAT_BACKEND_API_URL: https://api.ingress.pcai0201.fr2.hpecolo.net/chat
           ZITADEL_ISSUER: https://id.ingress.pcai0201.fr2.hpecolo.net
-          ZITADEL_CLIENT_ID: "317217950350287705"
+          ZITADEL_CLIENT_ID: "319135753609257766"
           CONTENT_SECURITY_POLICY_VALUE: "default-src 'self'; img-src https: blob: data: *.ingress.pcai0201.fr2.hpecolo.net; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; font-src 'self' data:; connect-src 'self' blob: *.ingress.pcai0201.fr2.hpecolo.net wss://*.ingress.pcai0201.fr2.hpecolo.net; media-src 'self' *.ingress.pcai0201.fr2.hpecolo.net; frame-ancestors 'self'; frame-src 'self' *.ingress.pcai0201.fr2.hpecolo.net;"
           STATIC_THEME_COLORS: >-
             {"color-primary-cta": "#D63384", "color-primary-variant": "#B2447A", "color-secondary": "#042834", "color-secondary-variant": "#03212B", "color-background": "#F7F7F7", "color-background-variant": "#EBEBED", "color-surface": "#FFFFFF", "color-control": "#D8D8D8", "color-info": "#0A96E6", "color-success-light": "#A0C855", "color-success-dark": "#3D9E3F", "color-error-light": "#F65D67", "color-error-dark": "#DC3545", "color-attention": "#FFC65C", "color-attention-variant": "#19AADA",

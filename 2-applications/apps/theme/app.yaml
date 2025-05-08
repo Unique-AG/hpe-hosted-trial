@@ -17,7 +17,7 @@ spec:
           THEME_BACKEND_API_URL: https://api.ingress.pcai0201.fr2.hpecolo.net/theme
           CHAT_BACKEND_API_URL: https://api.ingress.pcai0201.fr2.hpecolo.net/chat
           ZITADEL_ISSUER: https://id.ingress.pcai0201.fr2.hpecolo.net
-          ZITADEL_CLIENT_ID: "317217950350287705"
+          ZITADEL_CLIENT_ID: "319135753609257766"
           ZITADEL_PROJECT_ID: "null" # Not required any more, as Kong extracts roles from JWT
           CONTENT_SECURITY_POLICY_VALUE: "default-src 'self'; img-src https: blob: data: *.ingress.pcai0201.fr2.hpecolo.net; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; font-src 'self' data:; connect-src 'self' blob: *.ingress.pcai0201.fr2.hpecolo.net wss://*.ingress.pcai0201.fr2.hpecolo.net; media-src 'self' *.ingress.pcai0201.fr2.hpecolo.net; frame-ancestors 'self'; frame-src 'self' *.ingress.pcai0201.fr2.hpecolo.net;"
           STATIC_THEME_COLORS: >-
