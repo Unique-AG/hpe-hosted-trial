@@ -38,20 +38,20 @@ spec:
               # At least one model must exist for the proxy to start.
               - model_name: llama-3.1-8b-instruct
                 litellm_params:
-                  model: openai/meta/llama-3.1-8b-instruct
+                  model: openai/meta/llama3-8b-instruct
                   api_key: os.environ/NVIDIA_LLM_KEY
-                  api_base: https://llama-31-8b-instruct-predictor-nishant-chanduk-5a31eb6f.ingress.pcai0201.fr2.hpecolo.net/v1
+                  api_base: https://llama3-8b-instruct-predictor-nishant-chanduk-5a31eb6f.ingress.pcai0201.fr2.hpecolo.net/v1
               - model_name: nv-embedqa-e5-v5-search
                 litellm_params:
                   model: nvidia_nim/nvidia/nv-embedqa-e5-v5
                   api_key: os.environ/NVIDIA_EMBEDDING_KEY
-                  api_base: https://nv-embedqa-e5-v5-predictor-nishant-chanduk-5a31eb6f.ingress.pcai0201.fr2.hpecolo.net/v1
+                  api_base: https://nv-embed-v5-predictor-nishant-chanduk-5a31eb6f.ingress.pcai0201.fr2.hpecolo.net/v1
                   input_type: query
               - model_name: nv-embedqa-e5-v5-ingest
                 litellm_params:
                   model: nvidia_nim/nvidia/nv-embedqa-e5-v5
                   api_key: os.environ/NVIDIA_EMBEDDING_KEY
-                  api_base: https://nv-embedqa-e5-v5-predictor-nishant-chanduk-5a31eb6f.ingress.pcai0201.fr2.hpecolo.net/v1
+                  api_base: https://nv-embed-v5-predictor-nishant-chanduk-5a31eb6f.ingress.pcai0201.fr2.hpecolo.net/v1
                   input_type: passage
             general_settings:
               alerting: []
