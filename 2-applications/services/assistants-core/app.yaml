@@ -43,10 +43,14 @@ spec:
           volumeMounts:
             - name: assistants-cache
               mountPath: /artifacts
+            - name: crawl4ai-cache
+              mountPath: /home/app/.crawl4ai
           volumes:
             - name: assistants-cache
               persistentVolumeClaim:
                 claimName: assistants-cache
+            - name: crawl4ai-cache
+              emptyDir: {}
           initContainers:
             - name: download-artifacts
               image: curlimages/curl:8.6.0
