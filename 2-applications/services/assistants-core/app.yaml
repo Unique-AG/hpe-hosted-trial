@@ -20,10 +20,15 @@ spec:
             repository: harbor.ingress.pcai0201.fr2.hpecolo.net/library/assistants-core
             tag: "2025.17-f944c"
           env:
+            ENV: PRODUCTION
+            LOG_LEVEL: INFO
             API_BASE: http://service-chat.unique.svc.cluster.local/public
             GUNICORN_THREADS: 4
             GUNICORN_WORKERS: 2
             ENABLED_MIME_TYPES_DOCUMENT_TRANSLATION: '["DOCX", "MSEXCEL", "EXCEL"]'
+            BING_API_ENDPOINT: https://api.bing.microsoft.com/
+          secretFrom:
+            name: service-assistants-core
           replicaCount: 1
           resources:
             requests:
