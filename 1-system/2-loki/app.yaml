@@ -6,7 +6,7 @@ spec:
   autoSync: false
   sources:
     - repoURL: https://github.com/Unique-AG/hpe-hosted-trial
-      targetRevision: HEAD
+      targetRevision: feat/upgrade-to-2026
       path: "1-system/2-loki"
       directory:
         recurse: true

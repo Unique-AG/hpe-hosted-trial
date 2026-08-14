@@ -10,7 +10,7 @@ spec:
     # The system dependencies like kong, databases, redis, etc.
     # Reserved Sync Waves: 0-5
     - repoURL: https://github.com/Unique-AG/hpe-hosted-trial
-      targetRevision: main
+      targetRevision: feat/upgrade-to-2026
       path: 1-system
     # The application services
     # Reserved Sync Waves: 6-10

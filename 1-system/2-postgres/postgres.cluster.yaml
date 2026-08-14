@@ -16,10 +16,12 @@ spec:
       secret:
         name: postgres-secret
       postInitSQL:
-        - CREATE DATABASE theme OWNER "unique"
-        - CREATE DATABASE scope_management OWNER "unique"
-        - CREATE DATABASE app_repository OWNER "unique"
+        - CREATE DATABASE "app-repository" OWNER "unique"
+        - CREATE DATABASE "configuration-backend" OWNER "unique"
         - CREATE DATABASE ingestion OWNER "unique"
+        - CREATE DATABASE litellm OWNER "unique"
+        - CREATE DATABASE "scope-management" OWNER "unique"
+        - CREATE DATABASE gatekeeper OWNER "unique"
         - CREATE DATABASE zitadel OWNER "unique"
         - CREATE DATABASE litellm OWNER "unique"
   managed:

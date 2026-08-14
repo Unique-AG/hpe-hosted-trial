@@ -5,7 +5,7 @@ spec:
   autoSync: false
   sources:
     - repoURL: https://github.com/Unique-AG/hpe-hosted-trial
-      targetRevision: HEAD
+      targetRevision: feat/upgrade-to-2026
       path: "1-system/3-zitadel"
       directory:
         recurse: true
@@ -13,7 +13,7 @@ spec:
         exclude: '{app.yaml}'
     - repoURL: oci://ghcr.io/zitadel/zitadel-charts/zitadel
       path: .
-      targetRevision: 10.0.4
+      targetRevision: sha256:bf4a610b57331439feb6dd887937d18f0fdc85c8e5c151cb2f041ef44ab1504f # 9.34.1
       helm:
         releaseName: zitadel
         valuesObject:
@@ -21,7 +21,7 @@ spec:
             enabled: false
 
           image:
-            tag: v4.15.3
+            tag: v3.4.11@sha256:53e69236b5c12f745962f62d438dd4831f39ba813694cdc773ee9a8ca35f813c
           
           ingress:
             enabled: false

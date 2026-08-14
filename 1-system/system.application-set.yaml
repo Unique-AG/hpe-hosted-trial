@@ -11,7 +11,7 @@ spec:
   generators:
   - git:
       repoURL: https://github.com/Unique-AG/hpe-hosted-trial
-      revision: HEAD
+      revision: feat/upgrade-to-2026
       files:
       - path: "1-system/**/app.yaml"
   template:

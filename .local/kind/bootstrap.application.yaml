@@ -1,0 +1,15 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: hpe-hosted-trial-system
+  namespace: unique
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/Unique-AG/hpe-hosted-trial
+    targetRevision: feat/upgrade-to-2026
+    path: 1-system
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: unique
+  syncPolicy: {}

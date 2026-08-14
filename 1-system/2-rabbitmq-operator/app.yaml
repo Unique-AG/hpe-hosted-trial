@@ -5,5 +5,5 @@ spec:
   autoSync: false
   source:
     repoURL: https://github.com/Unique-AG/hpe-hosted-trial
-    targetRevision: HEAD
+    targetRevision: feat/upgrade-to-2026
     path: "1-system/2-rabbitmq-operator"
