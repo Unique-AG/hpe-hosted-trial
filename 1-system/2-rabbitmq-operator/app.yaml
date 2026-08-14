@@ -1,14 +1,9 @@
 spec:
-  name: redis
+  name: rabbitmq-operator
   metadata:
     argocd.argoproj.io/sync-wave: "2"
   autoSync: false
   source:
     repoURL: https://github.com/Unique-AG/hpe-hosted-trial
     targetRevision: HEAD
-    path: "1-system/2-redis"
-    directory:
-      recurse: true
-      include: '*.yaml'
-      exclude: '{app.yaml}'
-              
+    path: "1-system/2-rabbitmq-operator"

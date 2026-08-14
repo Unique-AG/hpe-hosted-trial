@@ -1,0 +1,19 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: redis-master-prometheus-monitoring
+  namespace: unique
+  labels:
+    release: kube-prometheus-stack
+spec:
+  selector:
+    matchLabels:
+      app: redis-master
+      app.kubernetes.io/component: metrics
+      redis_setup_type: standalone
+      role: standalone
+  endpoints:
+    - port: redis-exporter
+  namespaceSelector:
+    matchNames:
+      - unique

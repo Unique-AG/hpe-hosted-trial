@@ -1,0 +1,29 @@
+apiVersion: rabbitmq.com/v1beta1
+kind: RabbitmqCluster
+metadata:
+  name: rabbitmq
+  namespace: unique
+  annotations:
+    argocd.argoproj.io/sync-wave: "3"
+spec:
+  replicas: 1
+  image: rabbitmq:4.3.4-management
+  secretBackend:
+    externalSecret:
+      name: rabbitmq-password-secret
+  persistence:
+    storageClassName: gl4f-filesystem
+    storage: 50Gi
+  rabbitmq:
+    additionalConfig: |
+      vm_memory_high_watermark.absolute = 20Gi
+    additionalPlugins:
+      - rabbitmq_management
+      - rabbitmq_prometheus
+  resources:
+    requests:
+      cpu: 1
+      memory: 24Gi
+    limits:
+      cpu: 1
+      memory: 24Gi

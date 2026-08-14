@@ -12,13 +12,13 @@ spec:
         recurse: true
         include: '*.yaml'
         exclude: '{app.yaml}'
-    - chart: loki
-      repoURL: https://grafana.github.io/helm-charts
-      targetRevision: 6.29.0
+    - repoURL: oci://ghcr.io/grafana-community/helm-charts/loki
+      path: .
+      targetRevision: 18.5.1
       helm:
         releaseName: loki
         valuesObject:
-          deploymentMode: SingleBinary
+          deploymentMode: Monolithic
           loki:
             commonConfig:
               replication_factor: 1

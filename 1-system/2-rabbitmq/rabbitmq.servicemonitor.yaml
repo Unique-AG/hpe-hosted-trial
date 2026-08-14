@@ -1,0 +1,34 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: rabbitmq
+  namespace: unique
+  labels:
+    release: kube-prometheus-stack
+spec:
+  endpoints:
+    - port: prometheus
+      scheme: http
+      interval: 15s
+      scrapeTimeout: 14s
+    - port: prometheus
+      scheme: http
+      path: /metrics/detailed
+      params:
+        family:
+          - connection_churn_metrics
+          - node_coarse_metrics
+          - node_metrics
+          - queue_coarse_metrics
+          - queue_consumer_count
+          - queue_delivery_metrics
+          - queue_metrics
+      interval: 15s
+      scrapeTimeout: 14s
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: rabbitmq
+      app.kubernetes.io/name: rabbitmqcluster-rabbitmq
+  namespaceSelector:
+    matchNames:
+      - unique

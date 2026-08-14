@@ -13,7 +13,7 @@ spec:
         exclude: '{app.yaml}'
     - repoURL: https://helm.goharbor.io
       chart: harbor
-      targetRevision: 1.17.0
+      targetRevision: 1.19.2
       helm:
         releaseName: harbor
         valuesObject:

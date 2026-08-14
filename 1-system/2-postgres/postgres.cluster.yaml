@@ -1,0 +1,44 @@
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: postgres
+  namespace: unique
+  annotations:
+    argocd.argoproj.io/sync-wave: "3"
+spec:
+  instances: 1
+  imageName: ghcr.io/cloudnative-pg/postgresql:18.4-system-trixie
+  enableSuperuserAccess: false
+  bootstrap:
+    initdb:
+      database: chat
+      owner: unique
+      secret:
+        name: postgres-secret
+      postInitSQL:
+        - CREATE DATABASE theme OWNER "unique"
+        - CREATE DATABASE scope_management OWNER "unique"
+        - CREATE DATABASE app_repository OWNER "unique"
+        - CREATE DATABASE ingestion OWNER "unique"
+        - CREATE DATABASE zitadel OWNER "unique"
+        - CREATE DATABASE litellm OWNER "unique"
+  managed:
+    services:
+      additional:
+        - selectorType: rw
+          serviceTemplate:
+            metadata:
+              name: postgres-postgresql
+  postgresql:
+    parameters:
+      max_connections: "200"
+  storage:
+    size: 20Gi
+    storageClass: gl4f-filesystem
+  resources:
+    limits:
+      cpu: 4
+      memory: 32Gi
+    requests:
+      cpu: 2
+      memory: 28Gi

@@ -1,0 +1,33 @@
+spec:
+  name: redis-operator
+  metadata:
+    argocd.argoproj.io/sync-wave: "1"
+  autoSync: false
+  source:
+    chart: redis-operator
+    repoURL: https://ot-container-kit.github.io/helm-charts/
+    targetRevision: 0.25.0
+    helm:
+      releaseName: redis-operator
+      valuesObject:
+        redisOperator:
+          imageTag: v0.25.0
+          initContainerImageTag: v0.25.0
+          imagePullPolicy: IfNotPresent
+          watchNamespace: unique
+          webhook: false
+          metrics:
+            enabled: true
+        rbac:
+          enabled: true
+          scope: namespace
+        serviceAccountName: redis-operator
+        service:
+          namespace: unique
+        resources:
+          limits:
+            cpu: 500m
+            memory: 512Mi
+          requests:
+            cpu: 100m
+            memory: 128Mi

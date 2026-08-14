@@ -12,7 +12,7 @@ spec:
         exclude: '{app.yaml}'
     - repoURL: https://charts.konghq.com
       chart: ingress
-      targetRevision: 0.19.0
+      targetRevision: 0.24.0
       helm:
         releaseName: kong
         valuesObject:

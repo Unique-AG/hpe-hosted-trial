@@ -13,7 +13,7 @@ spec:
         exclude: '{app.yaml}'
     - repoURL: https://qdrant.github.io/qdrant-helm
       chart: qdrant
-      targetRevision: 1.14.0
+      targetRevision: 1.18.2
       helm:
         releaseName: qdrant
         valuesObject:

@@ -11,20 +11,40 @@ spec:
         recurse: true
         include: '*.yaml'
         exclude: '{app.yaml}'
-    - repoURL: https://unique-ag.github.io/helm-charts
-      chart: litellm
-      targetRevision: 1.65.4
+    - repoURL: oci://ghcr.io/berriai/litellm-helm
+      path: .
+      targetRevision: 1.96.0
       helm:
         releaseName: litellm
         valuesObject:
           replicaCount: 1
 
-          env:
+          envVars:
             LITELLM_LOG: "INFO"
             REDIS_URL: "redis://redis-master.unique.svc.cluster.local:6379/5"
 
-          secretFrom:
-            name: litellm
+          environmentSecrets:
+            - litellm
+
+          extraEnvVars:
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: litellm
+                  key: DATABASE_URL
+
+          masterkeySecretName: litellm
+          masterkeySecretKey: PROXY_MASTER_KEY
+
+          db:
+            deployStandalone: false
+            useExisting: false
+
+          postgresql:
+            enabled: false
+
+          redis:
+            enabled: false
 
           resources:
             requests:

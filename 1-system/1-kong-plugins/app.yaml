@@ -4,8 +4,8 @@ spec:
     argocd.argoproj.io/sync-wave: "1"
   autoSync: false
   source:
-    repoURL: https://unique-ag.github.io/helm-charts
-    chart: kong-plugins
-    targetRevision: 1.0.2
+    repoURL: oci://ghcr.io/unique-ag/helm-charts/kong-plugins
+    path: .
+    targetRevision: 2.4.0
     helm:
       releaseName: unique-kong-plugins

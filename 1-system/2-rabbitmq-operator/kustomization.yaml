@@ -1,0 +1,44 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: unique
+resources:
+  - https://github.com/rabbitmq/cluster-operator//config/installation?ref=v2.22.4
+images:
+  - name: ghcr.io/rabbitmq/cluster-operator
+    newTag: 2.22.4
+patches:
+  - target:
+      kind: Namespace
+      name: rabbitmq-system
+    patch: |
+      $patch: delete
+      apiVersion: v1
+      kind: Namespace
+      metadata:
+        name: rabbitmq-system
+  - target:
+      group: cert-manager.io
+      version: v1
+      kind: Certificate
+      name: cluster-operator-serving-cert
+    patch: |
+      - op: replace
+        path: /spec/dnsNames/0
+        value: cluster-operator-webhook-service.unique.svc
+      - op: replace
+        path: /spec/dnsNames/1
+        value: cluster-operator-webhook-service.unique.svc.cluster.local
+  - target:
+      kind: MutatingWebhookConfiguration
+      name: cluster-operator-mutating-webhook-configuration
+    patch: |
+      - op: replace
+        path: /metadata/annotations/cert-manager.io~1inject-ca-from
+        value: unique/cluster-operator-serving-cert
+  - target:
+      kind: ValidatingWebhookConfiguration
+      name: cluster-operator-validating-webhook-configuration
+    patch: |
+      - op: replace
+        path: /metadata/annotations/cert-manager.io~1inject-ca-from
+        value: unique/cluster-operator-serving-cert

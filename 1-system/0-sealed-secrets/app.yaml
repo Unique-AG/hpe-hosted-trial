@@ -4,17 +4,33 @@ spec:
     argocd.argoproj.io/sync-wave: "0"
   autoSync: false
   sources:
-    - repoURL: https://bitnami-labs.github.io/sealed-secrets
+    - repoURL: https://bitnami.github.io/sealed-secrets
       chart: sealed-secrets
-      targetRevision: 2.17.2
+      targetRevision: 2.19.1
       helm:
         releaseName: sealed-secrets
+        skipCrds: true
         valuesObject:
+          fullnameOverride: sealed-secrets-controller
+          args:
+            - --update-status
+            - --key-prefix
+            - sealed-secrets-key
+            - --listen-addr
+            - :8080
+            - --listen-metrics-addr
+            - :8081
+            - --all-namespaces=false
+          serviceAccount:
+            create: false
+            name: sealed-secrets-controller
           rbac:
+            create: false
             clusterRole: false
-            namespacedRoles: true
-          additionalNamespaces:
-            - unique
+            namespacedRoles: false
+            serviceProxier:
+              create: false
+              bind: false
           resources:
             limits:
               cpu: 150m
