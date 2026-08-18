@@ -64,9 +64,6 @@ spec:
                     Username: unique
                     SSL:
                       Mode: disable
-                  Admin:
-                    SSL:
-                      Mode: disable
               UserAgentCookie:
                 Name: uniqueid.useragent
               Login:
