@@ -1,8 +1,9 @@
 spec:
   name: kong
-  metadata:
-    argocd.argoproj.io/sync-wave: "2"
+  rolloutStep: system-services
   autoSync: false
+  syncOptions:
+    - ServerSideApply=true
   sources:
     - repoURL: https://github.com/Unique-AG/hpe-hosted-trial
       targetRevision: feat/upgrade-to-2026
@@ -77,23 +78,23 @@ spec:
               requests:
                 cpu: 1
                 memory: 2Gi
-      ignoreDifferences:
-          - group: ""
-            kind: Secret
-            jsonPointers:
-              - /data/tls.crt
-              - /data/tls.key
-            name: kong-controller-validation-webhook-ca-keypair
-          - group: ""
-            kind: Secret
-            jsonPointers:
-              - /data/tls.crt
-              - /data/tls.key
-            name: kong-controller-validation-webhook-keypair
-          - group: admissionregistration.k8s.io
-            kind: ValidatingWebhookConfiguration
-            jsonPointers:
-              - /webhooks/0/clientConfig/caBundle
-              - /webhooks/1/clientConfig/caBundle
-              - /webhooks/2/clientConfig/caBundle
-            name: kong-controller-validations
+  ignoreDifferences:
+    - group: ""
+      kind: Secret
+      jsonPointers:
+        - /data/tls.crt
+        - /data/tls.key
+      name: kong-controller-validation-webhook-ca-keypair
+    - group: ""
+      kind: Secret
+      jsonPointers:
+        - /data/tls.crt
+        - /data/tls.key
+      name: kong-controller-validation-webhook-keypair
+    - group: admissionregistration.k8s.io
+      kind: ValidatingWebhookConfiguration
+      jsonPointers:
+        - /webhooks/0/clientConfig/caBundle
+        - /webhooks/1/clientConfig/caBundle
+        - /webhooks/2/clientConfig/caBundle
+      name: kong-controller-validations

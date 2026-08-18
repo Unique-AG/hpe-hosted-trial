@@ -1,7 +1,6 @@
 spec:
   name: cert-manager
-  metadata:
-    argocd.argoproj.io/sync-wave: "1"
+  rolloutStep: operators
   autoSync: false
   source:
     chart: cert-manager

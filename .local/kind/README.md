@@ -9,7 +9,8 @@ Start the cluster and install the local prerequisites:
 ```
 
 The cluster context is `kind-hpe-hosted-trial`. Argo CD and the HPE system
-resources use the `unique` namespace. Sealed Secrets is left for manual setup.
+resources use the `unique` namespace. The sealed-secrets controller is
+automatically rolled out; its `secrets` Application is the manual gate.
 
 Access Argo CD:
 
@@ -25,9 +26,10 @@ kubectl -n unique get secret argocd-initial-admin-secret \
   -o jsonpath='{.data.password}' | base64 --decode; echo
 ```
 
-Sync `hpe-hosted-trial-system` in Argo CD to create the `1-system`
-Applications. The generated Applications remain manual; configure Sealed
-Secrets before syncing that Application.
+The bootstrap Application is configured for automated sync. The ApplicationSet
+automatically syncs the sealed-secrets controller, pauses at the `secrets`
+Application, and resumes the remaining health-gated rollout after that
+Application is manually synced and Healthy.
 
 The local Istio gateway is mapped to host ports 80 and 443; the current local
 configuration routes HTTP on port 80 and does not configure TLS. Add the HPE

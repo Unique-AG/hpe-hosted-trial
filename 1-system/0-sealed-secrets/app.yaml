@@ -1,7 +1,6 @@
 spec:
   name: sealed-secrets
-  metadata:
-    argocd.argoproj.io/sync-wave: "0"
+  rolloutStep: sealed-secrets
   autoSync: false
   sources:
     - repoURL: https://bitnami.github.io/sealed-secrets

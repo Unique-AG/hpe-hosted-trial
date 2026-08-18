@@ -1,7 +1,6 @@
 spec:
   name: unique-kong-plugins
-  metadata:
-    argocd.argoproj.io/sync-wave: "1"
+  rolloutStep: infrastructure
   autoSync: false
   source:
     repoURL: oci://ghcr.io/unique-ag/helm-charts/kong-plugins

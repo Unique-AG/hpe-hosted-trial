@@ -1,7 +1,6 @@
 spec:
   name: qdrant
-  metadata:
-    argocd.argoproj.io/sync-wave: "2"
+  rolloutStep: infrastructure
   autoSync: false
   sources:
     - repoURL: https://github.com/Unique-AG/hpe-hosted-trial

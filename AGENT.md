@@ -7,17 +7,25 @@ The current compatibility baseline is Unique `2026.32.4`.
 
 ## Layout
 
-- `bootstrap.application.yaml` bootstraps `1-system` and `2-applications`.
+- `bootstrap.application.yaml` bootstraps `1-system`; the `2-applications`
+  source remains commented until that layer is enabled.
 - `1-system/` contains ArgoCD `ApplicationSet` inputs for cluster dependencies.
 - `2-applications/` contains Unique services and their routes.
 - `versions.yaml` is the image-version source for the HPE Harbor mirror.
 
 ## ArgoCD
 
-`1-system/system.application-set.yaml` discovers every `1-system/**/app.yaml`.
-System resources use sync waves `0` through `5`; application resources use
-waves `6` through `10`. Each application manifest owns its chart version and
-values.
+`1-system/system.application-set.yaml` discovers every `1-system/**/app.yaml`
+and rolls them out with health-gated progressive syncs. The generated
+Applications use named rollout steps: `sealed-secrets`, `secrets`,
+`gateway-api`, `operators`, `infrastructure`, `system-services`, and
+`platform-services`.
+`sealed-secrets` is automatically synced, while `secrets` is a manual gate
+because restricted deployments require administrator-provided CRDs, service
+accounts, permissions, and sealed values. The local Argo CD install enables
+progressive syncs in `.local/kind/argocd.values.yaml`; the target Argo CD
+installation must enable the same
+`applicationsetcontroller.enable.progressive.syncs` parameter.
 
 Keep HPE-specific service names, secrets, ingress resources, and the
 `gl4f-filesystem` storage class unless a dependent application is updated with

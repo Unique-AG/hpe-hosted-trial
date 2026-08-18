@@ -1,8 +1,9 @@
 spec:
   name: cloudnative-pg
-  metadata:
-    argocd.argoproj.io/sync-wave: "1"
+  rolloutStep: operators
   autoSync: false
+  syncOptions:
+    - ServerSideApply=true
   source:
     chart: cloudnative-pg
     repoURL: https://cloudnative-pg.github.io/charts

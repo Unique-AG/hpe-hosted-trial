@@ -1,8 +1,6 @@
 spec:
   name: loki
-  metadata:
-    annotations:
-      argocd.argoproj.io/sync-wave: "2"
+  rolloutStep: system-services
   autoSync: false
   sources:
     - repoURL: https://github.com/Unique-AG/hpe-hosted-trial

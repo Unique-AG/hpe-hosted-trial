@@ -4,9 +4,7 @@
 # the annotations as the last applied configuration.
 spec:
   name: kube-prometheus-stack-crds
-  metadata:
-    annotations:
-      argocd.argoproj.io/sync-wave: "1"
+  rolloutStep: operators
   autoSync: false
   syncOptions:
     - Replace=true

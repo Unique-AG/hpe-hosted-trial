@@ -3,11 +3,49 @@ kind: ApplicationSet
 metadata:
   name: system
   namespace: unique
-  annotations:
-    argocd.argoproj.io/sync-wave: "0"
 spec:
   goTemplate: true
   goTemplateOptions: ["missingkey=error"]
+  strategy:
+    type: RollingSync
+    rollingSync:
+      steps:
+        - matchExpressions:
+            - key: unique.dev/rollout-step
+              operator: In
+              values:
+                - sealed-secrets
+        - matchExpressions:
+            - key: unique.dev/rollout-step
+              operator: In
+              values:
+                - secrets
+          maxUpdate: 0
+        - matchExpressions:
+            - key: unique.dev/rollout-step
+              operator: In
+              values:
+                - gateway-api
+        - matchExpressions:
+            - key: unique.dev/rollout-step
+              operator: In
+              values:
+                - operators
+        - matchExpressions:
+            - key: unique.dev/rollout-step
+              operator: In
+              values:
+                - infrastructure
+        - matchExpressions:
+            - key: unique.dev/rollout-step
+              operator: In
+              values:
+                - system-services
+        - matchExpressions:
+            - key: unique.dev/rollout-step
+              operator: In
+              values:
+                - platform-services
   generators:
   - git:
       repoURL: https://github.com/Unique-AG/hpe-hosted-trial
@@ -24,9 +62,10 @@ spec:
         server: https://kubernetes.default.svc
         namespace: unique
   templatePatch: |
-    {{- if hasKey .spec "metadata" }}
+    {{- if hasKey .spec "rolloutStep" }}
     metadata:
-      {{- .spec.metadata | toYaml | nindent 2 }}
+      labels:
+        unique.dev/rollout-step: '{{ .spec.rolloutStep }}'
     {{- end }}
     spec:
       {{- if hasKey .spec "sources" }}
@@ -39,8 +78,13 @@ spec:
       {{- if hasKey .spec "additionalValues" }}
       {{- .spec.additionalValues | toYaml | nindent 2 }}
       {{- end }}
-      {{- if or .spec.autoSync (hasKey .spec "syncOptions") }}
       syncPolicy:
+        retry:
+          limit: 5
+          backoff:
+            duration: 5s
+            factor: 2
+            maxDuration: 2m
         {{- if .spec.autoSync }}
         automated:
           prune: true
@@ -51,4 +95,7 @@ spec:
           {{- if hasKey .spec "syncOptions" }}
           {{- .spec.syncOptions | toYaml | nindent 6 }}
           {{- end }}
+      {{- if hasKey .spec "ignoreDifferences" }}
+      ignoreDifferences:
+        {{- .spec.ignoreDifferences | toYaml | nindent 8 }}
       {{- end }}

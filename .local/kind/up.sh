@@ -65,12 +65,13 @@ helm upgrade --install argocd \
   --version "${ARGO_CD_CHART_VERSION}" \
   --namespace unique \
   --create-namespace \
+  --values "${SCRIPT_DIR}/argocd.values.yaml" \
   --wait \
   --timeout 15m
 
-kubectl apply -f "${SCRIPT_DIR}/bootstrap.application.yaml"
+kubectl apply -f "${SCRIPT_DIR}/../../bootstrap.application.yaml"
 
 printf 'kind cluster ready: %s\n' "${CLUSTER_NAME}"
 printf 'Argo CD is installed in namespace unique.\n'
-printf 'Sync hpe-hosted-trial-system to create the 1-system Applications.\n'
-printf 'Sealed Secrets is intentionally not synchronized by this setup.\n'
+printf 'The bootstrap Application starts the progressive 1-system rollout automatically.\n'
+printf 'The rollout pauses at the manually synced secrets Application.\n'

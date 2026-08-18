@@ -1,0 +1,10 @@
+spec:
+  name: gateway-api-crds
+  rolloutStep: gateway-api
+  autoSync: false
+  syncOptions:
+    - ServerSideApply=true
+  source:
+    repoURL: https://github.com/kubernetes-sigs/gateway-api
+    targetRevision: v1.5.1
+    path: config/crd/standard

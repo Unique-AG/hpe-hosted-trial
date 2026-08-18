@@ -1,7 +1,6 @@
 spec:
   name: zitadel
-  metadata:
-    argocd.argoproj.io/sync-wave: "3"
+  rolloutStep: platform-services
   autoSync: false
   sources:
     - repoURL: https://github.com/Unique-AG/hpe-hosted-trial

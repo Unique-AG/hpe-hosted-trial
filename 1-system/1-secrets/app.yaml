@@ -1,7 +1,6 @@
 spec:
   name: secrets
-  metadata:
-    argocd.argoproj.io/sync-wave: "1"
+  rolloutStep: secrets
   autoSync: false
   sources:
     - repoURL: https://github.com/Unique-AG/hpe-hosted-trial

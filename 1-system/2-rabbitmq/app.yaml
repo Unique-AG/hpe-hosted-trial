@@ -1,7 +1,6 @@
 spec:
   name: rabbitmq
-  metadata:
-    argocd.argoproj.io/sync-wave: "3"
+  rolloutStep: system-services
   autoSync: false
   source:
     repoURL: https://github.com/Unique-AG/hpe-hosted-trial
