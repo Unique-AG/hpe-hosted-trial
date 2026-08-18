@@ -2,6 +2,48 @@ spec:
   name: harbor
   rolloutStep: infrastructure
   autoSync: true
+  syncOptions:
+    - RespectIgnoreDifferences=true
+  ignoreDifferences:
+    - group: ""
+      kind: Secret
+      name: harbor-core
+      jsonPointers:
+        - /data
+    - group: ""
+      kind: Secret
+      name: harbor-jobservice
+      jsonPointers:
+        - /data
+    - group: ""
+      kind: Secret
+      name: harbor-registry
+      jsonPointers:
+        - /data
+    - group: ""
+      kind: Secret
+      name: harbor-registry-htpasswd
+      jsonPointers:
+        - /data
+    - group: apps
+      kind: Deployment
+      name: harbor-core
+      jsonPointers:
+        - /spec/template/metadata/annotations/checksum~1/secret
+        - /spec/template/metadata/annotations/checksum~1/secret-jobservice
+    - group: apps
+      kind: Deployment
+      name: harbor-jobservice
+      jsonPointers:
+        - /spec/template/metadata/annotations/checksum~1/secret
+        - /spec/template/metadata/annotations/checksum~1/secret-core
+    - group: apps
+      kind: Deployment
+      name: harbor-registry
+      jsonPointers:
+        - /spec/template/metadata/annotations/checksum~1/secret
+        - /spec/template/metadata/annotations/checksum~1/secret-core
+        - /spec/template/metadata/annotations/checksum~1/secret-jobservice
   sources:
     - repoURL: https://github.com/Unique-AG/hpe-hosted-trial
       targetRevision: feat/upgrade-to-2026

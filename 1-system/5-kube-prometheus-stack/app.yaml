@@ -2,6 +2,19 @@ spec:
   name: kube-prometheus-stack
   rolloutStep: infrastructure
   autoSync: true
+  syncOptions:
+    - RespectIgnoreDifferences=true
+  ignoreDifferences:
+    - group: ""
+      kind: Secret
+      name: kube-prometheus-stack-grafana
+      jsonPointers:
+        - /data
+    - group: apps
+      kind: Deployment
+      name: kube-prometheus-stack-grafana
+      jsonPointers:
+        - /spec/template/metadata/annotations/checksum~1/secret
   sources:
     - repoURL: https://github.com/Unique-AG/hpe-hosted-trial
       targetRevision: feat/upgrade-to-2026
