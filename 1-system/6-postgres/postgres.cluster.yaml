@@ -21,7 +21,6 @@ spec:
         - CREATE DATABASE "scope-management" OWNER "unique"
         - CREATE DATABASE gatekeeper OWNER "unique"
         - CREATE DATABASE zitadel OWNER "unique"
-        - CREATE DATABASE litellm OWNER "unique"
   managed:
     services:
       additional:
