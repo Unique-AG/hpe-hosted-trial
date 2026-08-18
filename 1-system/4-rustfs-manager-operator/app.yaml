@@ -9,6 +9,7 @@ spec:
       kind: CustomResourceDefinition
       jsonPointers:
         - /spec/preserveUnknownFields
+        - /spec/names/categories
   source:
     repoURL: oci://ghcr.io/allanger/rustfs-manager-operator/helm/rustfs-manager-operator
     path: .

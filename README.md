@@ -6,7 +6,7 @@ This repository contains the ArgoCD configuration for the Unique application.
 * Step 1: Install ArgoCD
 * Step 2: Apply the bootstrap manifest
 * Step 3: Wait for the automatically synced sealed-secrets operator
-* Step 4: Fetch the public cert from Kind and encrypt the secrets with `./.local/kind/seal-secrets.sh --all`, then commit the changes
+* Step 4: In production, fetch `public.sealed-secrets.cert.pem` from the repository and encrypt the secrets with `./seal-secrets.sh --all`; for local Kind, fetching the certificate is optional
 * Step 5: Manually sync only the `secrets` Application; the remaining system applications then roll out automatically
 * Step 6: Copy docker images to Harbor (see README below)
 * Step 7: Sync the applications
@@ -15,17 +15,23 @@ The `rolloutStep` values in `1-system/**/app.yaml` control the ApplicationSet pr
 
 ## Sealed Secrets
 
-To fetch the local Kind certificate and encrypt secrets, run:
+For production, use the public certificate from the repository:
+
+```
+./seal-secrets.sh --all
+```
+
+For local Kind, fetching the certificate from the cluster is optional. If the
+local controller uses a different key, fetch its certificate and seal in one
+step:
 
 ```
 ./.local/kind/seal-secrets.sh --all
 ```
 
-There is a convenience script that will find all the secrets in the repo and encrypt them:
-
-```
-./seal-secrets.sh
-```
+The local helper uses the current Kind controller certificate; a fresh Kind
+cluster normally generates a different key from the certificate in the
+repository.
 
 !WARNING: Sealed secrets in the `2-applications` folder are synced too late by ArgoCD, so the secrets are not available when the application is deployed.
 To fix that you need to manually add the annotations to the sealed secrets in the `2-applications` folder.
