@@ -29,21 +29,17 @@ spec:
       kind: Deployment
       name: harbor-core
       jsonPointers:
-        - /spec/template/metadata/annotations/checksum~1/secret
-        - /spec/template/metadata/annotations/checksum~1/secret-jobservice
+        - /spec/template/metadata/annotations
     - group: apps
       kind: Deployment
       name: harbor-jobservice
       jsonPointers:
-        - /spec/template/metadata/annotations/checksum~1/secret
-        - /spec/template/metadata/annotations/checksum~1/secret-core
+        - /spec/template/metadata/annotations
     - group: apps
       kind: Deployment
       name: harbor-registry
       jsonPointers:
-        - /spec/template/metadata/annotations/checksum~1/secret
-        - /spec/template/metadata/annotations/checksum~1/secret-core
-        - /spec/template/metadata/annotations/checksum~1/secret-jobservice
+        - /spec/template/metadata/annotations
   sources:
     - repoURL: https://github.com/Unique-AG/hpe-hosted-trial
       targetRevision: feat/upgrade-to-2026
