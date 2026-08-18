@@ -21,18 +21,15 @@ Applications use named rollout steps: `sealed-secrets`, `secrets`,
 `gateway-api`, `operators`, `infrastructure`, `system-services`, and
 `platform-services`.
 `sealed-secrets` is automatically synced, while `secrets` is a manual gate
-because restricted deployments require administrator-provided CRDs, service
-accounts, permissions, and sealed values. The local Argo CD install enables
-progressive syncs in `.local/kind/argocd.values.yaml`; the target Argo CD
-installation must enable the same
-`applicationsetcontroller.enable.progressive.syncs` parameter.
+because sealed values must be prepared before the remaining system rollout.
+The Sealed Secrets chart runs in `unique` with its standard CRD, ServiceAccount,
+and cluster RBAC resources. The local Argo CD install enables progressive syncs
+in `.local/kind/argocd.values.yaml`; the target Argo CD installation must
+enable the same `applicationsetcontroller.enable.progressive.syncs` parameter.
 
 Keep HPE-specific service names, secrets, ingress resources, and the
 `gl4f-filesystem` storage class unless a dependent application is updated with
-them. The restricted Sealed Secrets deployment requires the cluster administrator
-to preinstall its CRDs and provide the `sealed-secrets-controller` service
-account with namespace-only permissions in `unique`. Validate chart upgrades
-with rendered manifests before syncing.
+them. Validate chart upgrades with rendered manifests before syncing.
 
 PostgreSQL, Redis, and RabbitMQ are operator-managed. CloudNativePG and the
 OT-Container-Kit Redis Operator watch `unique`; the RabbitMQ Cluster Operator

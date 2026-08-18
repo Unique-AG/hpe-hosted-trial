@@ -8,28 +8,9 @@ spec:
       targetRevision: 2.19.1
       helm:
         releaseName: sealed-secrets
-        skipCrds: true
         valuesObject:
           fullnameOverride: sealed-secrets-controller
-          args:
-            - --update-status
-            - --key-prefix
-            - sealed-secrets-key
-            - --listen-addr
-            - :8080
-            - --listen-metrics-addr
-            - :8081
-            - --all-namespaces=false
-          serviceAccount:
-            create: false
-            name: sealed-secrets-controller
-          rbac:
-            create: false
-            clusterRole: false
-            namespacedRoles: false
-            serviceProxier:
-              create: false
-              bind: false
+          namespace: unique
           resources:
             limits:
               cpu: 150m
