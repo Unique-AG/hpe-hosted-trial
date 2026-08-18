@@ -27,6 +27,7 @@ fi
 kubectl config use-context "kind-${CLUSTER_NAME}" >/dev/null
 
 kubectl create namespace unique --dry-run=client -o yaml | kubectl apply -f -
+kubectl apply -f "${SCRIPT_DIR}/postgres-resource-profile.yaml"
 
 kubectl apply \
   -f "https://raw.githubusercontent.com/rancher/local-path-provisioner/${LOCAL_PATH_VERSION}/deploy/local-path-storage.yaml"

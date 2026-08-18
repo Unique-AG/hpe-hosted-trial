@@ -2,6 +2,8 @@ spec:
   name: postgres
   rolloutStep: system-services
   autoSync: true
+  syncOptions:
+    - RespectIgnoreDifferences=true
   source:
     repoURL: https://github.com/Unique-AG/hpe-hosted-trial
     targetRevision: feat/upgrade-to-2026

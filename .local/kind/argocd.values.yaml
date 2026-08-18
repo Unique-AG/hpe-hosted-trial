@@ -1,4 +1,8 @@
 configs:
+  cm:
+    resource.customizations.ignoreDifferences.postgresql.cnpg.io_Cluster: |
+      jqPathExpressions:
+        - .spec.resources
   params:
     applicationsetcontroller.enable.progressive.syncs: "true"
     controller.sync.wave.delay.seconds: "5"
