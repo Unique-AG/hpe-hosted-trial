@@ -6,9 +6,7 @@ metadata:
 spec:
   instances: 1
   imageName: ghcr.io/cloudnative-pg/postgresql:18.4-system-trixie
-  enableSuperuserAccess: true
-  superuserSecret:
-    name: postgres-superuser
+  enableSuperuserAccess: false
   bootstrap:
     initdb:
       database: chat

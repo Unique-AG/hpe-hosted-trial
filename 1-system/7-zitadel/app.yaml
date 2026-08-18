@@ -16,6 +16,9 @@ spec:
       helm:
         releaseName: zitadel
         valuesObject:
+          initJob:
+            command: zitadel
+
           postgresql:
             enabled: false
 
