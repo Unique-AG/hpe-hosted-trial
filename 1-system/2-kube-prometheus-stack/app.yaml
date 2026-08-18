@@ -1,7 +1,7 @@
 spec:
   name: kube-prometheus-stack
   rolloutStep: infrastructure
-  autoSync: false
+  autoSync: true
   sources:
     - repoURL: https://github.com/Unique-AG/hpe-hosted-trial
       targetRevision: feat/upgrade-to-2026
