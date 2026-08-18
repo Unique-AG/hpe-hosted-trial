@@ -27,6 +27,14 @@ and cluster RBAC resources. The local Argo CD install enables progressive syncs
 in `.local/kind/argocd.values.yaml`; the target Argo CD installation must
 enable the same `applicationsetcontroller.enable.progressive.syncs` parameter.
 
+## Local operation
+
+- Never create or regenerate SealedSecret manifests or encrypted secret values.
+- When changing a Secret, update both the plaintext Secret manifest and its
+  `.secret.yaml.example` counterpart; the user runs the sealing mechanism.
+- Never start or test the local kind cluster unless the user explicitly asks in
+  the current conversation.
+
 Keep HPE-specific service names, secrets, ingress resources, and the
 `gl4f-filesystem` storage class unless a dependent application is updated with
 them. Validate chart upgrades with rendered manifests before syncing.

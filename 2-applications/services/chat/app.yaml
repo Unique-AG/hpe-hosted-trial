@@ -30,9 +30,9 @@ spec:
             PUBSUB_REDIS_DB: 2
             PUBSUB_REDIS_HOST: redis-master.unique.svc.cluster.local
             PUBSUB_REDIS_PORT: '6379'
-            S3_BUCKET_ENDPOINT: 'http://minio.unique.svc.cluster.local:9000'
+            S3_BUCKET_ENDPOINT: 'http://rustfs-svc.unique.svc.cluster.local:9000'
             S3_BUCKET_REGION: 'us-east-1'
-            S3_BUCKET_NAME: 'ingestion-bucket'
+            S3_BUCKET_NAME: 'unique-ingestion-bucket'
             BENCHMARKS_PER_MINUTE_PER_PROCESS: "1"
             AMQP_BENCHMARK_PREFETCH: "1"
             ANONYMIZED_CHAT_INTERACTIONS_EXPORT: "true"

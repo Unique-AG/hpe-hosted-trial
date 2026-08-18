@@ -43,13 +43,13 @@ spec:
             storage:
               type: 's3'
               bucketNames:
-                chunks: loki-chunks
-                ruler: loki-ruler
-                admin: loki-admin
+                chunks: unique-loki-chunks
+                ruler: unique-loki-ruler
+                admin: unique-loki-admin
               s3:
-                endpoint: http://minio.unique.svc.cluster.local:9000
-                secretAccessKey: ${S3_LOKI_SECRET_ACCESS_KEY}
-                accessKeyId: loki-user-access-key
+                endpoint: http://rustfs-svc.unique.svc.cluster.local:9000
+                secretAccessKey: ${S3_RUSTFS_SECRET_ACCESS_KEY}
+                accessKeyId: ${S3_RUSTFS_ACCESS_KEY}
                 s3ForcePathStyle: true
                 insecure: true
           chunksCache:
@@ -67,11 +67,16 @@ spec:
             extraArgs:
               - '-config.expand-env=true'
             extraEnv:
-              - name: S3_LOKI_SECRET_ACCESS_KEY
+              - name: S3_RUSTFS_ACCESS_KEY
                 valueFrom:
                   secretKeyRef:
-                    name: minio-loki-user
-                    key: secretKey
+                    name: rustfs-credentials
+                    key: ACCESS_KEY
+              - name: S3_RUSTFS_SECRET_ACCESS_KEY
+                valueFrom:
+                  secretKeyRef:
+                    name: rustfs-credentials
+                    key: SECRET_KEY
               # Keep a little bit lower than memory limits
               - name: GOMEMLIMIT
                 value: 3750MiB

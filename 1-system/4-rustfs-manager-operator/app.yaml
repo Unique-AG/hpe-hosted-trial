@@ -1,0 +1,26 @@
+spec:
+  name: rustfs-manager-operator
+  rolloutStep: operators
+  autoSync: true
+  syncOptions:
+    - ServerSideApply=true
+  source:
+    repoURL: oci://ghcr.io/allanger/rustfs-manager-operator/helm/rustfs-manager-operator
+    path: .
+    targetRevision: 0.1.11
+    helm:
+      releaseName: rustfs-manager-operator
+      valuesObject:
+        replicaCount: 1
+        crds:
+          install: true
+          keep: true
+        config:
+          setOwnerReference: false
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+          limits:
+            cpu: 500m
+            memory: 512Mi

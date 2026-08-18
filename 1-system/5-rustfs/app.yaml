@@ -1,0 +1,43 @@
+spec:
+  name: rustfs
+  rolloutStep: infrastructure
+  autoSync: true
+  sources:
+    - repoURL: https://github.com/Unique-AG/hpe-hosted-trial
+      targetRevision: feat/upgrade-to-2026
+      path: "1-system/5-rustfs"
+      directory:
+        recurse: true
+        include: '*.yaml'
+        exclude: '{app.yaml}'
+    - repoURL: https://charts.rustfs.com
+      chart: rustfs
+      targetRevision: 1.0.0-rc.2
+      helm:
+        releaseName: rustfs
+        valuesObject:
+          mode:
+            standalone:
+              enabled: true
+            distributed:
+              enabled: false
+          replicaCount: 1
+          secret:
+            existingSecret: rustfs-credentials
+          storageclass:
+            name: gl4f-filesystem
+            dataStorageSize: 1Ti
+            logStorageSize: 1Gi
+          resources:
+            requests:
+              cpu: 500m
+              memory: 2Gi
+            limits:
+              cpu: 1
+              memory: 4Gi
+          config:
+            rustfs:
+              region: us-east-1
+              obs_environment: production
+          ingress:
+            enabled: false

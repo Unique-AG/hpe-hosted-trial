@@ -44,9 +44,9 @@ spec:
             CORS_ALLOWED_ORIGINS: '[]' # Not required. Kong handles CORS.
             TRUSTED_DOMAINS: '["*.ingress.pcai0201.fr2.hpecolo.net"]'
             RERANKER_CONFIGURATION: '[{"deploymentName": "crossencoder_reranker", "apiUrl": "http://assistants-reranker.unique.svc.cluster.local/reranker/rerank"}]'
-            S3_BUCKET_ENDPOINT: 'http://minio.unique.svc.cluster.local:9000'
+            S3_BUCKET_ENDPOINT: 'http://rustfs-svc.unique.svc.cluster.local:9000'
             S3_BUCKET_REGION: "us-east-1"
-            S3_BUCKET_BUCKET_NAME: "ingestion-bucket"
+            S3_BUCKET_BUCKET_NAME: "unique-ingestion-bucket"
             CHUNK_MAX_TOKENS: 376
             CHUNK_MAX_TOKENS_ONE_PAGER: 376
           secretFrom:

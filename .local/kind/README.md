@@ -37,7 +37,7 @@ hostnames to `/etc/hosts` if you want to access services through the same
 routes:
 
 ```text
-127.0.0.1 unique.ingress.pcai0201.fr2.hpecolo.net api.ingress.pcai0201.fr2.hpecolo.net id.ingress.pcai0201.fr2.hpecolo.net minio.ingress.pcai0201.fr2.hpecolo.net harbor.ingress.pcai0201.fr2.hpecolo.net rabbitmq.ingress.pcai0201.fr2.hpecolo.net litellm.ingress.pcai0201.fr2.hpecolo.net grafana.ingress.pcai0201.fr2.hpecolo.net
+127.0.0.1 unique.ingress.pcai0201.fr2.hpecolo.net api.ingress.pcai0201.fr2.hpecolo.net id.ingress.pcai0201.fr2.hpecolo.net rustfs.ingress.pcai0201.fr2.hpecolo.net harbor.ingress.pcai0201.fr2.hpecolo.net rabbitmq.ingress.pcai0201.fr2.hpecolo.net litellm.ingress.pcai0201.fr2.hpecolo.net grafana.ingress.pcai0201.fr2.hpecolo.net
 ```
 
 Remove the entire local cluster with:
