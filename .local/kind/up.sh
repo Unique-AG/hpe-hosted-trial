@@ -59,6 +59,7 @@ helm upgrade --install istio-ingressgateway istio/gateway \
   --wait \
   --timeout 10m
 kubectl apply -f "${SCRIPT_DIR}/ezaf-gateway.yaml"
+kubectl apply -f "${SCRIPT_DIR}/local-virtual-services.yaml"
 
 helm upgrade --install argocd \
   oci://ghcr.io/argoproj/argo-helm/argo-cd \

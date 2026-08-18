@@ -34,7 +34,24 @@ Application is manually synced and Healthy.
 The local Istio gateway is mapped to host ports 80 and 443; the current local
 configuration routes HTTP on port 80 and does not configure TLS. Add the HPE
 hostnames to `/etc/hosts` if you want to access services through the same
-routes:
+production routes. The local setup also applies routing-only `.localhost`
+aliases:
+
+```text
+http://unique.localhost
+http://api.localhost
+http://id.localhost
+http://rustfs.localhost
+http://harbor.localhost
+http://rabbitmq.localhost
+http://litellm.localhost
+http://grafana.localhost
+```
+
+The aliases rewrite the upstream authority to the corresponding production
+hostname so existing Istio and Kong routes continue to match. Application
+configuration remains unchanged, so redirects, OIDC URLs, and generated links
+can still use the production `https` hostnames.
 
 ```text
 127.0.0.1 unique.ingress.pcai0201.fr2.hpecolo.net api.ingress.pcai0201.fr2.hpecolo.net id.ingress.pcai0201.fr2.hpecolo.net rustfs.ingress.pcai0201.fr2.hpecolo.net harbor.ingress.pcai0201.fr2.hpecolo.net rabbitmq.ingress.pcai0201.fr2.hpecolo.net litellm.ingress.pcai0201.fr2.hpecolo.net grafana.ingress.pcai0201.fr2.hpecolo.net
