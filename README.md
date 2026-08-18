@@ -6,7 +6,7 @@ This repository contains the ArgoCD configuration for the Unique application.
 * Step 1: Install ArgoCD
 * Step 2: Apply the bootstrap manifest
 * Step 3: Wait for the automatically synced sealed-secrets operator
-* Step 4: Copy the public cert to the repo (`public.sealed-secrets.cert.pem`), encrypt the secrets with `./seal-secrets.sh --all` and commit the changes
+* Step 4: Fetch the public cert from Kind and encrypt the secrets with `./.local/kind/seal-secrets.sh --all`, then commit the changes
 * Step 5: Manually sync only the `secrets` Application; the remaining system applications then roll out automatically
 * Step 6: Copy docker images to Harbor (see README below)
 * Step 7: Sync the applications
@@ -15,11 +15,10 @@ The `rolloutStep` values in `1-system/**/app.yaml` control the ApplicationSet pr
 
 ## Sealed Secrets
 
-To encrypt secrets, run:
+To fetch the local Kind certificate and encrypt secrets, run:
 
 ```
-echo -n bar | kubectl create secret generic mysecret --dry-run=client --from-file=foo=/dev/stdin -o yaml >mysecret.yaml
-kubeseal --cert ./public.sealed-secrets.cert.pem -f mysecret.yaml -o yaml -w mysealedsecret.yaml -n namespace
+./.local/kind/seal-secrets.sh --all
 ```
 
 There is a convenience script that will find all the secrets in the repo and encrypt them:
