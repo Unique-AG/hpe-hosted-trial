@@ -2,3 +2,4 @@ configs:
   params:
     applicationsetcontroller.enable.progressive.syncs: "true"
     controller.sync.wave.delay.seconds: "5"
+    server.insecure: "true"

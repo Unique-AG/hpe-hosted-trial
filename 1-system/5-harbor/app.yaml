@@ -130,6 +130,10 @@ spec:
 
           database:
             internal:
+              livenessProbe:
+                timeoutSeconds: 5
+              readinessProbe:
+                timeoutSeconds: 5
               resources:
                 limits:
                   cpu: 1000m

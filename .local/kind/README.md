@@ -10,15 +10,12 @@ Start the cluster and install the local prerequisites:
 
 The cluster context is `kind-hpe-hosted-trial`. Argo CD and the HPE system
 resources use the `unique` namespace. The sealed-secrets controller is
-automatically rolled out; its `secrets` Application is the manual gate.
+automatically rolled out; its `secrets` Application is the manual gate. Metrics
+Server is installed locally for the Istio autoscalers.
 
 Access Argo CD:
 
-```bash
-kubectl -n unique port-forward svc/argocd-server 8080:443
-```
-
-Open <https://localhost:8080>. The username is `admin`; retrieve the initial
+Open <http://argocd.localhost>. The username is `admin`; retrieve the initial
 password with:
 
 ```bash
@@ -39,6 +36,7 @@ aliases:
 
 ```text
 http://unique.localhost
+http://argocd.localhost
 http://api.localhost
 http://id.localhost
 http://rustfs.localhost

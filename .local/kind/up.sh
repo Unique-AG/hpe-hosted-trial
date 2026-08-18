@@ -6,6 +6,7 @@ CLUSTER_NAME="${KIND_CLUSTER_NAME:-hpe-hosted-trial}"
 LOCAL_PATH_VERSION="${LOCAL_PATH_VERSION:-v0.0.36}"
 ARGO_CD_CHART_VERSION="${ARGO_CD_CHART_VERSION:-10.3.3}"
 ISTIO_VERSION="${ISTIO_VERSION:-1.30.3}"
+METRICS_SERVER_CHART_VERSION="${METRICS_SERVER_CHART_VERSION:-3.13.0}"
 
 require_command() {
   command -v "$1" >/dev/null 2>&1 || {
@@ -36,6 +37,17 @@ kubectl -n local-path-storage rollout status \
 kubectl annotate storageclass local-path \
   storageclass.kubernetes.io/is-default-class- 2>/dev/null || true
 kubectl apply -f "${SCRIPT_DIR}/gl4f-filesystem.storage-class.yaml"
+
+helm repo add metrics-server \
+  https://kubernetes-sigs.github.io/metrics-server/ \
+  --force-update >/dev/null
+helm repo update metrics-server >/dev/null
+helm upgrade --install metrics-server metrics-server/metrics-server \
+  --version "${METRICS_SERVER_CHART_VERSION}" \
+  --namespace kube-system \
+  --set 'args[0]=--kubelet-insecure-tls' \
+  --wait \
+  --timeout 10m
 
 helm repo add istio \
   https://istio-release.storage.googleapis.com/charts \
