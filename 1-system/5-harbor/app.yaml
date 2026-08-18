@@ -60,7 +60,8 @@ spec:
               enabled: false
               certSource: none
 
-          externalURL: https://harbor.ingress.pcai0201.fr2.hpecolo.net
+          # HPE: https://harbor.ingress.pcai0201.fr2.hpecolo.net
+          externalURL: http://harbor.localhost
 
           existingSecretAdminPassword: harbor-password-secret
 

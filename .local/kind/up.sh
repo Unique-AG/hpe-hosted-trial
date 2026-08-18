@@ -15,7 +15,30 @@ require_command() {
   }
 }
 
-for command in kind kubectl helm; do
+configure_local_harbor_registry() {
+  local host_gateway
+  local node
+
+  for node in $(kind get nodes --name "${CLUSTER_NAME}"); do
+    host_gateway="$(docker exec "${node}" getent hosts host.docker.internal | awk 'NR == 1 { print $1 }')"
+    if [[ -z "${host_gateway}" ]]; then
+      printf 'unable to resolve Docker host from kind node: %s\n' "${node}" >&2
+      exit 1
+    fi
+
+    docker exec "${node}" mkdir -p /etc/containerd/certs.d/harbor.localhost
+    docker cp \
+      "${SCRIPT_DIR}/harbor.localhost.hosts.toml" \
+      "${node}:/etc/containerd/certs.d/harbor.localhost/hosts.toml" >/dev/null
+    docker exec "${node}" sh -c '
+      awk "$1" /etc/hosts > /tmp/hosts
+      printf "%s\t%s\n" "$2" "harbor.localhost" >> /tmp/hosts
+      cp /tmp/hosts /etc/hosts
+    ' sh '$2 != "harbor.localhost"' "${host_gateway}"
+  done
+}
+
+for command in docker kind kubectl helm; do
   require_command "${command}"
 done
 
@@ -26,6 +49,7 @@ if ! kind get clusters 2>/dev/null | awk -v name="${CLUSTER_NAME}" '$0 == name {
 fi
 
 kubectl config use-context "kind-${CLUSTER_NAME}" >/dev/null
+configure_local_harbor_registry
 
 kubectl create namespace unique --dry-run=client -o yaml | kubectl apply -f -
 
@@ -71,6 +95,17 @@ helm upgrade --install istio-ingressgateway istio/gateway \
   --wait \
   --timeout 10m
 kubectl apply -f "${SCRIPT_DIR}/ezaf-gateway.yaml"
+kubectl delete virtualservice.networking.istio.io \
+  --namespace unique \
+  local-api \
+  local-grafana \
+  local-harbor \
+  local-id \
+  local-litellm \
+  local-rabbitmq \
+  local-rustfs \
+  local-unique \
+  --ignore-not-found
 kubectl apply -f "${SCRIPT_DIR}/local-virtual-services.yaml"
 
 helm upgrade --install argocd \

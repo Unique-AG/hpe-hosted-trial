@@ -3,6 +3,10 @@ apiVersion: kind.x-k8s.io/v1alpha4
 name: hpe-hosted-trial
 networking:
   kubeProxyMode: iptables
+containerdConfigPatches:
+  - |-
+    [plugins."io.containerd.grpc.v1.cri".registry]
+      config_path = "/etc/containerd/certs.d"
 nodes:
   - role: control-plane
     kubeadmConfigPatches:

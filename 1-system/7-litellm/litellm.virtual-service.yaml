@@ -6,7 +6,8 @@ spec:
   gateways:
     - istio-system/ezaf-gateway
   hosts:
-    - litellm.ingress.pcai0201.fr2.hpecolo.net
+    # HPE: litellm.ingress.pcai0201.fr2.hpecolo.net
+    - litellm.localhost
   http:
     - match:
         - uri:

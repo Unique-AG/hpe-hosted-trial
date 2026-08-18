@@ -28,32 +28,32 @@ automatically syncs the sealed-secrets controller, pauses at the `secrets`
 Application, and resumes the remaining health-gated rollout after that
 Application is manually synced and Healthy.
 
-The local Istio gateway is mapped to host ports 80 and 443; the current local
-configuration routes HTTP on port 80 and does not configure TLS. Add the HPE
-hostnames to `/etc/hosts` if you want to access services through the same
-production routes. The local setup also applies routing-only `.localhost`
-aliases:
+The local Istio gateway is mapped to host ports 80 and 443. System services use
+HTTP and `.localhost` domains directly:
 
 ```text
 http://unique.localhost
 http://argocd.localhost
 http://api.localhost
 http://id.localhost
-http://rustfs.localhost
+http://rustfs.localhost/rustfs/console/
 http://harbor.localhost
 http://rabbitmq.localhost
 http://litellm.localhost
 http://grafana.localhost
 ```
 
-The aliases rewrite the upstream authority to the corresponding production
-hostname so existing Istio and Kong routes continue to match. Application
-configuration remains unchanged, so redirects, OIDC URLs, and generated links
-can still use the production `https` hostnames.
+The system manifests keep the corresponding HPE hostname in an adjacent
+`# HPE:` comment for a later target change.
 
-```text
-127.0.0.1 unique.ingress.pcai0201.fr2.hpecolo.net api.ingress.pcai0201.fr2.hpecolo.net id.ingress.pcai0201.fr2.hpecolo.net rustfs.ingress.pcai0201.fr2.hpecolo.net harbor.ingress.pcai0201.fr2.hpecolo.net rabbitmq.ingress.pcai0201.fr2.hpecolo.net litellm.ingress.pcai0201.fr2.hpecolo.net grafana.ingress.pcai0201.fr2.hpecolo.net
-```
+RustFS serves its console at `/rustfs/console/`. The local route sends that
+path to the console port and sends S3 and admin API requests on the same
+hostname to the API port, which lets Key Login use the configured RustFS
+credentials.
+
+The kind nodes resolve `harbor.localhost` through Docker Desktop and configure
+containerd to use the registry over HTTP. Recreate clusters made before this
+registry configuration was added.
 
 Remove the entire local cluster with:
 

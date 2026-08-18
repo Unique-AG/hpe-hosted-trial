@@ -6,15 +6,19 @@ spec:
   gateways:
     - istio-system/ezaf-gateway
   hosts:
-    - rustfs.ingress.pcai0201.fr2.hpecolo.net
+    # HPE: rustfs.ingress.pcai0201.fr2.hpecolo.net
+    - rustfs.localhost
   http:
     - match:
         - uri:
-            prefix: /
-      rewrite:
-        uri: /
+            prefix: /rustfs/console/
       route:
         - destination:
             host: rustfs-svc.unique.svc.cluster.local
             port:
               number: 9001
+    - route:
+        - destination:
+            host: rustfs-svc.unique.svc.cluster.local
+            port:
+              number: 9000

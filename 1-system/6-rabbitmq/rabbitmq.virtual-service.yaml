@@ -6,7 +6,8 @@ spec:
   gateways:
     - istio-system/ezaf-gateway
   hosts:
-    - rabbitmq.ingress.pcai0201.fr2.hpecolo.net
+    # HPE: rabbitmq.ingress.pcai0201.fr2.hpecolo.net
+    - rabbitmq.localhost
   http:
     - match:
         - uri:

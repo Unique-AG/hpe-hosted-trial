@@ -6,14 +6,20 @@ spec:
   gateways:
     - istio-system/ezaf-gateway
   hosts:
-    - grafana.ingress.pcai0201.fr2.hpecolo.net
+    # HPE: grafana.ingress.pcai0201.fr2.hpecolo.net
+    - grafana.localhost
   http:
     - match:
         - uri:
-            prefix: /
+            prefix: /public/plugins/grafana-lokiexplore-app/static/js/
       rewrite:
-        uri: /
+        uri: /public/plugins/grafana-lokiexplore-app/
       route:
+        - destination:
+            host: kube-prometheus-stack-grafana.unique.svc.cluster.local
+            port:
+              number: 80
+    - route:
         - destination:
             host: kube-prometheus-stack-grafana.unique.svc.cluster.local
             port:

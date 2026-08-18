@@ -6,7 +6,8 @@ spec:
   gateways:
     - istio-system/ezaf-gateway
   hosts:
-    - harbor.ingress.pcai0201.fr2.hpecolo.net
+    # HPE: harbor.ingress.pcai0201.fr2.hpecolo.net
+    - harbor.localhost
   http:
     - match:
         - uri:

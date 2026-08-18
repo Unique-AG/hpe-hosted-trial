@@ -44,8 +44,10 @@ spec:
             debug:
               enabled: false
             configmapConfig:
-              ExternalSecure: true
-              ExternalDomain: id.ingress.pcai0201.fr2.hpecolo.net
+              # HPE: true
+              ExternalSecure: false
+              # HPE: id.ingress.pcai0201.fr2.hpecolo.net
+              ExternalDomain: id.localhost
               TLS:
                 Enabled: false
               Log:
