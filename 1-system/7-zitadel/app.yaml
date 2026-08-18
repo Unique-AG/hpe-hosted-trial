@@ -36,7 +36,7 @@ spec:
           zitadel:
             masterkeySecretName: zitadel-masterkey-secret
             debug:
-              enabled: true
+              enabled: false
             configmapConfig:
               ExternalSecure: true
               ExternalDomain: id.ingress.pcai0201.fr2.hpecolo.net
