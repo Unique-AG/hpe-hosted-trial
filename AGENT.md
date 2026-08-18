@@ -35,5 +35,6 @@ PostgreSQL, Redis, and RabbitMQ are operator-managed. CloudNativePG and the
 OT-Container-Kit Redis Operator watch `unique`; the RabbitMQ Cluster Operator
 runs in `unique`, depends on cert-manager, and requires Kubernetes 1.31 or
 newer. Their custom resources and monitoring objects are kept beside the
-corresponding `1-system/2-*` app. These operators still require their
+corresponding numbered rollout folder. The folder prefixes `1` through `7`
+match the progressive rollout order. These operators still require their
 cluster-scoped CRDs and RBAC to be permitted by the cluster administrator.
