@@ -24,11 +24,11 @@ spec:
             size: 1Ti
           resources:
             requests:
-              cpu: 2
-              memory: 16Gi
+              cpu: 500m
+              memory: 2Gi
             limits:
-              cpu: 4
-              memory: 18Gi
+              cpu: 1
+              memory: 4Gi
           policies:
             - name: ingestion-readwrite-policy
               statements:

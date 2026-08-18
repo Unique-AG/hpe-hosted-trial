@@ -27,10 +27,11 @@ spec:
 
           resources:
             requests:
-              cpu: 1
-              memory: 6Gi
+              cpu: 500m
+              memory: 1Gi
             limits:
-              memory: 6Gi
+              cpu: 1
+              memory: 2Gi
 
           zitadel:
             masterkeySecretName: zitadel-masterkey-secret

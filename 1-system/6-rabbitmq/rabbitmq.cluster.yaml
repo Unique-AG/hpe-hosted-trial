@@ -14,14 +14,14 @@ spec:
     storage: 50Gi
   rabbitmq:
     additionalConfig: |
-      vm_memory_high_watermark.absolute = 20Gi
+      vm_memory_high_watermark.absolute = 1Gi
     additionalPlugins:
       - rabbitmq_management
       - rabbitmq_prometheus
   resources:
     requests:
-      cpu: 1
-      memory: 24Gi
+      cpu: 500m
+      memory: 1Gi
     limits:
       cpu: 1
-      memory: 24Gi
+      memory: 2Gi

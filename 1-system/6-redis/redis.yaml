@@ -12,14 +12,12 @@ spec:
     imagePullPolicy: IfNotPresent
     resources:
       limits:
-        memory: 2Gi
+        memory: 1Gi
       requests:
-        cpu: 500m
-        memory: 2Gi
+        cpu: 250m
+        memory: 512Mi
   redisConfig:
-    additionalRedisConfig: |
-      maxmemory 1536mb
-      maxmemory-policy allkeys-lru
+    additionalRedisConfig: redis-master-config
   redisExporter:
     enabled: true
     image: quay.io/opstree/redis-exporter:v1.84.0

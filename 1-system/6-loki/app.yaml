@@ -52,6 +52,16 @@ spec:
                 accessKeyId: loki-user-access-key
                 s3ForcePathStyle: true
                 insecure: true
+          chunksCache:
+            allocatedMemory: 512
+            allocatedCPU: 100m
+            resources:
+              limits:
+                cpu: 200m
+                memory: 1Gi
+              requests:
+                cpu: 100m
+                memory: 768Mi
           singleBinary:
             replicas: 1
             extraArgs:
@@ -67,11 +77,11 @@ spec:
                 value: 3750MiB
             resources:
               limits:
-                cpu: 3
-                memory: 4Gi
-              requests:
-                cpu: 2
+                cpu: 1
                 memory: 2Gi
+              requests:
+                cpu: 500m
+                memory: 1Gi
           # Zero out replica counts of other deployment modes
           backend:
             replicas: 0

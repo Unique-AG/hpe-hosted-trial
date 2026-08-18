@@ -18,10 +18,11 @@ spec:
         valuesObject:
           resources:
             requests:
-              cpu: 500m
-              memory: 6Gi
+              cpu: 250m
+              memory: 1Gi
             limits:
-              memory: 6Gi
+              cpu: 1
+              memory: 2Gi
           persistence:
             size: 100Gi
             storageClassName: gl4f-filesystem

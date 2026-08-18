@@ -11,8 +11,6 @@ Start the cluster and install the local prerequisites:
 The cluster context is `kind-hpe-hosted-trial`. Argo CD and the HPE system
 resources use the `unique` namespace. The sealed-secrets controller is
 automatically rolled out; its `secrets` Application is the manual gate.
-The KinD setup applies a local PostgreSQL resource profile of `4Gi` requested
-and `8Gi` limited memory; the HPE manifest keeps its production sizing.
 
 Access Argo CD:
 
