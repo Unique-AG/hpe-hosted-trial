@@ -28,6 +28,9 @@ spec:
           ingress:
             enabled: false
 
+          login:
+            enabled: false
+
           resources:
             requests:
               cpu: 500m
