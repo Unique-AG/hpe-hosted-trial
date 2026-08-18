@@ -47,10 +47,10 @@ spec:
 
           resources:
             requests:
-              memory: 1Gi
-              cpu: 500m
+              memory: 4Gi
+              cpu: 1
             limits:
-              memory: 2Gi
+              memory: 4Gi
   
           proxy_config:
             model_list:
