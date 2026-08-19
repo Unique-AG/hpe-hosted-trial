@@ -1,0 +1,44 @@
+spec:
+  name: search-proxy
+  rolloutGroup: specialist
+  autoSync: false
+  destination:
+    namespace: unique
+  source:
+    # HPE: oci://harbor.ingress.pcai0201.fr2.hpecolo.net/unique/helm/search-proxy
+    repoURL: oci://harbor.localhost/unique/helm/search-proxy
+    path: .
+    targetRevision: sha256:55aa4e73712c4996b7f41fae49d2e4f8b35a4aee4b1e26fec80e0c9b1545dd47
+    helm:
+      releaseName: search-proxy
+      valuesObject:
+        image:
+          # HPE: harbor.ingress.pcai0201.fr2.hpecolo.net
+          registry: harbor.localhost
+          repository: unique/images/search-proxy
+        imagePullSecrets:
+          - name: harbor-pull-secret
+        googleSearch:
+          enabled: true
+          connection:
+            apiKey:
+              fromSecret:
+                name: search-proxy-secrets
+                key: GOOGLE_SEARCH_API_KEY
+        bingAgent:
+          enabled: true
+          connection:
+            endpoint:
+              fromSecret:
+                name: search-proxy-secrets
+                key: BING_AGENT_ENDPOINT
+            bingResourceConnectionString:
+              fromSecret:
+                name: search-proxy-secrets
+                key: BING_AGENT_BING_RESOURCE_CONNECTION_STRING
+            bingAgentModel:
+              fromSecret:
+                name: search-proxy-secrets
+                key: BING_AGENT_BING_AGENT_MODEL
+        networkPolicy:
+          enabled: true

@@ -1,0 +1,13 @@
+spec:
+  name: unique-kong-plugins
+  rolloutGroup: prerequisites
+  autoSync: true
+  destination:
+    namespace: unique
+  source:
+    # HPE: oci://harbor.ingress.pcai0201.fr2.hpecolo.net/unique/helm/kong-plugins
+    repoURL: oci://harbor.localhost/unique/helm/kong-plugins
+    path: .
+    targetRevision: 2.4.0
+    helm:
+      releaseName: unique-kong-plugins

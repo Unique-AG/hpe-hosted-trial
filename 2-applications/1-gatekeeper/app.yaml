@@ -1,0 +1,54 @@
+spec:
+  name: gatekeeper
+  rolloutGroup: core
+  autoSync: true
+  destination:
+    namespace: unique
+  source:
+    # HPE: oci://harbor.ingress.pcai0201.fr2.hpecolo.net/unique/helm/gatekeeper
+    repoURL: oci://harbor.localhost/unique/helm/gatekeeper
+    targetRevision: sha256:6c8fade5d98809ba669d9ecc1e5d0a119d04d274c0f0d0831a9352068dc7443e
+    path: .
+    helm:
+      passCredentials: true
+      releaseName: gatekeeper
+      valuesObject:
+        global:
+          image:
+            # HPE: harbor.ingress.pcai0201.fr2.hpecolo.net
+            registry: harbor.localhost
+            pullSecrets:
+              - name: harbor-pull-secret
+        env:
+          UNIQUE_INSTALLATION_ID: hpe-hosted-trial
+          # HPE: https://id.ingress.pcai0201.fr2.hpecolo.net
+          ZITADEL_ISSUER: http://id.localhost
+          ZITADEL_PROJECT_ID: hpe-hosted-trial
+        routes:
+          gateway:
+            name: unique
+            namespace: unique
+          # HPE: api.ingress.pcai0201.fr2.hpecolo.net
+          hostname: api.localhost
+        internalServices:
+          namespace: unique
+        postgresql:
+          connection:
+            host: postgres-rw.unique.svc.cluster.local
+            port: 5432
+        redis:
+          connection:
+            host: redis-master.unique.svc.cluster.local
+            port: 6379
+        rabbitmq:
+          connection:
+            host: rabbitmq.unique.svc.cluster.local
+        objectStorage:
+          endpoint: http://rustfs-svc.unique.svc.cluster.local:9000
+          region: us-east-1
+        litellm:
+          enabled: true
+          connection:
+            host: litellm.unique.svc.cluster.local
+            port: 4000
+        namespaceOverride: unique

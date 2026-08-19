@@ -1,0 +1,54 @@
+spec:
+  name: client-insights-exporter
+  rolloutGroup: specialist
+  autoSync: false
+  destination:
+    namespace: unique
+  source:
+    # HPE: oci://harbor.ingress.pcai0201.fr2.hpecolo.net/unique/helm/client-insights-exporter
+    repoURL: oci://harbor.localhost/unique/helm/client-insights-exporter
+    targetRevision: sha256:e4cdefe7bb82f51708b72b27722fcb7b130f0b55c59d2aba443ed1dbbc21032d
+    path: .
+    helm:
+      passCredentials: true
+      releaseName: client-insights-exporter
+      valuesObject:
+        global:
+          image:
+            # HPE: harbor.ingress.pcai0201.fr2.hpecolo.net
+            registry: harbor.localhost
+            pullSecrets:
+              - name: harbor-pull-secret
+        env:
+          UNIQUE_INSTALLATION_ID: hpe-hosted-trial
+          # HPE: https://id.ingress.pcai0201.fr2.hpecolo.net
+          ZITADEL_ISSUER: http://id.localhost
+          ZITADEL_PROJECT_ID: hpe-hosted-trial
+        routes:
+          gateway:
+            name: unique
+            namespace: unique
+          # HPE: api.ingress.pcai0201.fr2.hpecolo.net
+          hostname: api.localhost
+        internalServices:
+          namespace: unique
+        postgresql:
+          connection:
+            host: postgres-rw.unique.svc.cluster.local
+            port: 5432
+        redis:
+          connection:
+            host: redis-master.unique.svc.cluster.local
+            port: 6379
+        rabbitmq:
+          connection:
+            host: rabbitmq.unique.svc.cluster.local
+        objectStorage:
+          endpoint: http://rustfs-svc.unique.svc.cluster.local:9000
+          region: us-east-1
+        litellm:
+          enabled: true
+          connection:
+            host: litellm.unique.svc.cluster.local
+            port: 4000
+        namespaceOverride: unique

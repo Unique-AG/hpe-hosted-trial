@@ -1,0 +1,53 @@
+spec:
+  name: outlook-semantic-mcp
+  rolloutGroup: specialist
+  autoSync: false
+  destination:
+    namespace: unique
+  source:
+    # HPE: oci://harbor.ingress.pcai0201.fr2.hpecolo.net/unique/helm/outlook-semantic-mcp
+    repoURL: oci://harbor.localhost/unique/helm/outlook-semantic-mcp
+    path: .
+    targetRevision: 3.3.0
+    helm:
+      releaseName: outlook-semantic-mcp
+      valuesObject:
+        namespaceOverride: unique
+        image:
+          # HPE: harbor.ingress.pcai0201.fr2.hpecolo.net
+          registry: harbor.localhost
+          repository: unique/images/outlook-semantic-mcp
+          tag: 3.3.0
+        postgresql:
+          connection:
+            url:
+              fromSecret:
+                name: outlook-semantic-mcp-secrets
+                key: DATABASE_URL
+        rabbitmq:
+          connection:
+            url:
+              fromSecret:
+                name: outlook-semantic-mcp-secrets
+                key: AMQP_URL
+        envVars:
+          - name: MICROSOFT_CLIENT_SECRET
+            valueFrom:
+              secretKeyRef:
+                name: outlook-semantic-mcp-secrets
+                key: MICROSOFT_CLIENT_SECRET
+          - name: MICROSOFT_WEBHOOK_SECRET
+            valueFrom:
+              secretKeyRef:
+                name: outlook-semantic-mcp-secrets
+                key: MICROSOFT_WEBHOOK_SECRET
+          - name: AUTH_HMAC_SECRET
+            valueFrom:
+              secretKeyRef:
+                name: outlook-semantic-mcp-secrets
+                key: AUTH_HMAC_SECRET
+          - name: ENCRYPTION_KEY
+            valueFrom:
+              secretKeyRef:
+                name: outlook-semantic-mcp-secrets
+                key: ENCRYPTION_KEY

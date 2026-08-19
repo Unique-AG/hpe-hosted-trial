@@ -8,44 +8,83 @@ metadata:
 spec:
   goTemplate: true
   goTemplateOptions: ["missingkey=error"]
+  strategy:
+    type: RollingSync
+    rollingSync:
+      steps:
+        - matchExpressions:
+            - key: unique.dev/app-rollout-group
+              operator: In
+              values:
+                - secrets
+          maxUpdate: 0
+        - matchExpressions:
+            - key: unique.dev/app-rollout-group
+              operator: In
+              values:
+                - prerequisites
+        - matchExpressions:
+            - key: unique.dev/app-rollout-group
+              operator: In
+              values:
+                - core
+        - matchExpressions:
+            - key: unique.dev/app-rollout-group
+              operator: In
+              values:
+                - worker
+        - matchExpressions:
+            - key: unique.dev/app-rollout-group
+              operator: In
+              values:
+                - frontend
+        - matchExpressions:
+            - key: unique.dev/app-rollout-group
+              operator: In
+              values:
+                - specialist
+          maxUpdate: 0
   generators:
   - git:
       repoURL: https://github.com/Unique-AG/hpe-hosted-trial
-      revision: HEAD
+      revision: feat/upgrade-to-2026
       files:
-      - path: "2-applications/**/app.yaml"
+      - path: "2-applications/*/app.yaml"
   template:
     metadata:
       name: '{{.spec.name}}'
       namespace: unique
+      labels:
+        unique.dev/app-rollout-group: '{{ .spec.rolloutGroup }}'
     spec:
       project: default
       destination:
         server: https://kubernetes.default.svc
-        namespace: unique
+        namespace: '{{ .spec.destination.namespace }}'
   templatePatch: |
     {{- if hasKey .spec "metadata" }}
     metadata:
       {{- .spec.metadata | toYaml | nindent 2 }}
     {{- end }}
     spec:
-      {{- if hasKey .spec "sources" }}
-      sources:
-        {{- .spec.sources | toYaml | nindent 4 }}
-      {{- else }}
       source:
         {{- .spec.source | toYaml | nindent 4 }}
-      {{- end }}
       {{- if hasKey .spec "additionalValues" }}
       {{- .spec.additionalValues | toYaml | nindent 2 }}
       {{- end }}
-      {{- if or .spec.autoSync (hasKey .spec "syncOptions") }}
+      {{- if or (hasKey .spec "autoSync") (hasKey .spec "syncOptions") }}
       syncPolicy:
         {{- if .spec.autoSync }}
         automated:
           prune: true
           selfHeal: true
         {{- end }}
+        retry:
+          limit: 5
+          backoff:
+            duration: 5s
+            factor: 2
+            maxDuration: 2m
         syncOptions:
           - CreateNamespace=true
           {{- if hasKey .spec "syncOptions" }}

@@ -1,0 +1,100 @@
+spec:
+  name: sbx-gateway
+  rolloutGroup: specialist
+  autoSync: false
+  destination:
+    namespace: unique
+  source:
+    # HPE: oci://harbor.ingress.pcai0201.fr2.hpecolo.net/unique/helm/sbx-gateway
+    repoURL: oci://harbor.localhost/unique/helm/sbx-gateway
+    targetRevision: sha256:d8a5423303b7d48ff012c8ed235b768468a10499735fe5837b8d1499075cf9da
+    path: .
+    helm:
+      passCredentials: true
+      releaseName: sbx-gateway
+      valuesObject:
+        global:
+          image:
+            # HPE: harbor.ingress.pcai0201.fr2.hpecolo.net
+            registry: harbor.localhost
+            pullSecrets:
+              - name: harbor-pull-secret
+        env:
+          UNIQUE_INSTALLATION_ID: hpe-hosted-trial
+          # HPE: https://id.ingress.pcai0201.fr2.hpecolo.net
+          ZITADEL_ISSUER: http://id.localhost
+          ZITADEL_PROJECT_ID: hpe-hosted-trial
+        routes:
+          gateway:
+            name: unique
+            namespace: unique
+          # HPE: api.ingress.pcai0201.fr2.hpecolo.net
+          hostname: api.localhost
+        internalServices:
+          namespace: unique
+        postgresql:
+          connection:
+            host: postgres-rw.unique.svc.cluster.local
+            port: 5432
+        redis:
+          connection:
+            host: redis-master.unique.svc.cluster.local
+            port: 6379
+        rabbitmq:
+          connection:
+            host: rabbitmq.unique.svc.cluster.local
+        objectStorage:
+          endpoint: http://rustfs-svc.unique.svc.cluster.local:9000
+          region: us-east-1
+        litellm:
+          enabled: true
+          connection:
+            host: litellm.unique.svc.cluster.local
+            port: 4000
+        egressGateway:
+          allowHostsConfig: |
+            node-chat.unique.svc.cluster.local: true
+            node-ingestion.unique.svc.cluster.local: true
+            # HPE: api.ingress.pcai0201.fr2.hpecolo.net: true
+            api.localhost: true
+            rustfs-svc.unique.svc.cluster.local: true
+            sbx-storage.unique.svc.cluster.local: true
+            pypi.org: true
+            files.pythonhosted.org: true
+          allowPathsConfig: |
+            node-chat.unique.svc.cluster.local:
+              - /public/*
+            node-ingestion.unique.svc.cluster.local:
+              - /scoped/upload
+            # HPE: api.ingress.pcai0201.fr2.hpecolo.net:
+            api.localhost:
+              - /scoped/ingestion/upload
+            rustfs-svc.unique.svc.cluster.local:
+              - /unique-ingestion-bucket/*
+            sbx-storage.unique.svc.cluster.local:
+              - /v1/checkpoint
+              - /v1/skill-cache-base
+            pypi.org:
+              - /simple*
+            files.pythonhosted.org:
+              - /packages/*
+          allowMethodsConfig: |
+            node-ingestion.unique.svc.cluster.local:
+              - PUT
+            # HPE: api.ingress.pcai0201.fr2.hpecolo.net:
+            api.localhost:
+              - PUT
+            rustfs-svc.unique.svc.cluster.local:
+              - GET
+              - HEAD
+              - PUT
+            sbx-storage.unique.svc.cluster.local:
+              - GET
+              - HEAD
+              - PUT
+            pypi.org:
+              - GET
+              - HEAD
+            files.pythonhosted.org:
+              - GET
+              - HEAD

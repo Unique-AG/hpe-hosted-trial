@@ -1,0 +1,29 @@
+spec:
+  name: sharepoint-connector
+  rolloutGroup: specialist
+  autoSync: false
+  destination:
+    namespace: unique
+  source:
+    # HPE: oci://harbor.ingress.pcai0201.fr2.hpecolo.net/unique/helm/sharepoint-connector
+    repoURL: oci://harbor.localhost/unique/helm/sharepoint-connector
+    path: .
+    targetRevision: 3.1.0
+    helm:
+      releaseName: sharepoint-connector
+      valuesObject:
+        image:
+          # HPE: harbor.ingress.pcai0201.fr2.hpecolo.net
+          registry: harbor.localhost
+          repository: unique/images/sharepoint-connector
+          tag: 3.1.0
+        internalServices:
+          dependencies:
+            ingestion:
+              name: node-ingestion
+              namespace: unique
+            scopeManagement:
+              name: node-scope-management
+              namespace: unique
+        networkPolicy:
+          enabled: true

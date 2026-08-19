@@ -1,0 +1,72 @@
+spec:
+  name: node-ingestion
+  rolloutGroup: core
+  autoSync: true
+  destination:
+    namespace: unique
+  source:
+    # HPE: oci://harbor.ingress.pcai0201.fr2.hpecolo.net/unique/helm/ingestion
+    repoURL: oci://harbor.localhost/unique/helm/ingestion
+    targetRevision: sha256:7392ecb2c290640d8c1b9219940afa52cdaf5fd272508b29b703d8f3d2f33fa8
+    path: .
+    helm:
+      passCredentials: true
+      releaseName: node-ingestion
+      valuesObject:
+        global:
+          image:
+            # HPE: harbor.ingress.pcai0201.fr2.hpecolo.net
+            registry: harbor.localhost
+            pullSecrets:
+              - name: harbor-pull-secret
+        env:
+          UNIQUE_INSTALLATION_ID: hpe-hosted-trial
+          # HPE: https://id.ingress.pcai0201.fr2.hpecolo.net
+          ZITADEL_ISSUER: http://id.localhost
+          ZITADEL_PROJECT_ID: hpe-hosted-trial
+          S3_BUCKET_ENDPOINT: http://rustfs-svc.unique.svc.cluster.local:9000
+          S3_BUCKET_NAME: unique-ingestion-bucket
+          S3_BUCKET_REGION: us-east-1
+        routes:
+          gateway:
+            name: unique
+            namespace: unique
+          # HPE: api.ingress.pcai0201.fr2.hpecolo.net
+          hostname: api.localhost
+        internalServices:
+          namespace: unique
+          dependencies:
+            scopeManagement:
+              name: node-scope-management
+              namespace: unique
+        postgresql:
+          connection:
+            host: postgres-rw.unique.svc.cluster.local
+            port: 5432
+            url:
+              fromSecret:
+                name: node-ingestion-secrets
+                key: DATABASE_URL
+        redis:
+          connection:
+            host: redis-master.unique.svc.cluster.local
+            port: 6379
+        rabbitmq:
+          connection:
+            host: rabbitmq.unique.svc.cluster.local
+            url:
+              fromSecret:
+                name: node-ingestion-secrets
+                key: AMQP_URL
+        objectStorage:
+          endpoint: http://rustfs-svc.unique.svc.cluster.local:9000
+          region: us-east-1
+        litellm:
+          enabled: true
+          connection:
+            host: litellm.unique.svc.cluster.local
+            port: 4000
+        nameOverride: node-ingestion
+        fullnameOverride: node-ingestion
+        extraEnvSecrets:
+          - node-ingestion-secrets

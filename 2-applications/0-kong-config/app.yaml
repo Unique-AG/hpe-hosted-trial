@@ -1,0 +1,12 @@
+spec:
+  name: application-kong-config
+  rolloutGroup: prerequisites
+  autoSync: true
+  destination:
+    namespace: unique
+  source:
+    repoURL: https://github.com/Unique-AG/hpe-hosted-trial
+    targetRevision: feat/upgrade-to-2026
+    path: 2-applications/0-kong-config
+    directory:
+      exclude: '{app.yaml}'

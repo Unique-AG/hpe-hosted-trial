@@ -6,12 +6,20 @@ This repository contains the ArgoCD configuration for the Unique application.
 * Step 1: Install ArgoCD
 * Step 2: Apply the bootstrap manifest
 * Step 3: Wait for the automatically synced sealed-secrets operator
-* Step 4: In production, fetch `public.sealed-secrets.cert.pem` from the repository and encrypt the secrets with `./seal-secrets.sh --all`; for local Kind, fetching the certificate is optional
-* Step 5: Manually sync only the `secrets` Application; the remaining system applications then roll out automatically
+* Step 4: Copy each `*.secret.yaml.example` to `*.secret.yaml`, fill the ignored copy, then encrypt it with `./seal-secrets.sh --all`; for local Kind, fetching the certificate is optional
+* Step 5: Commit the generated `*.sealed-secret.yaml` files next to their applications
 * Step 6: Mirror Helm charts and docker images to Harbor (see README below)
-* Step 7: Sync the applications
+* Step 7: Manually sync `application-secrets`; the remaining applications then roll out automatically
 
 The `rolloutStep` values in `1-system/**/app.yaml` control the ApplicationSet progressive rollout.
+Application directories under `2-applications` are prefixed by rollout order:
+`0-*` prerequisites, `1-*` core, `2-*` workers, `3-*` frontends, and `4-*`
+specialists. Each directory contains one self-contained `app.yaml` and any
+service-specific secret templates.
+
+The application rollout starts with the manually gated `application-secrets`
+Application. It recursively applies all adjacent `*.sealed-secret.yaml` files
+before Argo CD continues with prerequisites and services.
 
 ## Sealed Secrets
 
@@ -32,16 +40,6 @@ step:
 The local helper uses the current Kind controller certificate; a fresh Kind
 cluster normally generates a different key from the certificate in the
 repository.
-
-!WARNING: Sealed secrets in the `2-applications` folder are synced too late by ArgoCD, so the secrets are not available when the application is deployed.
-To fix that you need to manually add the annotations to the sealed secrets in the `2-applications` folder.
-
-```
-annotations:
-    argocd.argoproj.io/hook: PreSync
-```
-
-Re-running `seal-secrets.sh` will override the secrets and remove the annotations. Ensure they are added back after running the script.
 
 ## Use custom models with Unique
 

@@ -1,0 +1,73 @@
+spec:
+  name: node-ingestion-worker
+  rolloutGroup: worker
+  autoSync: true
+  destination:
+    namespace: unique
+  source:
+    # HPE: oci://harbor.ingress.pcai0201.fr2.hpecolo.net/unique/helm/ingestion-worker
+    repoURL: oci://harbor.localhost/unique/helm/ingestion-worker
+    targetRevision: sha256:973b19e89e847b6b5f9e0f67fc2cf9cf0f8590dae06225b2a442f5c3b2b7ef6c
+    path: .
+    helm:
+      passCredentials: true
+      releaseName: node-ingestion-worker
+      valuesObject:
+        global:
+          image:
+            # HPE: harbor.ingress.pcai0201.fr2.hpecolo.net
+            registry: harbor.localhost
+            pullSecrets:
+              - name: harbor-pull-secret
+        env:
+          UNIQUE_INSTALLATION_ID: hpe-hosted-trial
+          # HPE: https://id.ingress.pcai0201.fr2.hpecolo.net
+          ZITADEL_ISSUER: http://id.localhost
+          ZITADEL_PROJECT_ID: hpe-hosted-trial
+          S3_BUCKET_ENDPOINT: http://rustfs-svc.unique.svc.cluster.local:9000
+          S3_BUCKET_NAME: unique-ingestion-bucket
+          S3_BUCKET_REGION: us-east-1
+        routes:
+          gateway:
+            name: unique
+            namespace: unique
+          # HPE: api.ingress.pcai0201.fr2.hpecolo.net
+          hostname: api.localhost
+        internalServices:
+          namespace: unique
+          dependencies:
+            chat:
+              name: node-chat
+              namespace: unique
+            ingestion:
+              name: node-ingestion
+              namespace: unique
+        postgresql:
+          connection:
+            host: postgres-rw.unique.svc.cluster.local
+            port: 5432
+        redis:
+          connection:
+            host: redis-master.unique.svc.cluster.local
+            port: 6379
+        rabbitmq:
+          connection:
+            host:
+              fromKubernetesService:
+                name: rabbitmq
+                namespace: unique
+                podPort: 5672
+            url:
+              fromSecret:
+                name: node-ingestion-worker-secrets
+                key: AMQP_URL
+        objectStorage:
+          endpoint: http://rustfs-svc.unique.svc.cluster.local:9000
+          region: us-east-1
+        litellm:
+          enabled: true
+          connection:
+            host: litellm.unique.svc.cluster.local
+            port: 4000
+        nameOverride: node-ingestion-worker
+        fullnameOverride: node-ingestion-worker

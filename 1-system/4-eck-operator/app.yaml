@@ -5,9 +5,9 @@ spec:
   syncOptions:
     - ServerSideApply=true
   source:
-    repoURL: oci://uniqueapp.azurecr.io/helm/mirror/eck-operator
-    path: .
-    targetRevision: sha256:3c3f1895b49d70e48163b948745fdd75618b0c8de5f02a1ce1955ae8e94409d4
+    repoURL: https://helm.elastic.co
+    chart: eck-operator
+    targetRevision: 3.5.0
     helm:
       releaseName: eck-operator
       valuesObject:

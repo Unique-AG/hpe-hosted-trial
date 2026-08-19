@@ -1,0 +1,77 @@
+spec:
+  name: assistants-core
+  rolloutGroup: core
+  autoSync: true
+  destination:
+    namespace: unique
+  source:
+    # HPE: oci://harbor.ingress.pcai0201.fr2.hpecolo.net/unique/helm/assistants-core
+    repoURL: oci://harbor.localhost/unique/helm/assistants-core
+    targetRevision: sha256:62e47f917370253dcb2b9494120a45100ba91f8083582a3b2e7dffcaebf425de
+    path: .
+    helm:
+      passCredentials: true
+      releaseName: assistants-core
+      valuesObject:
+        global:
+          image:
+            # HPE: harbor.ingress.pcai0201.fr2.hpecolo.net
+            registry: harbor.localhost
+            pullSecrets:
+              - name: harbor-pull-secret
+        env:
+          UNIQUE_INSTALLATION_ID: hpe-hosted-trial
+          # HPE: https://id.ingress.pcai0201.fr2.hpecolo.net
+          ZITADEL_ISSUER: http://id.localhost
+          ZITADEL_PROJECT_ID: hpe-hosted-trial
+          OPENAI_PROVIDER: litellm
+          QDRANT_URL: http://qdrant.unique.svc.cluster.local:6333
+          SEARCH_PROXY_URL: http://search-proxy.unique.svc.cluster.local:8080
+          S3_BUCKET_ENDPOINT: http://rustfs-svc.unique.svc.cluster.local:9000
+          S3_BUCKET_NAME: unique-ingestion-bucket
+          S3_BUCKET_REGION: us-east-1
+        routes:
+          gateway:
+            name: unique
+            namespace: unique
+          # HPE: api.ingress.pcai0201.fr2.hpecolo.net
+          hostname: api.localhost
+        internalServices:
+          namespace: unique
+        postgresql:
+          connection:
+            host: postgres-rw.unique.svc.cluster.local
+            port: 5432
+        redis:
+          connection:
+            host: redis-master.unique.svc.cluster.local
+            port: 6379
+        rabbitmq:
+          connection:
+            host: rabbitmq.unique.svc.cluster.local
+        objectStorage:
+          endpoint: http://rustfs-svc.unique.svc.cluster.local:9000
+          region: us-east-1
+        litellm:
+          enabled: true
+          connection:
+            host:
+              fromKubernetesService:
+                name: litellm
+                namespace: unique
+                podPort: 4000
+            port: 4000
+        nameOverride: assistants-core
+        fullnameOverride: assistants-core
+        persistentVolumeClaims:
+          enabled: true
+          claims:
+            - name: assistants-shared-cache
+              accessModes:
+                - ReadWriteMany
+              storageClassName: gl4f-filesystem
+              resources:
+                requests:
+                  storage: 100Gi
+        extraEnvSecrets:
+          - assistants-core-secrets

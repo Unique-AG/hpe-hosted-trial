@@ -1,0 +1,53 @@
+spec:
+  name: sbx-templates-unique-polyagent-001
+  rolloutGroup: specialist
+  autoSync: false
+  destination:
+    namespace: unique
+  source:
+    # HPE: oci://harbor.ingress.pcai0201.fr2.hpecolo.net/unique/helm/sbx-templates
+    repoURL: oci://harbor.localhost/unique/helm/sbx-templates
+    targetRevision: 0.1.0
+    path: .
+    helm:
+      releaseName: unique-polyagent-001
+      valuesObject:
+        sandboxTemplate:
+          name: unique-polyagent-001
+          service: true
+          runtimeClassName: gvisor
+          image:
+            # HPE: harbor.ingress.pcai0201.fr2.hpecolo.net/unique/images/unique-polyagent-001
+            repository: harbor.localhost/unique/images/unique-polyagent-001
+            tag: 2026.34.0-c2cb33
+            digest: sha256:43048f992b91ba9d3ed6447acf8551e5a4cc96d2dc329a2c0e643a83a4e700c2
+            pullPolicy: IfNotPresent
+          imagePullSecrets:
+            - name: harbor-pull-secret
+          env:
+            - name: LOG_LEVEL
+              value: INFO
+            - name: HTTP_PROXY
+              value: http://sbx-gateway.unique.svc.cluster.local:3128
+            - name: HTTPS_PROXY
+              value: http://sbx-gateway.unique.svc.cluster.local:3128
+            - name: NO_PROXY
+              value: localhost,127.0.0.1,::1
+            - name: UNIQUE_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: sbx-templates-unique-polyagent-001-secrets
+                  key: UNIQUE_API_KEY
+            - name: UNIQUE_API_BASE
+              value: http://node-chat.unique.svc.cluster.local:8093/public
+            - name: INGESTION_UPLOAD_API_URL_INTERNAL
+              value: http://node-ingestion.unique.svc.cluster.local:8091/scoped/upload
+            - name: SBX_STORAGE_URL
+              value: http://sbx-storage.unique.svc.cluster.local:80
+          tmpVolume:
+            enabled: true
+            mountPath: /tmp
+            sizeLimit: 2Gi
+          warmPool:
+            enabled: true
+            replicas: 1

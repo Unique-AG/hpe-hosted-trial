@@ -4,9 +4,6 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 VERSIONS_FILE="$SCRIPT_DIR/versions.yaml"
-APP_ELEMENTS_FILE="$SCRIPT_DIR/2-applications/elements/apps.elements.yaml"
-COMPONENT_SPECS_DIR="$SCRIPT_DIR/2-applications/elements/apps"
-APPLICATION_SPECS_DIR="$SCRIPT_DIR/2-applications/application-specs"
 
 MODE="update"
 
@@ -115,14 +112,15 @@ validate_versions_file() {
   fi
 
   while IFS= read -r chart; do
-    local source digest version destination
+    local source digest version destination runtime_file
     source="$(read_yaml ".charts.\"$chart\".source")"
     digest="$(read_yaml ".charts.\"$chart\".digest")"
     version="$(read_yaml ".charts.\"$chart\".version")"
     destination="$(read_yaml ".charts.\"$chart\".destination")"
+    runtime_file="$(read_yaml ".charts.\"$chart\".runtimeFile")"
 
-    if [ -z "$source" ] || [ "$source" = "null" ] || [ -z "$version" ] || [ "$version" = "null" ] || [ -z "$destination" ] || [ "$destination" = "null" ]; then
-      printf 'ERROR: chart %s must define source, version, and destination\n' "$chart" >&2
+    if [ -z "$source" ] || [ "$source" = "null" ] || [ -z "$version" ] || [ "$version" = "null" ] || [ -z "$destination" ] || [ "$destination" = "null" ] || [ -z "$runtime_file" ] || [ "$runtime_file" = "null" ]; then
+      printf 'ERROR: chart %s must define source, version, destination, and runtimeFile\n' "$chart" >&2
       exit 1
     fi
 
@@ -249,145 +247,70 @@ mirror_git_chart() {
   rm -rf "$work_dir"
 }
 
-update_app_elements() {
-  require_file "$APP_ELEMENTS_FILE"
-
-  local expression='.'
-  while IFS= read -r chart; do
-    local destination digest version
-    destination="$(read_yaml ".charts.\"$chart\".destination")"
-    digest="$(read_yaml ".charts.\"$chart\".digest")"
-    version="$(read_yaml ".charts.\"$chart\".version")"
-
-    expression="$expression | (.components[] | select(.app == \"$chart\") | .repoURL) = \"$destination\""
-    expression="$expression | (.components[] | select(.app == \"$chart\") | .targetRevision) = \"$digest\""
-    expression="$expression | (.components[] | select(.app == \"$chart\") | .chartVersion) = \"$version\""
-  done < <(chart_names)
-
-  if [ "$MODE" = "dry-run" ]; then
-    yq "$expression" "$APP_ELEMENTS_FILE" >/dev/null
-  else
-    yq -i "$expression" "$APP_ELEMENTS_FILE"
-  fi
-}
-
-update_full_specs() {
-  if [ ! -d "$APPLICATION_SPECS_DIR" ]; then
-    return
-  fi
-
-  while IFS= read -r chart; do
-    local destination digest
-    destination="$(read_yaml ".charts.\"$chart\".destination")"
-    digest="$(read_yaml ".charts.\"$chart\".digest")"
-
-    while IFS= read -r app_file; do
-      if [ "$MODE" = "dry-run" ]; then
-        yq "(.spec.sources[] | select(.repoURL == \"$(read_yaml ".charts.\"$chart\".source")\") | .repoURL) = \"$destination\" | (.spec.sources[] | select(.repoURL == \"$destination\") | .targetRevision) = \"$digest\"" "$app_file" >/dev/null
-      else
-        yq -i "(.spec.sources[] | select(.repoURL == \"$(read_yaml ".charts.\"$chart\".source")\") | .repoURL) = \"$destination\" | (.spec.sources[] | select(.repoURL == \"$destination\") | .targetRevision) = \"$digest\"" "$app_file"
-      fi
-    done < <(find "$APPLICATION_SPECS_DIR" -name app.yaml -type f)
-  done < <(chart_names)
-}
-
-update_component_specs() {
-  if [ ! -d "$COMPONENT_SPECS_DIR" ]; then
-    return
-  fi
-
-  while IFS= read -r chart; do
-    local app_file destination digest version
-    app_file="$COMPONENT_SPECS_DIR/$chart.yaml"
-    destination="$(read_yaml ".charts.\"$chart\".destination")"
-    digest="$(read_yaml ".charts.\"$chart\".digest")"
-    version="$(read_yaml ".charts.\"$chart\".version")"
-
-    if [ ! -f "$app_file" ]; then
-      continue
-    fi
-
-    if [ "$MODE" = "dry-run" ]; then
-      yq "(.spec.sources[] | select(.path == \".\" and has(\"helm\")) | .repoURL) = \"$destination\" | (.spec.sources[] | select(.path == \".\" and has(\"helm\")) | .targetRevision) = \"$digest\"" "$app_file" >/dev/null
-    else
-      yq -i "(.spec.sources[] | select(.path == \".\" and has(\"helm\")) | .repoURL) = \"$destination\" | (.spec.sources[] | select(.path == \".\" and has(\"helm\")) | .targetRevision) = \"$digest\"" "$app_file"
-    fi
-
-    if [ "$MODE" != "dry-run" ]; then
-      yq -i "(.spec.chartVersion) = \"$version\"" "$app_file"
-    fi
-  done < <(chart_names)
-}
-
 update_runtime_chart_specs() {
   while IFS= read -r chart; do
-    local runtime_file source destination target_revision
-    runtime_file="$(read_yaml ".charts.\"$chart\".runtimeFile // \"\"")"
-    if [ -z "$runtime_file" ]; then
-      continue
-    fi
-
-    source="$(read_yaml ".charts.\"$chart\".source")"
+    local runtime_file destination target_revision
+    runtime_file="$(read_yaml ".charts.\"$chart\".runtimeFile")"
     destination="$(read_yaml ".charts.\"$chart\".destination")"
     target_revision="$(chart_source_reference "$chart")"
     require_file "$SCRIPT_DIR/$runtime_file"
 
-    if [ "$(yq -r '.spec.source != null' "$SCRIPT_DIR/$runtime_file")" = "true" ]; then
-      if [ "$MODE" = "dry-run" ]; then
-        yq ".spec.source.repoURL = \"$destination\" | .spec.source.targetRevision = \"$target_revision\" | .spec.source.path = \".\"" "$SCRIPT_DIR/$runtime_file" >/dev/null
-      else
-        yq -i ".spec.source.repoURL = \"$destination\" | .spec.source.targetRevision = \"$target_revision\" | .spec.source.path = \".\"" "$SCRIPT_DIR/$runtime_file"
-      fi
-    elif [ "$MODE" = "dry-run" ]; then
-      yq "(.spec.sources[] | select(.repoURL == \"$source\") | .repoURL) = \"$destination\" | (.spec.sources[] | select(.repoURL == \"$destination\") | .targetRevision) = \"$target_revision\" | (.spec.sources[] | select(.repoURL == \"$destination\") | .path) = \".\"" "$SCRIPT_DIR/$runtime_file" >/dev/null
+    if [ "$MODE" = "dry-run" ]; then
+      yq ".spec.source.repoURL = \"$destination\" | .spec.source.targetRevision = \"$target_revision\" | .spec.source.path = \".\"" "$SCRIPT_DIR/$runtime_file" >/dev/null
     else
-      yq -i "(.spec.sources[] | select(.repoURL == \"$source\") | .repoURL) = \"$destination\" | (.spec.sources[] | select(.repoURL == \"$destination\") | .targetRevision) = \"$target_revision\" | (.spec.sources[] | select(.repoURL == \"$destination\") | .path) = \".\"" "$SCRIPT_DIR/$runtime_file"
+      yq -i ".spec.source.repoURL = \"$destination\" | .spec.source.targetRevision = \"$target_revision\" | .spec.source.path = \".\"" "$SCRIPT_DIR/$runtime_file"
     fi
   done < <(chart_names)
 }
 
 update_git_chart_specs() {
   while IFS= read -r chart; do
-    local runtime_file source destination target_revision
+    local runtime_file destination target_revision
     runtime_file="$(read_yaml ".gitCharts.\"$chart\".runtimeFile")"
-    source="$(read_yaml ".gitCharts.\"$chart\".repoURL")"
     destination="$(read_yaml ".gitCharts.\"$chart\".destination")"
     target_revision="$(git_chart_target_revision "$chart")"
     require_file "$SCRIPT_DIR/$runtime_file"
 
-    if [ "$(yq -r '.spec.source != null' "$SCRIPT_DIR/$runtime_file")" = "true" ]; then
-      if [ "$MODE" = "dry-run" ]; then
-        yq ".spec.source.repoURL = \"$destination\" | .spec.source.targetRevision = \"$target_revision\" | .spec.source.path = \".\"" "$SCRIPT_DIR/$runtime_file" >/dev/null
-      else
-        yq -i ".spec.source.repoURL = \"$destination\" | .spec.source.targetRevision = \"$target_revision\" | .spec.source.path = \".\"" "$SCRIPT_DIR/$runtime_file"
-      fi
-    elif [ "$MODE" = "dry-run" ]; then
-      yq "(.spec.sources[] | select(.repoURL == \"$source\") | .repoURL) = \"$destination\" | (.spec.sources[] | select(.repoURL == \"$destination\") | .targetRevision) = \"$target_revision\" | (.spec.sources[] | select(.repoURL == \"$destination\") | .path) = \".\"" "$SCRIPT_DIR/$runtime_file" >/dev/null
+    if [ "$MODE" = "dry-run" ]; then
+      yq ".spec.source.repoURL = \"$destination\" | .spec.source.targetRevision = \"$target_revision\" | .spec.source.path = \".\"" "$SCRIPT_DIR/$runtime_file" >/dev/null
     else
-      yq -i "(.spec.sources[] | select(.repoURL == \"$source\") | .repoURL) = \"$destination\" | (.spec.sources[] | select(.repoURL == \"$destination\") | .targetRevision) = \"$target_revision\" | (.spec.sources[] | select(.repoURL == \"$destination\") | .path) = \".\"" "$SCRIPT_DIR/$runtime_file"
+      yq -i ".spec.source.repoURL = \"$destination\" | .spec.source.targetRevision = \"$target_revision\" | .spec.source.path = \".\"" "$SCRIPT_DIR/$runtime_file"
     fi
   done < <(git_chart_names)
 }
 
-validate_generated_references() {
-  if [ -f "$APP_ELEMENTS_FILE" ]; then
-    while IFS= read -r chart; do
-      local expected_repo expected_digest actual_repo actual_digest
-      expected_repo="$(read_yaml ".charts.\"$chart\".destination")"
-      expected_digest="$(read_yaml ".charts.\"$chart\".digest")"
-      actual_repo="$(yq -r "(.components[] | select(.app == \"$chart\") | .repoURL) // \"\"" "$APP_ELEMENTS_FILE")"
-      actual_digest="$(yq -r "(.components[] | select(.app == \"$chart\") | .targetRevision) // \"\"" "$APP_ELEMENTS_FILE")"
+validate_runtime_references() {
+  while IFS= read -r chart; do
+    local runtime_file expected_repo expected_revision actual_repo actual_revision
+    runtime_file="$(read_yaml ".charts.\"$chart\".runtimeFile")"
+    expected_repo="$(read_yaml ".charts.\"$chart\".destination")"
+    expected_revision="$(chart_source_reference "$chart")"
+    actual_repo="$(yq -r '.spec.source.repoURL' "$SCRIPT_DIR/$runtime_file")"
+    actual_revision="$(yq -r '.spec.source.targetRevision' "$SCRIPT_DIR/$runtime_file")"
 
-      if [ -n "$actual_repo" ] && { [ "$actual_repo" != "$expected_repo" ] || [ "$actual_digest" != "$expected_digest" ]; }; then
-        printf 'ERROR: %s reference mismatch in apps.elements.yaml\n' "$chart" >&2
-        exit 1
-      fi
-    done < <(chart_names)
-  fi
+    if [ "$actual_repo" != "$expected_repo" ] || [ "$actual_revision" != "$expected_revision" ]; then
+      printf 'ERROR: chart %s runtime reference mismatch in %s\n' "$chart" "$runtime_file" >&2
+      exit 1
+    fi
+  done < <(chart_names)
+
+  while IFS= read -r chart; do
+    local runtime_file expected_repo expected_revision actual_repo actual_revision
+    runtime_file="$(read_yaml ".gitCharts.\"$chart\".runtimeFile")"
+    expected_repo="$(read_yaml ".gitCharts.\"$chart\".destination")"
+    expected_revision="$(git_chart_target_revision "$chart")"
+    actual_repo="$(yq -r '.spec.source.repoURL' "$SCRIPT_DIR/$runtime_file")"
+    actual_revision="$(yq -r '.spec.source.targetRevision' "$SCRIPT_DIR/$runtime_file")"
+
+    if [ "$actual_repo" != "$expected_repo" ] || [ "$actual_revision" != "$expected_revision" ]; then
+      printf 'ERROR: git chart %s runtime reference mismatch in %s\n' "$chart" "$runtime_file" >&2
+      exit 1
+    fi
+  done < <(git_chart_names)
 }
 
 validate_isolated_runtime_sources() {
-  local forbidden_pattern='Unique-AG/(monorepo|connectors)|uniqueapp\\.azurecr\\.io|uniquecr\\.azurecr\\.io|ghcr\\.io/unique-ag'
+  local forbidden_pattern='Unique-AG/(monorepo|connectors)|uniqueapp\.azurecr\.io|uniquecr\.azurecr\.io|ghcr\.io/unique-ag'
 
   if rg -n "$forbidden_pattern" "$SCRIPT_DIR/1-system" "$SCRIPT_DIR/2-applications" --glob '*.yaml'; then
     printf 'ERROR: runtime manifests contain Unique-owned external sources\n' >&2
@@ -419,34 +342,25 @@ case "$MODE" in
       copy_image "$image"
     done < <(image_names)
 
-    update_app_elements
-    update_component_specs
-    update_full_specs
     update_runtime_chart_specs
     update_git_chart_specs
-    validate_generated_references
+    validate_runtime_references
     validate_isolated_runtime_sources
     ;;
   update)
-    update_app_elements
-    update_component_specs
-    update_full_specs
     update_runtime_chart_specs
     update_git_chart_specs
-    validate_generated_references
+    validate_runtime_references
     validate_isolated_runtime_sources
     ;;
   dry-run)
-    update_app_elements
-    update_component_specs
-    update_full_specs
     update_runtime_chart_specs
     update_git_chart_specs
-    validate_generated_references
+    validate_runtime_references
     validate_isolated_runtime_sources
     ;;
   validate)
-    validate_generated_references
+    validate_runtime_references
     validate_isolated_runtime_sources
     ;;
 esac

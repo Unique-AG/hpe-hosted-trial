@@ -1,0 +1,70 @@
+spec:
+  name: theme-app
+  rolloutGroup: frontend
+  autoSync: true
+  destination:
+    namespace: unique
+  source:
+    # HPE: oci://harbor.ingress.pcai0201.fr2.hpecolo.net/unique/helm/theme-app
+    repoURL: oci://harbor.localhost/unique/helm/theme-app
+    targetRevision: sha256:5a97cce07e2f2e40cb5ea018c94b740e6d5b7f082251b4c9a21869bb42314cee
+    path: .
+    helm:
+      passCredentials: true
+      releaseName: theme-app
+      valuesObject:
+        global:
+          image:
+            # HPE: harbor.ingress.pcai0201.fr2.hpecolo.net
+            registry: harbor.localhost
+            pullSecrets:
+              - name: harbor-pull-secret
+        env:
+          UNIQUE_INSTALLATION_ID: hpe-hosted-trial
+          # HPE: https://id.ingress.pcai0201.fr2.hpecolo.net
+          ZITADEL_ISSUER: http://id.localhost
+          ZITADEL_PROJECT_ID: hpe-hosted-trial
+          # HPE: https://unique.ingress.pcai0201.fr2.hpecolo.net/admin
+          ADMIN_APP_URL: http://unique.localhost/admin
+          # HPE: https://api.ingress.pcai0201.fr2.hpecolo.net/apps
+          APP_REPOSITORY_BACKEND_API_URL: http://api.localhost/apps
+          # HPE: https://unique.ingress.pcai0201.fr2.hpecolo.net/chat
+          CHAT_APP_URL: http://unique.localhost/chat
+          # HPE: https://api.ingress.pcai0201.fr2.hpecolo.net/chat
+          CHAT_BACKEND_API_URL: http://api.localhost/chat
+          # HPE: https://unique.ingress.pcai0201.fr2.hpecolo.net/knowledge-upload
+          KNOWLEDGE_UPLOAD_APP_URL: http://unique.localhost/knowledge-upload
+          # HPE: https://api.ingress.pcai0201.fr2.hpecolo.net/scope-management
+          SCOPE_MANAGEMENT_BACKEND_API_URL: http://api.localhost/scope-management
+          STATIC_TAB_NAME: Unique HPE
+          # HPE: https://api.ingress.pcai0201.fr2.hpecolo.net/configuration
+          THEME_BACKEND_API_URL: http://api.localhost/configuration
+          ZITADEL_CLIENT_ID: change-me
+        routes:
+          gateway:
+            name: unique
+            namespace: unique
+          # HPE: unique.ingress.pcai0201.fr2.hpecolo.net
+          hostname: unique.localhost
+        internalServices:
+          namespace: unique
+        postgresql:
+          connection:
+            host: postgres-rw.unique.svc.cluster.local
+            port: 5432
+        redis:
+          connection:
+            host: redis-master.unique.svc.cluster.local
+            port: 6379
+        rabbitmq:
+          connection:
+            host: rabbitmq.unique.svc.cluster.local
+        objectStorage:
+          endpoint: http://rustfs-svc.unique.svc.cluster.local:9000
+          region: us-east-1
+        litellm:
+          enabled: true
+          connection:
+            host: litellm.unique.svc.cluster.local
+            port: 4000
+        namespaceOverride: unique
