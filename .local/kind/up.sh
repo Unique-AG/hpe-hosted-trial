@@ -7,6 +7,8 @@ LOCAL_PATH_VERSION="${LOCAL_PATH_VERSION:-v0.0.36}"
 ARGO_CD_CHART_VERSION="${ARGO_CD_CHART_VERSION:-10.3.3}"
 ISTIO_VERSION="${ISTIO_VERSION:-1.30.3}"
 METRICS_SERVER_CHART_VERSION="${METRICS_SERVER_CHART_VERSION:-3.13.0}"
+NFS_PROVISIONER_CHART_VERSION="${NFS_PROVISIONER_CHART_VERSION:-4.0.18}"
+RUNSC_VERSION="${RUNSC_VERSION:-20250630.0}"
 
 require_command() {
   command -v "$1" >/dev/null 2>&1 || {
@@ -38,6 +40,30 @@ configure_local_harbor_registry() {
   done
 }
 
+configure_gvisor_runtime() {
+  local node
+
+  for node in $(kind get nodes --name "${CLUSTER_NAME}"); do
+    docker exec "${node}" sh -c "
+      if ! command -v runsc >/dev/null 2>&1; then
+        apt-get update >/dev/null
+        apt-get install -y ca-certificates curl >/dev/null
+        curl -fsSL -o /usr/local/bin/runsc \
+          https://storage.googleapis.com/gvisor/releases/release/${RUNSC_VERSION}/x86_64/runsc
+        chmod +x /usr/local/bin/runsc
+      fi
+      if ! grep -q 'plugins.\"io.containerd.grpc.v1.cri\".containerd.runtimes.runsc' /etc/containerd/config.toml; then
+        cat >> /etc/containerd/config.toml <<'EOF'
+
+[plugins.\"io.containerd.grpc.v1.cri\".containerd.runtimes.runsc]
+  runtime_type = \"io.containerd.runsc.v1\"
+EOF
+        systemctl restart containerd
+      fi
+    "
+  done
+}
+
 for command in docker kind kubectl helm; do
   require_command "${command}"
 done
@@ -50,6 +76,7 @@ fi
 
 kubectl config use-context "kind-${CLUSTER_NAME}" >/dev/null
 configure_local_harbor_registry
+configure_gvisor_runtime
 
 kubectl create namespace unique --dry-run=client -o yaml | kubectl apply -f -
 
@@ -60,6 +87,22 @@ kubectl -n local-path-storage rollout status \
   --timeout=10m
 kubectl annotate storageclass local-path \
   storageclass.kubernetes.io/is-default-class- 2>/dev/null || true
+kubectl apply -f "${SCRIPT_DIR}/nfs-server.yaml"
+kubectl -n unique rollout status deployment/kind-nfs --timeout=5m
+helm repo add nfs-subdir-external-provisioner \
+  https://kubernetes-sigs.github.io/nfs-subdir-external-provisioner/ \
+  --force-update >/dev/null
+helm repo update nfs-subdir-external-provisioner >/dev/null
+helm upgrade --install nfs-subdir-external-provisioner \
+  nfs-subdir-external-provisioner/nfs-subdir-external-provisioner \
+  --version "${NFS_PROVISIONER_CHART_VERSION}" \
+  --namespace unique \
+  --set nfs.server=kind-nfs.unique.svc.cluster.local \
+  --set nfs.path=/exports \
+  --set storageClass.create=false \
+  --set storageClass.name=gl4f-filesystem \
+  --wait \
+  --timeout 5m
 kubectl apply -f "${SCRIPT_DIR}/gl4f-filesystem.storage-class.yaml"
 
 helm repo add metrics-server \

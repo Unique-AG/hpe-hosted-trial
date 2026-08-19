@@ -4,6 +4,7 @@ metadata:
   name: gl4f-filesystem
   annotations:
     storageclass.kubernetes.io/is-default-class: "true"
-provisioner: rancher.io/local-path
+provisioner: cluster.local/nfs-subdir-external-provisioner
 reclaimPolicy: Delete
-volumeBindingMode: WaitForFirstConsumer
+volumeBindingMode: Immediate
+allowVolumeExpansion: true

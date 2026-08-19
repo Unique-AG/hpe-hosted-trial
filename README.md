@@ -8,7 +8,7 @@ This repository contains the ArgoCD configuration for the Unique application.
 * Step 3: Wait for the automatically synced sealed-secrets operator
 * Step 4: In production, fetch `public.sealed-secrets.cert.pem` from the repository and encrypt the secrets with `./seal-secrets.sh --all`; for local Kind, fetching the certificate is optional
 * Step 5: Manually sync only the `secrets` Application; the remaining system applications then roll out automatically
-* Step 6: Copy docker images to Harbor (see README below)
+* Step 6: Mirror Helm charts and docker images to Harbor (see README below)
 * Step 7: Sync the applications
 
 The `rolloutStep` values in `1-system/**/app.yaml` control the ApplicationSet progressive rollout.
@@ -69,23 +69,33 @@ mutation UpdateAssistant {
 
 ## Version Management
 
-The Unique platform uses a centralized approach to manage all application and service versions in a single file: `versions.yaml`. This file contains a skopeo sync configuration section for syncing images to Harbor
+The Unique platform uses a centralized approach to manage all application and service versions in a single file: `versions.yaml`. This file contains the source chart digests, runtime images, and HPE Harbor destinations for the release snapshot.
 
 ### Updating Versions
 
 To update a component's version:
 
-1. Edit the version in `versions.yaml`
-2. Run the update script to propagate the change to all app.yaml files:
+1. Edit the chart or image entry in `versions.yaml`
+2. Run the update script to validate and propagate chart references:
 
 ```bash
-./update-versions.sh
+./update-versions.sh --update
 ```
 
-### Syncing Images to Harbor
+### Mirroring Artifacts to Harbor
 
-To sync images to Harbor:
+To mirror OCI Helm charts and docker images, and to package pinned Git charts
+with their dependencies into Harbor:
 
 ```bash
-skopeo sync --src yaml --dest docker --all versions.yaml harbor.ingress.pcai0201.fr2.hpecolo.net/library/
+./update-versions.sh --mirror
+```
+
+Runtime Argo CD manifests only reference this configuration repository, the
+HPE Harbor mirror, and approved public third-party chart repositories.
+
+To validate the local release snapshot without changing files:
+
+```bash
+./update-versions.sh --validate
 ```

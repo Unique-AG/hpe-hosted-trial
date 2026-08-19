@@ -1,0 +1,15 @@
+spec:
+  name: eck-operator
+  rolloutStep: operators
+  autoSync: true
+  syncOptions:
+    - ServerSideApply=true
+  source:
+    repoURL: oci://uniqueapp.azurecr.io/helm/mirror/eck-operator
+    path: .
+    targetRevision: sha256:3c3f1895b49d70e48163b948745fdd75618b0c8de5f02a1ce1955ae8e94409d4
+    helm:
+      releaseName: eck-operator
+      valuesObject:
+        managedNamespaces:
+          - unique

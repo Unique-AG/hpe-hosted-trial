@@ -1,0 +1,31 @@
+spec:
+  name: agent-sandbox-controller
+  rolloutStep: platform-services
+  autoSync: true
+  syncOptions:
+    - ServerSideApply=true
+  source:
+    repoURL: oci://ghcr.io/unique-ag/helm-charts/agent-sandbox-controller
+    path: .
+    targetRevision: 0.4.6-rc.1
+    helm:
+      releaseName: agent-sandbox-controller
+      valuesObject:
+        router:
+          image:
+            # HPE: harbor.ingress.pcai0201.fr2.hpecolo.net/unique/images/sandbox-router
+            repository: harbor.localhost/unique/images/sandbox-router
+            tag: v20260514-v0.4.6
+            digest: sha256:b8ec35527be94a0f16a91219cf0aec2f35e7cd942db0adfeb2b7cb70a49d666a
+          networkPolicy:
+            enabled: true
+            ingress:
+              allowedSources:
+                - podSelector:
+                    app.kubernetes.io/name: assistants-core
+                  namespaceSelector:
+                    kubernetes.io/metadata.name: unique
+            egress:
+              sandboxPort: 8888
+              sandboxNamespaceSelector:
+                kubernetes.io/metadata.name: unique

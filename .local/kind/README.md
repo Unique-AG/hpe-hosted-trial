@@ -11,7 +11,9 @@ Start the cluster and install the local prerequisites:
 The cluster context is `kind-hpe-hosted-trial`. Argo CD and the HPE system
 resources use the `unique` namespace. The sealed-secrets controller is
 automatically rolled out; its `secrets` Application is the manual gate. Metrics
-Server is installed locally for the Istio autoscalers.
+Server is installed locally for the Istio autoscalers. The setup script also
+installs `runsc` into each kind node and registers the `runsc` containerd
+runtime handler used by the `gvisor` RuntimeClass.
 
 Access Argo CD:
 
@@ -54,6 +56,11 @@ credentials.
 The kind nodes resolve `harbor.localhost` through Docker Desktop and configure
 containerd to use the registry over HTTP. Recreate clusters made before this
 registry configuration was added.
+
+The local `gl4f-filesystem` StorageClass is backed by an in-cluster NFS server
+and the `nfs-subdir-external-provisioner` chart. This provides development RWX
+semantics for workloads that share assistant and sandbox state. Data is stored
+inside the kind cluster and is deleted with the cluster.
 
 Remove the entire local cluster with:
 
