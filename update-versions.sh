@@ -93,12 +93,17 @@ runtime_chart_repository() {
   printf '%s' "${destination/$mirror_registry/$runtime_registry}"
 }
 
-login_local_harbor() {
+login_harbor() {
   local registry password
+  local -a helm_options=()
+  local -a oras_options=()
+  local -a skopeo_options=()
 
   registry="$(read_yaml '.harbor.registry')"
-  if ! uses_plain_http "$registry"; then
-    return
+  if uses_plain_http "$registry"; then
+    helm_options+=(--plain-http)
+    oras_options+=(--plain-http)
+    skopeo_options+=(--tls-verify=false)
   fi
 
   require_tool kubectl
@@ -111,10 +116,10 @@ login_local_harbor() {
     exit 1
   fi
 
-  printf 'Authenticating mirror tools with local Harbor %s\n' "$registry"
-  printf '%s' "$password" | oras login --plain-http -u admin --password-stdin "$registry"
-  printf '%s' "$password" | helm registry login --plain-http -u admin --password-stdin "$registry"
-  printf '%s' "$password" | skopeo login --tls-verify=false -u admin --password-stdin "$registry"
+  printf 'Authenticating mirror tools with Harbor %s\n' "$registry"
+  printf '%s' "$password" | oras login "${oras_options[@]}" -u admin --password-stdin "$registry"
+  printf '%s' "$password" | helm registry login "${helm_options[@]}" -u admin --password-stdin "$registry"
+  printf '%s' "$password" | skopeo login "${skopeo_options[@]}" -u admin --password-stdin "$registry"
 }
 
 chart_source_reference() {
@@ -391,7 +396,7 @@ case "$MODE" in
     require_tool oras
     require_tool skopeo
     require_tool helm
-    login_local_harbor
+    login_harbor
 
     while IFS= read -r chart; do
       copy_chart "$chart"

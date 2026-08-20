@@ -101,16 +101,9 @@ and LiteLLM connection Secrets during the infrastructure rollout.
 
 ### 6. Mirror artifacts and sync application secrets
 
-Authenticate the tools against the destination Harbor registry:
-
-```bash
-oras login <harbor-domain>
-skopeo login <harbor-domain>
-helm registry login <harbor-domain>
-```
-
-Log in to private source registries referenced by `versions.yaml` with the
-corresponding tools as well.
+The mirror script authenticates its tools against the destination Harbor using
+`harbor-password-secret`. Log in to private source registries referenced by
+`versions.yaml` with the corresponding tools as well.
 
 Mirror all pinned OCI charts, Git-hosted charts, and container images:
 
