@@ -220,12 +220,6 @@ charts:
     # HPE: oci://harbor.ingress.pcai0201.fr2.hpecolo.net/unique/helm/search-proxy
     destination: oci://harbor.localhost/unique/helm/search-proxy
     runtimeFile: 2-applications/4-search-proxy/app.yaml
-  kong-plugins:
-    source: oci://ghcr.io/unique-ag/helm-charts/kong-plugins
-    version: "2.4.0"
-    # HPE: oci://harbor.ingress.pcai0201.fr2.hpecolo.net/unique/helm/kong-plugins
-    destination: oci://harbor.localhost/unique/helm/kong-plugins
-    runtimeFile: 2-applications/0-kong-plugins/app.yaml
   agent-sandbox-controller:
     source: oci://ghcr.io/unique-ag/helm-charts/agent-sandbox-controller
     version: 0.4.6-rc.1

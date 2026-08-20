@@ -1,6 +1,6 @@
 spec:
   name: application-kong-config
-  rolloutGroup: kong-config
+  rolloutGroup: prerequisites
   autoSync: true
   destination:
     namespace: unique

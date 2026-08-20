@@ -18,8 +18,8 @@ The current compatibility baseline is Unique `2026.32.4`.
 `1-system/system.application-set.yaml` discovers every `1-system/**/app.yaml`
 and rolls them out with health-gated progressive syncs. The generated
 Applications use named rollout steps: `sealed-secrets`, `secrets`,
-`gateway-api`, `operators`, `infrastructure`, `system-services`, and
-`platform-services`.
+`gateway-api`, `operators`, `infrastructure`, `kong-plugins`,
+`system-services`, and `platform-services`.
 `sealed-secrets` is automatically synced, while `secrets` is a manual gate
 because sealed values must be prepared before the remaining system rollout.
 The Sealed Secrets chart runs in `unique` with its standard CRD, ServiceAccount,

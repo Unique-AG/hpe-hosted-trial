@@ -13,15 +13,18 @@ This repository contains the ArgoCD configuration for the Unique application.
 
 The `rolloutStep` values in `1-system/**/app.yaml` control the ApplicationSet progressive rollout.
 Application directories under `2-applications` are prefixed by rollout order:
-`0-*` prerequisites and Kong bootstrap stages, `1-*` core, `2-*` workers,
-`3-*` frontends, and `4-*` specialists. Each directory contains one
-self-contained `app.yaml` and any service-specific secret templates.
+`0-*` prerequisites, `1-*` core, `2-*` workers, `3-*` frontends, and `4-*`
+specialists. Each directory contains one self-contained `app.yaml` and any
+service-specific secret templates.
 
 The `2-applications` ApplicationSet is created only after every `1-system`
 rollout step is healthy. Its rollout starts with the manually gated
 `application-secrets` Application, which recursively applies all adjacent
 `*.sealed-secret.yaml` files before Argo CD continues with prerequisites and
 services.
+
+The Kong plugin chart is installed from the public GHCR OCI registry before
+the Kong system-service rollout and is not mirrored to the deployment Harbor.
 
 ## Sealed Secrets
 

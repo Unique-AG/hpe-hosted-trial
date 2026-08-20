@@ -40,6 +40,11 @@ spec:
             - key: unique.dev/rollout-step
               operator: In
               values:
+                - kong-plugins
+        - matchExpressions:
+            - key: unique.dev/rollout-step
+              operator: In
+              values:
                 - system-services
         - matchExpressions:
             - key: unique.dev/rollout-step
