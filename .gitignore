@@ -1,3 +1,4 @@
 **/*.secret.yaml
+.local/mirror-cache/
 superuser.pem
 superuser.pub

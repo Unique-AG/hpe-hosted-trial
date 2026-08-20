@@ -102,8 +102,9 @@ and LiteLLM connection Secrets during the infrastructure rollout.
 ### 6. Mirror artifacts and sync application secrets
 
 The mirror script authenticates its tools against the destination Harbor using
-`harbor-password-secret`. Log in to private source registries referenced by
-`versions.yaml` with the corresponding tools as well.
+`harbor-password-secret`. When initially building the delivery cache, the
+operator also needs credentials for the private source registries referenced by
+`versions.yaml`.
 
 Mirror all pinned OCI charts, Git-hosted charts, and container images:
 
@@ -116,6 +117,15 @@ For local Kind, the mirror clients use plain HTTP for the in-cluster Harbor
 exposed at `harbor.localhost` and store artifacts in its `library` project;
 Argo CD pulls those charts through `harbor.unique.svc.cluster.local`.
 Non-local registry destinations continue to use HTTPS.
+Downloaded images and OCI charts, along with packaged Git charts, are cached in
+the git-ignored `.local/mirror-cache` directory. After recreating the Kind
+cluster, the same command restores artifacts from this cache without contacting
+their source registries. Set `MIRROR_CACHE_DIR` to use another cache location,
+or remove the cache directory to force a fresh download.
+The cache contains the complete proprietary Unique image set for the release.
+It can be transferred with the deployment bundle so the customer can populate
+`library/images` without access to Unique Azure registries. Public images remain
+configured to pull from their public sources.
 Commit and push those changes before opening the application gate:
 
 ```bash
@@ -213,6 +223,10 @@ with their dependencies into Harbor:
 ```bash
 ./update-versions.sh --mirror
 ```
+
+The mirror cache defaults to `.local/mirror-cache`. Cache entries are reused
+while their configured source, version, digest, or Git revision remains
+unchanged.
 
 Runtime Argo CD manifests only reference this configuration repository, the
 HPE Harbor mirror, and approved public third-party chart repositories.

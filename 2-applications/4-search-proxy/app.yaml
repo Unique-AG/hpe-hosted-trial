@@ -15,7 +15,7 @@ spec:
         image:
           # HPE: harbor.ingress.pcai0201.fr2.hpecolo.net
           registry: harbor.localhost
-          repository: unique/images/search-proxy
+          repository: library/images/search-proxy
         imagePullSecrets:
           - name: harbor-pull-secret
         googleSearch:

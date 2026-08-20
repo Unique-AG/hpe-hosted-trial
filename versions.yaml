@@ -150,7 +150,6 @@ charts:
     version: "2026.34.0-628a58"
     # HPE: oci://harbor.ingress.pcai0201.fr2.hpecolo.net/unique/helm/event-socket
     destination: oci://harbor.localhost/library/helm/event-socket
-    runtimeFile: 2-applications/1-typescript-service-event-socket/app.yaml
   speech:
     source: oci://uniqueapp.azurecr.io/helm/speech
     digest: sha256:5adbe193d85e03d1f1b784add1edc515745d086703c75bc5a310c368c83bb5ab
@@ -164,14 +163,12 @@ charts:
     version: "2026.34.0-628a58"
     # HPE: oci://harbor.ingress.pcai0201.fr2.hpecolo.net/unique/helm/chat-widget-app
     destination: oci://harbor.localhost/library/helm/chat-widget-app
-    runtimeFile: 2-applications/4-chat-widget/app.yaml
   shell-host:
     source: oci://uniqueapp.azurecr.io/helm/shell-host-app
     digest: sha256:d0161d90ca433fb40977355a2d1cf937f14ccc290fabe6abc9cdce32c40e5067
     version: "2026.34.0-628a58"
     # HPE: oci://harbor.ingress.pcai0201.fr2.hpecolo.net/unique/helm/shell-host-app
     destination: oci://harbor.localhost/library/helm/shell-host-app
-    runtimeFile: 2-applications/4-shell-host/app.yaml
   reflector:
     source: oci://uniqueapp.azurecr.io/helm/reflector
     digest: sha256:e9e31175b05b3aedaf9895ac8e68efe9bda8816ee6140c8fa7987de27677fb13
@@ -227,85 +224,204 @@ charts:
     # HPE: oci://harbor.ingress.pcai0201.fr2.hpecolo.net/unique/helm/agent-sandbox-controller
     destination: oci://harbor.localhost/library/helm/agent-sandbox-controller
     runtimeFile: 2-applications/0-agent-sandbox-controller/app.yaml
+    digest: sha256:2eca7f113777f44129562cdcfaaac2d2132496c8b338d0ae5e0b0c62fdc9f11e
+  kong-plugins:
+    source: oci://ghcr.io/unique-ag/helm-charts/kong-plugins
+    digest: sha256:dba0e472cab21ac603b8065601dd2ccd96bd230cfca8fe23fb48af4e145dd528
+    version: 2.5.0
+    # HPE: oci://harbor.ingress.pcai0201.fr2.hpecolo.net/unique/helm/kong-plugins
+    destination: oci://harbor.localhost/library/helm/kong-plugins
+    runtimeFile: 1-system/6-kong-plugins/app.yaml
 gitCharts:
   teams-mcp:
-    repoURL: https://github.com/Unique-AG/connectors.git
+    repoURL: git@github.com:Unique-AG/connectors.git
     path: services/teams-mcp/deploy/helm-charts/teams-mcp
     revision: teams-mcp@0.4.3
     version: 0.4.3
     # HPE: oci://harbor.ingress.pcai0201.fr2.hpecolo.net/unique/helm/teams-mcp
     destination: oci://harbor.localhost/library/helm/teams-mcp
-    runtimeFile: 2-applications/4-teams-mcp/app.yaml
+    digest: sha256:f1338b82ea89cc18f372ea7a5eabac4f8415056986e284bde70abdbba1558d5e
   outlook-semantic-mcp:
-    repoURL: https://github.com/Unique-AG/connectors.git
+    repoURL: git@github.com:Unique-AG/connectors.git
     path: services/outlook-semantic-mcp/deploy/helm-charts/outlook-semantic-mcp
     revision: 54f6f006573f82841c80d7b8cb3cf6f4f86917a5
     version: 3.3.0
     # HPE: oci://harbor.ingress.pcai0201.fr2.hpecolo.net/unique/helm/outlook-semantic-mcp
     destination: oci://harbor.localhost/library/helm/outlook-semantic-mcp
-    runtimeFile: 2-applications/4-outlook-semantic-mcp/app.yaml
+    runtimeFile: 2-applications/4-outlook-semantic-mcp/_app.yaml
+    digest: sha256:6a0473cbe675d4b8a1f75f56ee1315947cd27451a7de375522373c4ff45a10ad
   backstop-mcp:
-    repoURL: https://github.com/Unique-AG/connectors.git
+    repoURL: git@github.com:Unique-AG/connectors.git
     path: services/backstop-mcp/deploy/helm-charts/backstop-mcp
     revision: backstop-mcp@0.0.1
     version: 0.0.1
     # HPE: oci://harbor.ingress.pcai0201.fr2.hpecolo.net/unique/helm/backstop-mcp
     destination: oci://harbor.localhost/library/helm/backstop-mcp
-    runtimeFile: 2-applications/4-backstop-mcp/app.yaml
+    digest: sha256:a6cf4f8965636fdf6206a1dcf558e8c219f270bc5d31bad05ad5c329f599d776
   sharepoint-connector:
-    repoURL: https://github.com/Unique-AG/connectors.git
+    repoURL: git@github.com:Unique-AG/connectors.git
     path: services/sharepoint-connector/deploy/helm-charts/sharepoint-connector
     revision: sharepoint-connector@3.1.0
     version: 3.1.0
     # HPE: oci://harbor.ingress.pcai0201.fr2.hpecolo.net/unique/helm/sharepoint-connector
     destination: oci://harbor.localhost/library/helm/sharepoint-connector
-    runtimeFile: 2-applications/4-sharepoint-connector/app.yaml
+    runtimeFile: 2-applications/4-sharepoint-connector/_app.yaml
+    digest: sha256:864db4659b3112aa10622db62df762555bafbc9f374b811d6077e12df772edf8
   confluence-connector:
-    repoURL: https://github.com/Unique-AG/connectors.git
+    repoURL: git@github.com:Unique-AG/connectors.git
     path: services/confluence-connector/deploy/helm-charts/confluence-connector
     revision: 62cb5dc892bdcc526289e5e40f73355ceac9e35a
     version: 2.2.0
     # HPE: oci://harbor.ingress.pcai0201.fr2.hpecolo.net/unique/helm/confluence-connector
     destination: oci://harbor.localhost/library/helm/confluence-connector
-    runtimeFile: 2-applications/4-confluence-connector-v2/app.yaml
+    digest: sha256:c57ec823ba0b41fa0a06782385914a7506486c03d090a67f24396d8ffb5bae3d
   sbx-templates:
-    repoURL: https://github.com/Unique-AG/monorepo
+    repoURL: git@github.com:Unique-AG/monorepo.git
     path: conduct/sbx/charts/sbx-templates
     revision: release/2026.34
     version: 0.1.0
     # HPE: oci://harbor.ingress.pcai0201.fr2.hpecolo.net/unique/helm/sbx-templates
     destination: oci://harbor.localhost/library/helm/sbx-templates
     runtimeFile: 2-applications/4-sbx-templates-unique-polyagent-001/app.yaml
+    digest: sha256:b2688d53af7bb2549357ae873c9c9d9d04fd2a2d0af47f51f3dab7dfe4628b6b
 images:
+  admin:
+    source: docker://uniqueapp.azurecr.io/admin:2026.34.0-00119a@sha256:ed63a96bf9f6819754da68c8459740d7fbcd5527a4461236c1c6bfef7d7c6410
+    # HPE: docker://harbor.ingress.pcai0201.fr2.hpecolo.net/library/images/admin:2026.34.0-00119a
+    destination: docker://harbor.localhost/library/images/admin:2026.34.0-00119a
+  agentic-ingestion:
+    source: docker://uniqueapp.azurecr.io/unique/agentic-ingestion:2026.34.0-628a58@sha256:419429d3aa15465a2dbb2e9ab99e133f15202248bb680c0a4b375b3ac234caad
+    # HPE: docker://harbor.ingress.pcai0201.fr2.hpecolo.net/library/images/agentic-ingestion:2026.34.0-628a58
+    destination: docker://harbor.localhost/library/images/agentic-ingestion:2026.34.0-628a58
+  assistants-agentic-table:
+    source: docker://uniqueapp.azurecr.io/assistants-agentic-table:2026.34.0-c2cb33@sha256:ff27106e8bdce1931c5da0ffd9bc191b89054a07055c18d2f4fabe9e414ec036
+    # HPE: docker://harbor.ingress.pcai0201.fr2.hpecolo.net/library/images/assistants-agentic-table:2026.34.0-c2cb33
+    destination: docker://harbor.localhost/library/images/assistants-agentic-table:2026.34.0-c2cb33
+  assistants-core:
+    source: docker://uniqueapp.azurecr.io/assistants-core:2026.34.0-c2cb33@sha256:1f094a077fa991900673c61e7bf7b870eab5b2f8f2b6d838c1b89a57c7141824
+    # HPE: docker://harbor.ingress.pcai0201.fr2.hpecolo.net/library/images/assistants-core:2026.34.0-c2cb33
+    destination: docker://harbor.localhost/library/images/assistants-core:2026.34.0-c2cb33
+  app-repository:
+    source: docker://uniqueapp.azurecr.io/app-repository:2026.34.0-628a58@sha256:b797e91f7c2eed01614f53b3fa1ace5dffc2b0bcae6e433a64853dddf53ac8fb
+    # HPE: docker://harbor.ingress.pcai0201.fr2.hpecolo.net/library/images/app-repository:2026.34.0-628a58
+    destination: docker://harbor.localhost/library/images/app-repository:2026.34.0-628a58
+  chat:
+    source: docker://uniqueapp.azurecr.io/chat:2026.34.0-00119a@sha256:ee698ef56f98a0ce0175624b79bd7da1d38d46606419327fa1a1d4f24dd5c8b2
+    # HPE: docker://harbor.ingress.pcai0201.fr2.hpecolo.net/library/images/chat:2026.34.0-00119a
+    destination: docker://harbor.localhost/library/images/chat:2026.34.0-00119a
+  chat-widget:
+    source: docker://uniqueapp.azurecr.io/chat-widget:2026.34.0-628a58@sha256:678c2e7f6535f0d2310401adc9fe99f7942f57a5cfb4d33d8dcf79db6a71d960
+    # HPE: docker://harbor.ingress.pcai0201.fr2.hpecolo.net/library/images/chat-widget:2026.34.0-628a58
+    destination: docker://harbor.localhost/library/images/chat-widget:2026.34.0-628a58
+  client-insights-exporter:
+    source: docker://uniqueapp.azurecr.io/client-insights-exporter:2026.34.0-628a58@sha256:1430d8ddb0244d1a26d8a3455cbd4ba11fd567763607c827957bcd4f7eaf34f4
+    # HPE: docker://harbor.ingress.pcai0201.fr2.hpecolo.net/library/images/client-insights-exporter:2026.34.0-628a58
+    destination: docker://harbor.localhost/library/images/client-insights-exporter:2026.34.0-628a58
+  configuration-backend:
+    source: docker://uniqueapp.azurecr.io/configuration-backend:2026.34.0-628a58@sha256:9600cd5bcce3485bb37cb02cc205df117a9f1daaa40353ce6b6a34caa9a24c90
+    # HPE: docker://harbor.ingress.pcai0201.fr2.hpecolo.net/library/images/configuration-backend:2026.34.0-628a58
+    destination: docker://harbor.localhost/library/images/configuration-backend:2026.34.0-628a58
+  gatekeeper:
+    source: docker://uniqueapp.azurecr.io/unique/gatekeeper:2026.34.0-628a58@sha256:d7032c8cfb3ec826590dce8dd7f6087fb13a52662e366902c09634dc181152fc
+    # HPE: docker://harbor.ingress.pcai0201.fr2.hpecolo.net/library/images/gatekeeper:2026.34.0-628a58
+    destination: docker://harbor.localhost/library/images/gatekeeper:2026.34.0-628a58
+  ingestor:
+    source: docker://uniqueapp.azurecr.io/ingestor:2026.34.0-628a58@sha256:d5c09f43155549ec2571e6ce94476c29ee8ba5293160c7d21f5fb4bc3b355304
+    # HPE: docker://harbor.ingress.pcai0201.fr2.hpecolo.net/library/images/ingestor:2026.34.0-628a58
+    destination: docker://harbor.localhost/library/images/ingestor:2026.34.0-628a58
+  ingestion:
+    source: docker://uniqueapp.azurecr.io/ingestion:2026.34.0-628a58@sha256:a130688a63dbb7f4c59e43a9687beceaf6603e9ccbc48e486945bbff0b2dbae1
+    # HPE: docker://harbor.ingress.pcai0201.fr2.hpecolo.net/library/images/ingestion:2026.34.0-628a58
+    destination: docker://harbor.localhost/library/images/ingestion:2026.34.0-628a58
+  ingestion-worker:
+    source: docker://uniqueapp.azurecr.io/ingestion-worker:2026.34.0-628a58@sha256:3369c20908c5ef392deaef1e8eaaec7c0e75ff19218b2efec83a49bfb426a294
+    # HPE: docker://harbor.ingress.pcai0201.fr2.hpecolo.net/library/images/ingestion-worker:2026.34.0-628a58
+    destination: docker://harbor.localhost/library/images/ingestion-worker:2026.34.0-628a58
+  knowledge-upload:
+    source: docker://uniqueapp.azurecr.io/knowledge-upload:2026.34.0-00119a@sha256:953c4c82b0596c875b5021d9c3a5381a2aef1aa092b1d857b20e1d52b3867eaf
+    # HPE: docker://harbor.ingress.pcai0201.fr2.hpecolo.net/library/images/knowledge-upload:2026.34.0-00119a
+    destination: docker://harbor.localhost/library/images/knowledge-upload:2026.34.0-00119a
+  mcp-hub:
+    source: docker://uniqueapp.azurecr.io/mcp-hub:2026.34.0-628a58@sha256:da5c66691ecd71f469794100e344939e23754a4f73183e6a9efcffac5d424dc2
+    # HPE: docker://harbor.ingress.pcai0201.fr2.hpecolo.net/library/images/mcp-hub:2026.34.0-628a58
+    destination: docker://harbor.localhost/library/images/mcp-hub:2026.34.0-628a58
+  node-chat:
+    source: docker://uniqueapp.azurecr.io/node-chat:2026.34.0-628a58@sha256:d63e67a7529505ccce80d71ed3031ff302b5574a964eeacf5f38c6cb7f04cf94
+    # HPE: docker://harbor.ingress.pcai0201.fr2.hpecolo.net/library/images/node-chat:2026.34.0-628a58
+    destination: docker://harbor.localhost/library/images/node-chat:2026.34.0-628a58
+  node-scope-management:
+    source: docker://uniqueapp.azurecr.io/node-scope-management:2026.34.0-628a58@sha256:9dde8043272550b53ce5b4f4b057c960d270cd7005b4ce56228b9b2b04580b3d
+    # HPE: docker://harbor.ingress.pcai0201.fr2.hpecolo.net/library/images/node-scope-management:2026.34.0-628a58
+    destination: docker://harbor.localhost/library/images/node-scope-management:2026.34.0-628a58
+  reflector:
+    source: docker://uniqueapp.azurecr.io/unique/reflector:2026.34.0-628a58@sha256:bd0068c0fa0dc97dbd1a6a8547844f25537740d15e17e71844a5e42c20426407
+    # HPE: docker://harbor.ingress.pcai0201.fr2.hpecolo.net/library/images/reflector:2026.34.0-628a58
+    destination: docker://harbor.localhost/library/images/reflector:2026.34.0-628a58
+  sbx-gateway:
+    source: docker://uniqueapp.azurecr.io/unique/sbx-gateway:2026.34.0-628a58@sha256:c1b267e0ba015ac17d5e7977c553d839fabec57a8763c68582528dd07bdcde93
+    # HPE: docker://harbor.ingress.pcai0201.fr2.hpecolo.net/library/images/sbx-gateway:2026.34.0-628a58
+    destination: docker://harbor.localhost/library/images/sbx-gateway:2026.34.0-628a58
+  sbx-storage:
+    source: docker://uniqueapp.azurecr.io/unique/sbx-storage:2026.34.0-628a58@sha256:f410ef80e24aa3d2537baa6f92bd2f661f3ce9bb23ac2b4f7e99b4a7b7b3f688
+    # HPE: docker://harbor.ingress.pcai0201.fr2.hpecolo.net/library/images/sbx-storage:2026.34.0-628a58
+    destination: docker://harbor.localhost/library/images/sbx-storage:2026.34.0-628a58
+  shell-host:
+    source: docker://uniqueapp.azurecr.io/shell-host:2026.34.0-628a58@sha256:9767e125334083fbf7e699d125c7f00c2c06cfd0d396000cb3ea23cc0c4b03c8
+    # HPE: docker://harbor.ingress.pcai0201.fr2.hpecolo.net/library/images/shell-host:2026.34.0-628a58
+    destination: docker://harbor.localhost/library/images/shell-host:2026.34.0-628a58
+  speech:
+    source: docker://uniqueapp.azurecr.io/speech:2026.34.0-628a58@sha256:2774bab7ff6cfbebf66a67dcf158360e625076b2069725001d953f8fadff4a13
+    # HPE: docker://harbor.ingress.pcai0201.fr2.hpecolo.net/library/images/speech:2026.34.0-628a58
+    destination: docker://harbor.localhost/library/images/speech:2026.34.0-628a58
+  theme:
+    source: docker://uniqueapp.azurecr.io/theme:2026.34.0-00119a@sha256:aea8115023df9f23d115a9be26491e566ea4e07a61d0dffb539897fd6699a2c2
+    # HPE: docker://harbor.ingress.pcai0201.fr2.hpecolo.net/library/images/theme:2026.34.0-00119a
+    destination: docker://harbor.localhost/library/images/theme:2026.34.0-00119a
+  typescript-service-event-socket:
+    source: docker://uniqueapp.azurecr.io/typescript-service-event-socket:2026.34.0-628a58@sha256:731dc3cd8b82b89a9ef8b973e9b476e26749d80d3075840ffe2e81c6c8d6a222
+    # HPE: docker://harbor.ingress.pcai0201.fr2.hpecolo.net/library/images/typescript-service-event-socket:2026.34.0-628a58
+    destination: docker://harbor.localhost/library/images/typescript-service-event-socket:2026.34.0-628a58
+  unique-api:
+    source: docker://uniqueapp.azurecr.io/unique/unique-api:2026.34.0-628a58@sha256:12efaa45c63f8579f7363afb7b11c68ef951d5a92cd97bc0981efb0c6ec11f10
+    # HPE: docker://harbor.ingress.pcai0201.fr2.hpecolo.net/library/images/unique-api:2026.34.0-628a58
+    destination: docker://harbor.localhost/library/images/unique-api:2026.34.0-628a58
+  webhook-scheduler:
+    source: docker://uniqueapp.azurecr.io/webhook-scheduler:2026.34.0-628a58@sha256:f96ad0365908f2ac4ac962cbbcdbf83ad1f5a7251242d839c3f46fc36ff72e22
+    # HPE: docker://harbor.ingress.pcai0201.fr2.hpecolo.net/library/images/webhook-scheduler:2026.34.0-628a58
+    destination: docker://harbor.localhost/library/images/webhook-scheduler:2026.34.0-628a58
+  webhook-worker:
+    source: docker://uniqueapp.azurecr.io/webhook-worker:2026.34.0-628a58@sha256:ebce722e31b588f3492fc889db792194c6e3c734cba357f80956796617514ee0
+    # HPE: docker://harbor.ingress.pcai0201.fr2.hpecolo.net/library/images/webhook-worker:2026.34.0-628a58
+    destination: docker://harbor.localhost/library/images/webhook-worker:2026.34.0-628a58
   search-proxy:
     source: docker://uniqueapp.azurecr.io/ghcr.io/unique-ag/ai/search-proxy:2026.30.0
-    # HPE: docker://harbor.ingress.pcai0201.fr2.hpecolo.net/unique/images/search-proxy:2026.30.0
+    # HPE: docker://harbor.ingress.pcai0201.fr2.hpecolo.net/library/images/search-proxy:2026.30.0
     destination: docker://harbor.localhost/library/images/search-proxy:2026.30.0
   sandbox-router:
     source: docker://uniquecr.azurecr.io/us-central1-docker.pkg.dev/k8s-staging-images/agent-sandbox/sandbox-router:v20260514-v0.4.6
-    # HPE: docker://harbor.ingress.pcai0201.fr2.hpecolo.net/unique/images/sandbox-router:v20260514-v0.4.6
+    # HPE: docker://harbor.ingress.pcai0201.fr2.hpecolo.net/library/images/sandbox-router:v20260514-v0.4.6
     destination: docker://harbor.localhost/library/images/sandbox-router:v20260514-v0.4.6
   unique-polyagent-001:
     source: docker://uniqueapp.azurecr.io/unique-polyagent-001:2026.34.0-c2cb33
-    # HPE: docker://harbor.ingress.pcai0201.fr2.hpecolo.net/unique/images/unique-polyagent-001:2026.34.0-c2cb33
+    # HPE: docker://harbor.ingress.pcai0201.fr2.hpecolo.net/library/images/unique-polyagent-001:2026.34.0-c2cb33
     destination: docker://harbor.localhost/library/images/unique-polyagent-001:2026.34.0-c2cb33
   teams-mcp:
-    source: docker://ghcr.io/unique-ag/connectors/services/teams-mcp:0.4.3
-    # HPE: docker://harbor.ingress.pcai0201.fr2.hpecolo.net/unique/images/teams-mcp:0.4.3
+    source: docker://uniqueapp.azurecr.io/ghcr.io/unique-ag/connectors/services/teams-mcp:0.4.3
+    # HPE: docker://harbor.ingress.pcai0201.fr2.hpecolo.net/library/images/teams-mcp:0.4.3
     destination: docker://harbor.localhost/library/images/teams-mcp:0.4.3
   outlook-semantic-mcp:
-    source: docker://ghcr.io/unique-ag/connectors/services/outlook-semantic-mcp:3.3.0
-    # HPE: docker://harbor.ingress.pcai0201.fr2.hpecolo.net/unique/images/outlook-semantic-mcp:3.3.0
+    source: docker://uniqueapp.azurecr.io/ghcr.io/unique-ag/connectors/services/outlook-semantic-mcp:3.3.0
+    # HPE: docker://harbor.ingress.pcai0201.fr2.hpecolo.net/library/images/outlook-semantic-mcp:3.3.0
     destination: docker://harbor.localhost/library/images/outlook-semantic-mcp:3.3.0
   backstop-mcp:
-    source: docker://ghcr.io/unique-ag/connectors/services/backstop-mcp:0.0.1
-    # HPE: docker://harbor.ingress.pcai0201.fr2.hpecolo.net/unique/images/backstop-mcp:0.0.1
+    source: docker://uniqueapp.azurecr.io/ghcr.io/unique-ag/connectors/services/backstop-mcp:0.0.1
+    # HPE: docker://harbor.ingress.pcai0201.fr2.hpecolo.net/library/images/backstop-mcp:0.0.1
     destination: docker://harbor.localhost/library/images/backstop-mcp:0.0.1
   sharepoint-connector:
-    source: docker://ghcr.io/unique-ag/connectors/services/sharepoint-connector:3.1.0
-    # HPE: docker://harbor.ingress.pcai0201.fr2.hpecolo.net/unique/images/sharepoint-connector:3.1.0
+    source: docker://uniqueapp.azurecr.io/ghcr.io/unique-ag/connectors/services/sharepoint-connector:3.1.0
+    # HPE: docker://harbor.ingress.pcai0201.fr2.hpecolo.net/library/images/sharepoint-connector:3.1.0
     destination: docker://harbor.localhost/library/images/sharepoint-connector:3.1.0
   confluence-connector:
-    source: docker://ghcr.io/unique-ag/connectors/services/confluence-connector:2.2.0
-    # HPE: docker://harbor.ingress.pcai0201.fr2.hpecolo.net/unique/images/confluence-connector:2.2.0
+    source: docker://uniqueapp.azurecr.io/ghcr.io/unique-ag/connectors/services/confluence-connector:2.2.0
+    # HPE: docker://harbor.ingress.pcai0201.fr2.hpecolo.net/library/images/confluence-connector:2.2.0
     destination: docker://harbor.localhost/library/images/confluence-connector:2.2.0

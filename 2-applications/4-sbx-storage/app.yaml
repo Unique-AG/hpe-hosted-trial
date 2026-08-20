@@ -13,6 +13,12 @@ spec:
       passCredentials: true
       releaseName: sbx-storage
       valuesObject:
+        global:
+          image:
+            # HPE: harbor.ingress.pcai0201.fr2.hpecolo.net
+            registry: harbor.localhost
+        image:
+          repository: library/images/sbx-storage
         pvc:
           accessMode: ReadWriteMany
           storageClassName: gl4f-filesystem

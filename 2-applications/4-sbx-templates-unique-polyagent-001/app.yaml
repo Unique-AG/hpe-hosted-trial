@@ -7,7 +7,7 @@ spec:
   source:
     # HPE: oci://harbor.ingress.pcai0201.fr2.hpecolo.net/unique/helm/sbx-templates
     repoURL: oci://harbor.unique.svc.cluster.local/library/helm/sbx-templates
-    targetRevision: 0.1.0
+    targetRevision: sha256:b2688d53af7bb2549357ae873c9c9d9d04fd2a2d0af47f51f3dab7dfe4628b6b
     path: .
     helm:
       releaseName: unique-polyagent-001
@@ -17,7 +17,7 @@ spec:
           service: true
           runtimeClassName: gvisor
           image:
-            # HPE: harbor.ingress.pcai0201.fr2.hpecolo.net/unique/images/unique-polyagent-001
+            # HPE: harbor.ingress.pcai0201.fr2.hpecolo.net/library/images/unique-polyagent-001
             repository: harbor.localhost/library/images/unique-polyagent-001
             tag: 2026.34.0-c2cb33
             digest: sha256:43048f992b91ba9d3ed6447acf8551e5a4cc96d2dc329a2c0e643a83a4e700c2

@@ -19,6 +19,8 @@ spec:
             registry: harbor.localhost
             pullSecrets:
               - name: harbor-pull-secret
+        image:
+          repository: library/images/mcp-hub
         env:
           UNIQUE_INSTALLATION_ID: hpe-hosted-trial
           # HPE: https://id.ingress.pcai0201.fr2.hpecolo.net

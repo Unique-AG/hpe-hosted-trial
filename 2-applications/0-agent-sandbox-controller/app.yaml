@@ -10,13 +10,13 @@ spec:
     # HPE: oci://harbor.ingress.pcai0201.fr2.hpecolo.net/unique/helm/agent-sandbox-controller
     repoURL: oci://harbor.unique.svc.cluster.local/library/helm/agent-sandbox-controller
     path: .
-    targetRevision: 0.4.6-rc.1
+    targetRevision: sha256:2eca7f113777f44129562cdcfaaac2d2132496c8b338d0ae5e0b0c62fdc9f11e
     helm:
       releaseName: agent-sandbox-controller
       valuesObject:
         router:
           image:
-            # HPE: harbor.ingress.pcai0201.fr2.hpecolo.net/unique/images/sandbox-router
+            # HPE: harbor.ingress.pcai0201.fr2.hpecolo.net/library/images/sandbox-router
             repository: harbor.localhost/library/images/sandbox-router
             tag: v20260514-v0.4.6
             digest: sha256:b8ec35527be94a0f16a91219cf0aec2f35e7cd942db0adfeb2b7cb70a49d666a

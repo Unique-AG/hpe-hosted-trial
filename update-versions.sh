@@ -4,8 +4,11 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 VERSIONS_FILE="$SCRIPT_DIR/versions.yaml"
+MIRROR_CACHE_DIR="${MIRROR_CACHE_DIR:-$SCRIPT_DIR/.local/mirror-cache}"
 
 MODE="update"
+ACR_UNIQUEAPP_LOGGED_IN=false
+ACR_UNIQUECR_LOGGED_IN=false
 
 usage() {
   printf 'Usage: %s [--update|--mirror|--validate|--dry-run]\n' "$0"
@@ -75,6 +78,24 @@ strip_oci_scheme() {
   printf '%s' "${1#oci://}"
 }
 
+skopeo_source_reference() {
+  local reference="$1"
+  local tagged_reference digest image_name
+
+  if [[ "$reference" != *@* ]]; then
+    printf '%s' "$reference"
+    return
+  fi
+
+  tagged_reference="${reference%@*}"
+  digest="${reference##*@}"
+  image_name="${tagged_reference##*/}"
+  if [[ "$image_name" == *:* ]]; then
+    tagged_reference="${tagged_reference%:*}"
+  fi
+  printf '%s@%s' "$tagged_reference" "$digest"
+}
+
 uses_plain_http() {
   local reference="$1"
   local registry
@@ -91,6 +112,58 @@ runtime_chart_repository() {
   mirror_registry="$(read_yaml '.harbor.registry')"
   runtime_registry="$(read_yaml '.harbor.runtimeRegistry')"
   printf '%s' "${destination/$mirror_registry/$runtime_registry}"
+}
+
+cache_marker_matches() {
+  local marker_file="$1"
+  local expected="$2"
+  local actual
+
+  if [ ! -f "$marker_file" ]; then
+    return 1
+  fi
+
+  IFS= read -r actual <"$marker_file"
+  [ "$actual" = "$expected" ]
+}
+
+login_acr() {
+  local registry_name="$1"
+  local registry="${registry_name}.azurecr.io"
+  local token
+
+  require_tool az
+  token="$(az acr login --name "$registry_name" --expose-token --output tsv --query accessToken)"
+  if [[ -z "$token" ]]; then
+    printf 'Error: Azure registry token is empty for %s\n' "$registry" >&2
+    exit 1
+  fi
+
+  printf 'Authenticating mirror tools with source registry %s\n' "$registry"
+  printf '%s' "$token" | oras login -u 00000000-0000-0000-0000-000000000000 --password-stdin "$registry"
+  printf '%s' "$token" | skopeo login -u 00000000-0000-0000-0000-000000000000 --password-stdin "$registry"
+}
+
+login_source_registry() {
+  local reference="$1"
+  local registry
+
+  registry="${reference#*://}"
+  registry="${registry%%/*}"
+  case "$registry" in
+    uniqueapp.azurecr.io)
+      if [ "$ACR_UNIQUEAPP_LOGGED_IN" = false ]; then
+        login_acr uniqueapp
+        ACR_UNIQUEAPP_LOGGED_IN=true
+      fi
+      ;;
+    uniquecr.azurecr.io)
+      if [ "$ACR_UNIQUECR_LOGGED_IN" = false ]; then
+        login_acr uniquecr
+        ACR_UNIQUECR_LOGGED_IN=true
+      fi
+      ;;
+  esac
 }
 
 login_harbor() {
@@ -151,12 +224,14 @@ git_chart_target_revision() {
 validate_versions_file() {
   require_file "$VERSIONS_FILE"
 
-  local release
+  local release mirror_registry image_project
   release="$(read_yaml '.release')"
   if [ -z "$release" ] || [ "$release" = "null" ]; then
     printf 'ERROR: versions.yaml must set .release\n' >&2
     exit 1
   fi
+  mirror_registry="$(read_yaml '.harbor.registry')"
+  image_project="$(read_yaml '.harbor.imageProject')"
 
   while IFS= read -r chart; do
     local source digest version destination runtime_file
@@ -166,8 +241,8 @@ validate_versions_file() {
     destination="$(read_yaml ".charts.\"$chart\".destination")"
     runtime_file="$(read_yaml ".charts.\"$chart\".runtimeFile")"
 
-    if [ -z "$source" ] || [ "$source" = "null" ] || [ -z "$version" ] || [ "$version" = "null" ] || [ -z "$destination" ] || [ "$destination" = "null" ] || [ -z "$runtime_file" ] || [ "$runtime_file" = "null" ]; then
-      printf 'ERROR: chart %s must define source, version, destination, and runtimeFile\n' "$chart" >&2
+    if [ -z "$source" ] || [ "$source" = "null" ] || [ -z "$version" ] || [ "$version" = "null" ] || [ -z "$destination" ] || [ "$destination" = "null" ]; then
+      printf 'ERROR: chart %s must define source, version, and destination\n' "$chart" >&2
       exit 1
     fi
 
@@ -191,14 +266,14 @@ validate_versions_file() {
     destination="$(read_yaml ".gitCharts.\"$chart\".destination")"
     runtime_file="$(read_yaml ".gitCharts.\"$chart\".runtimeFile")"
 
-    if [ -z "$repo_url" ] || [ "$repo_url" = "null" ] || [ -z "$path" ] || [ "$path" = "null" ] || [ -z "$revision" ] || [ "$revision" = "null" ] || [ -z "$version" ] || [ "$version" = "null" ] || [ -z "$destination" ] || [ "$destination" = "null" ] || [ -z "$runtime_file" ] || [ "$runtime_file" = "null" ]; then
-      printf 'ERROR: git chart %s must define repoURL, path, revision, version, destination, and runtimeFile\n' "$chart" >&2
+    if [ -z "$repo_url" ] || [ "$repo_url" = "null" ] || [ -z "$path" ] || [ "$path" = "null" ] || [ -z "$revision" ] || [ "$revision" = "null" ] || [ -z "$version" ] || [ "$version" = "null" ] || [ -z "$destination" ] || [ "$destination" = "null" ]; then
+      printf 'ERROR: git chart %s must define repoURL, path, revision, version, and destination\n' "$chart" >&2
       exit 1
     fi
   done < <(git_chart_names)
 
   while IFS= read -r image; do
-    local source destination
+    local source destination expected_prefix
     source="$(read_yaml ".images.\"$image\".source")"
     destination="$(read_yaml ".images.\"$image\".destination")"
 
@@ -206,43 +281,83 @@ validate_versions_file() {
       printf 'ERROR: image %s must define source and destination\n' "$image" >&2
       exit 1
     fi
+
+    case "$source" in
+      docker://uniqueapp.azurecr.io/*|docker://uniquecr.azurecr.io/*)
+        expected_prefix="docker://$mirror_registry/$image_project/"
+        if [[ "$destination" != "$expected_prefix"* ]]; then
+          printf 'ERROR: proprietary image %s destination must be under %s\n' "$image" "$expected_prefix" >&2
+          exit 1
+        fi
+        ;;
+    esac
   done < <(image_names)
 }
 
 copy_chart() {
   local chart="$1"
-  local source destination version source_reference
+  local source destination version source_reference remote_reference cache_layout cache_source cache_key
   local -a destination_options=()
   source="$(read_yaml ".charts.\"$chart\".source")"
   destination="$(read_yaml ".charts.\"$chart\".destination")"
   version="$(read_yaml ".charts.\"$chart\".version")"
   source_reference="$(chart_source_reference "$chart")"
+  cache_layout="$MIRROR_CACHE_DIR/charts/$chart"
+  cache_source="$cache_layout/.source"
+  cache_key="$source@$source_reference"
 
   if uses_plain_http "$destination"; then
     destination_options+=(--to-plain-http)
   fi
 
-  printf 'Mirroring chart %s: %s@%s -> %s:%s\n' "$chart" "$source" "$source_reference" "$destination" "$version"
   if [[ "$source_reference" == sha256:* ]]; then
-    oras copy "${destination_options[@]}" "$(strip_oci_scheme "$source")@${source_reference}" "$(strip_oci_scheme "$destination"):${version}"
+    remote_reference="$(strip_oci_scheme "$source")@${source_reference}"
   else
-    oras copy "${destination_options[@]}" "$(strip_oci_scheme "$source"):${source_reference}" "$(strip_oci_scheme "$destination"):${version}"
+    remote_reference="$(strip_oci_scheme "$source"):${source_reference}"
   fi
+
+  if [ ! -f "$cache_layout/index.json" ] || ! cache_marker_matches "$cache_source" "$cache_key"; then
+    printf 'Caching chart %s from %s\n' "$chart" "$remote_reference"
+    login_source_registry "$source"
+    rm -rf "$cache_layout"
+    mkdir -p "$(dirname "$cache_layout")"
+    oras copy --to-oci-layout "$remote_reference" "$cache_layout:$version"
+    printf '%s\n' "$cache_key" >"$cache_source"
+  else
+    printf 'Using cached chart %s\n' "$chart"
+  fi
+
+  printf 'Mirroring chart %s: local cache -> %s:%s\n' "$chart" "$destination" "$version"
+  oras copy --from-oci-layout "${destination_options[@]}" "$cache_layout:$version" "$(strip_oci_scheme "$destination"):${version}"
 }
 
 copy_image() {
   local image="$1"
-  local source destination
+  local source destination cache_layout cache_source skopeo_source
   local -a destination_options=()
   source="$(read_yaml ".images.\"$image\".source")"
   destination="$(read_yaml ".images.\"$image\".destination")"
+  skopeo_source="$(skopeo_source_reference "$source")"
+  cache_layout="$MIRROR_CACHE_DIR/images/$image"
+  cache_source="$cache_layout/.source"
 
   if uses_plain_http "$destination"; then
     destination_options+=(--dest-tls-verify=false)
   fi
 
-  printf 'Mirroring image %s: %s -> %s\n' "$image" "$source" "$destination"
-  skopeo copy --all "${destination_options[@]}" "$source" "$destination"
+  if [ ! -f "$cache_layout/index.json" ] || ! cache_marker_matches "$cache_source" "$source"; then
+    printf 'Caching image %s from %s\n' "$image" "$source"
+    login_source_registry "$source"
+    rm -rf "$cache_layout"
+    mkdir -p "$(dirname "$cache_layout")"
+    skopeo copy --all --preserve-digests "$skopeo_source" "oci:$cache_layout:cached"
+    printf '%s\n' "$source" >"$cache_source"
+  else
+    printf 'Using cached image %s\n' "$image"
+  fi
+
+  printf 'Mirroring image %s: local cache -> %s\n' "$image" "$destination"
+  skopeo copy --all --preserve-digests "oci:$cache_layout:cached" "${destination_options[@]}" "$destination"
 }
 
 verify_chart() {
@@ -271,7 +386,8 @@ verify_chart() {
 
 mirror_git_chart() {
   local chart="$1"
-  local repo_url path revision version destination work_dir chart_name chart_version package_file descriptor digest
+  local repo_url path revision version destination cache_dir package_file cache_source cache_key
+  local work_dir chart_name chart_version built_package descriptor digest
   local -a helm_destination_options=()
   local -a oras_destination_options=()
   repo_url="$(read_yaml ".gitCharts.\"$chart\".repoURL")"
@@ -279,47 +395,63 @@ mirror_git_chart() {
   revision="$(read_yaml ".gitCharts.\"$chart\".revision")"
   version="$(read_yaml ".gitCharts.\"$chart\".version")"
   destination="$(read_yaml ".gitCharts.\"$chart\".destination")"
-  work_dir="$(mktemp -d)"
+  cache_dir="$MIRROR_CACHE_DIR/git-charts"
+  package_file="$cache_dir/$chart-$version.tgz"
+  cache_source="$package_file.source"
+  cache_key="$repo_url|$path|$revision|$version"
 
   if uses_plain_http "$destination"; then
     helm_destination_options+=(--plain-http)
     oras_destination_options+=(--plain-http)
   fi
 
-  printf 'Packaging git chart %s from %s at %s\n' "$chart" "$repo_url" "$revision"
-  git clone --filter=blob:none --no-checkout "$repo_url" "$work_dir/repository" >/dev/null
-  git -C "$work_dir/repository" fetch --depth 1 origin "$revision" >/dev/null
-  git -C "$work_dir/repository" checkout --detach FETCH_HEAD >/dev/null
-  helm dependency build "$work_dir/repository/$path"
-  chart_name="$(helm show chart "$work_dir/repository/$path" | yq -r '.name')"
-  chart_version="$(helm show chart "$work_dir/repository/$path" | yq -r '.version')"
+  if [ ! -f "$package_file" ] || ! cache_marker_matches "$cache_source" "$cache_key"; then
+    printf 'Packaging and caching git chart %s from %s at %s\n' "$chart" "$repo_url" "$revision"
+    require_tool git
+    work_dir="$(mktemp -d)"
+    git clone --filter=blob:none --no-checkout "$repo_url" "$work_dir/repository" >/dev/null
+    git -C "$work_dir/repository" fetch --depth 1 origin "$revision" >/dev/null
+    git -C "$work_dir/repository" checkout --detach FETCH_HEAD >/dev/null
+    helm dependency build "$work_dir/repository/$path"
+    chart_name="$(helm show chart "$work_dir/repository/$path" | yq -r '.name')"
+    chart_version="$(helm show chart "$work_dir/repository/$path" | yq -r '.version')"
 
-  if [ "$chart_version" != "$version" ]; then
-    printf 'ERROR: git chart %s version %s does not match configured version %s\n' "$chart" "$chart_version" "$version" >&2
+    if [ "$chart_version" != "$version" ]; then
+      printf 'ERROR: git chart %s version %s does not match configured version %s\n' "$chart" "$chart_version" "$version" >&2
+      rm -rf "$work_dir"
+      exit 1
+    fi
+
+    helm package "$work_dir/repository/$path" --destination "$work_dir" >/dev/null
+    built_package="$work_dir/${chart_name}-${chart_version}.tgz"
+
+    if [ ! -f "$built_package" ]; then
+      printf 'ERROR: failed to package git chart %s\n' "$chart" >&2
+      rm -rf "$work_dir"
+      exit 1
+    fi
+
+    mkdir -p "$cache_dir"
+    mv "$built_package" "$package_file"
+    printf '%s\n' "$cache_key" >"$cache_source"
     rm -rf "$work_dir"
-    exit 1
-  fi
-
-  helm package "$work_dir/repository/$path" --destination "$work_dir" >/dev/null
-  package_file="$work_dir/${chart_name}-${chart_version}.tgz"
-
-  if [ -z "$package_file" ] || [ ! -f "$package_file" ]; then
-    printf 'ERROR: failed to package git chart %s\n' "$chart" >&2
-    rm -rf "$work_dir"
-    exit 1
+  else
+    printf 'Using cached git chart %s\n' "$chart"
   fi
 
   helm push "${helm_destination_options[@]}" "$package_file" "oci://$(strip_oci_scheme "${destination%/*}")"
   descriptor="$(oras manifest fetch "${oras_destination_options[@]}" --descriptor "$(strip_oci_scheme "$destination"):${version}")"
   digest="$(printf '%s' "$descriptor" | yq -p=json -r '.digest')"
   yq -i ".gitCharts.\"$chart\".digest = \"$digest\"" "$VERSIONS_FILE"
-  rm -rf "$work_dir"
 }
 
 update_runtime_chart_specs() {
   while IFS= read -r chart; do
     local runtime_file destination target_revision
-    runtime_file="$(read_yaml ".charts.\"$chart\".runtimeFile")"
+    runtime_file="$(read_yaml ".charts.\"$chart\".runtimeFile // \"\"")"
+    if [[ -z "$runtime_file" ]]; then
+      continue
+    fi
     destination="$(runtime_chart_repository "$(read_yaml ".charts.\"$chart\".destination")")"
     target_revision="$(chart_source_reference "$chart")"
     require_file "$SCRIPT_DIR/$runtime_file"
@@ -335,7 +467,10 @@ update_runtime_chart_specs() {
 update_git_chart_specs() {
   while IFS= read -r chart; do
     local runtime_file destination target_revision
-    runtime_file="$(read_yaml ".gitCharts.\"$chart\".runtimeFile")"
+    runtime_file="$(read_yaml ".gitCharts.\"$chart\".runtimeFile // \"\"")"
+    if [[ -z "$runtime_file" ]]; then
+      continue
+    fi
     destination="$(runtime_chart_repository "$(read_yaml ".gitCharts.\"$chart\".destination")")"
     target_revision="$(git_chart_target_revision "$chart")"
     require_file "$SCRIPT_DIR/$runtime_file"
@@ -351,7 +486,10 @@ update_git_chart_specs() {
 validate_runtime_references() {
   while IFS= read -r chart; do
     local runtime_file expected_repo expected_revision actual_repo actual_revision
-    runtime_file="$(read_yaml ".charts.\"$chart\".runtimeFile")"
+    runtime_file="$(read_yaml ".charts.\"$chart\".runtimeFile // \"\"")"
+    if [[ -z "$runtime_file" ]]; then
+      continue
+    fi
     expected_repo="$(runtime_chart_repository "$(read_yaml ".charts.\"$chart\".destination")")"
     expected_revision="$(chart_source_reference "$chart")"
     actual_repo="$(yq -r '.spec.source.repoURL' "$SCRIPT_DIR/$runtime_file")"
@@ -365,7 +503,10 @@ validate_runtime_references() {
 
   while IFS= read -r chart; do
     local runtime_file expected_repo expected_revision actual_repo actual_revision
-    runtime_file="$(read_yaml ".gitCharts.\"$chart\".runtimeFile")"
+    runtime_file="$(read_yaml ".gitCharts.\"$chart\".runtimeFile // \"\"")"
+    if [[ -z "$runtime_file" ]]; then
+      continue
+    fi
     expected_repo="$(runtime_chart_repository "$(read_yaml ".gitCharts.\"$chart\".destination")")"
     expected_revision="$(git_chart_target_revision "$chart")"
     actual_repo="$(yq -r '.spec.source.repoURL' "$SCRIPT_DIR/$runtime_file")"
@@ -403,7 +544,6 @@ case "$MODE" in
       verify_chart "$chart"
     done < <(chart_names)
 
-    require_tool git
     while IFS= read -r chart; do
       mirror_git_chart "$chart"
     done < <(git_chart_names)
