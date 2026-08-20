@@ -14,7 +14,7 @@ spec:
       kind: Deployment
       name: kube-prometheus-stack-grafana
       jsonPointers:
-        - /spec/template/metadata/annotations/checksum~1/secret
+        - /spec/template/metadata/annotations/checksum~1secret
   sources:
     - repoURL: https://github.com/Unique-AG/hpe-hosted-trial
       targetRevision: feat/upgrade-to-2026
