@@ -9,4 +9,4 @@ spec:
     targetRevision: feat/upgrade-to-2026
     path: 2-applications
     directory:
-      include: apps.application-set.yaml
+      include: secret-gate.application-set.yaml

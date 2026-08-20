@@ -22,6 +22,10 @@ Applications use named rollout steps: `sealed-secrets`, `secrets`,
 `system-services`, and `platform-services`.
 `sealed-secrets` is automatically synced, while `secrets` is a manual gate
 because sealed values must be prepared before the remaining system rollout.
+The final system rollout creates the `secret-gate` ApplicationSet, which only
+creates `application-secrets`; manually syncing it applies the application
+SealedSecrets before creating the `applications` ApplicationSet in the next
+sync wave.
 The Sealed Secrets chart runs in `unique` with its standard CRD, ServiceAccount,
 and cluster RBAC resources. The local Argo CD install enables progressive syncs
 in `.local/kind/argocd.values.yaml`; the target Argo CD installation must
