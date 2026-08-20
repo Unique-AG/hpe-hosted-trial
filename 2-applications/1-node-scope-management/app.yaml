@@ -6,7 +6,7 @@ spec:
     namespace: unique
   source:
     # HPE: oci://harbor.ingress.pcai0201.fr2.hpecolo.net/unique/helm/scope-management
-    repoURL: oci://harbor.localhost/unique/helm/scope-management
+    repoURL: oci://harbor.localhost/library/helm/scope-management
     targetRevision: sha256:e198a519de8482669724b006175052134c16c8cdef83ca82f49e7ee4974376ef
     path: .
     helm:

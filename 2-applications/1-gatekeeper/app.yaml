@@ -6,7 +6,7 @@ spec:
     namespace: unique
   source:
     # HPE: oci://harbor.ingress.pcai0201.fr2.hpecolo.net/unique/helm/gatekeeper
-    repoURL: oci://harbor.localhost/unique/helm/gatekeeper
+    repoURL: oci://harbor.localhost/library/helm/gatekeeper
     targetRevision: sha256:6c8fade5d98809ba669d9ecc1e5d0a119d04d274c0f0d0831a9352068dc7443e
     path: .
     helm:

@@ -6,7 +6,7 @@ spec:
     namespace: unique
   source:
     # HPE: oci://harbor.ingress.pcai0201.fr2.hpecolo.net/unique/helm/webhook-worker
-    repoURL: oci://harbor.localhost/unique/helm/webhook-worker
+    repoURL: oci://harbor.localhost/library/helm/webhook-worker
     targetRevision: sha256:14c6c95f11ec607cb1f83625c0eb30677ff9b9b65423e8d3fb649244a0615360
     path: .
     helm:

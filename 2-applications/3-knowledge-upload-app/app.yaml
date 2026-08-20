@@ -6,7 +6,7 @@ spec:
     namespace: unique
   source:
     # HPE: oci://harbor.ingress.pcai0201.fr2.hpecolo.net/unique/helm/knowledge-upload-app
-    repoURL: oci://harbor.localhost/unique/helm/knowledge-upload-app
+    repoURL: oci://harbor.localhost/library/helm/knowledge-upload-app
     targetRevision: sha256:13a7577ec6b36ac12b5b7c710cc2d2ebdedb067b906f02bdd74c5b0f9014c0c7
     path: .
     helm:

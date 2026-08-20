@@ -75,6 +75,15 @@ strip_oci_scheme() {
   printf '%s' "${1#oci://}"
 }
 
+uses_plain_http() {
+  local reference="$1"
+  local registry
+
+  registry="${reference#*://}"
+  registry="${registry%%/*}"
+  [[ "$registry" == "localhost" || "$registry" == localhost:* || "$registry" == *.localhost || "$registry" == *.localhost:* ]]
+}
+
 chart_source_reference() {
   local chart="$1"
   local digest version
@@ -165,38 +174,53 @@ validate_versions_file() {
 copy_chart() {
   local chart="$1"
   local source destination version source_reference
+  local -a destination_options=()
   source="$(read_yaml ".charts.\"$chart\".source")"
   destination="$(read_yaml ".charts.\"$chart\".destination")"
   version="$(read_yaml ".charts.\"$chart\".version")"
   source_reference="$(chart_source_reference "$chart")"
 
+  if uses_plain_http "$destination"; then
+    destination_options+=(--to-plain-http)
+  fi
+
   printf 'Mirroring chart %s: %s@%s -> %s:%s\n' "$chart" "$source" "$source_reference" "$destination" "$version"
   if [[ "$source_reference" == sha256:* ]]; then
-    oras copy "$(strip_oci_scheme "$source")@${source_reference}" "$(strip_oci_scheme "$destination"):${version}"
+    oras copy "${destination_options[@]}" "$(strip_oci_scheme "$source")@${source_reference}" "$(strip_oci_scheme "$destination"):${version}"
   else
-    oras copy "$(strip_oci_scheme "$source"):${source_reference}" "$(strip_oci_scheme "$destination"):${version}"
+    oras copy "${destination_options[@]}" "$(strip_oci_scheme "$source"):${source_reference}" "$(strip_oci_scheme "$destination"):${version}"
   fi
 }
 
 copy_image() {
   local image="$1"
   local source destination
+  local -a destination_options=()
   source="$(read_yaml ".images.\"$image\".source")"
   destination="$(read_yaml ".images.\"$image\".destination")"
 
+  if uses_plain_http "$destination"; then
+    destination_options+=(--dest-tls-verify=false)
+  fi
+
   printf 'Mirroring image %s: %s -> %s\n' "$image" "$source" "$destination"
-  skopeo copy --all "$source" "$destination"
+  skopeo copy --all "${destination_options[@]}" "$source" "$destination"
 }
 
 verify_chart() {
   local chart="$1"
   local destination digest version descriptor actual_digest
+  local -a destination_options=()
   destination="$(read_yaml ".charts.\"$chart\".destination")"
   digest="$(read_yaml ".charts.\"$chart\".digest // \"\"")"
   version="$(read_yaml ".charts.\"$chart\".version")"
 
+  if uses_plain_http "$destination"; then
+    destination_options+=(--plain-http)
+  fi
+
   printf 'Verifying chart %s at %s:%s\n' "$chart" "$destination" "$version"
-  descriptor="$(oras manifest fetch --descriptor "$(strip_oci_scheme "$destination"):${version}")"
+  descriptor="$(oras manifest fetch "${destination_options[@]}" --descriptor "$(strip_oci_scheme "$destination"):${version}")"
   actual_digest="$(printf '%s' "$descriptor" | yq -p=json -r '.digest')"
 
   if [ -n "$digest" ] && [ "$actual_digest" != "$digest" ]; then
@@ -210,12 +234,19 @@ verify_chart() {
 mirror_git_chart() {
   local chart="$1"
   local repo_url path revision version destination work_dir chart_name chart_version package_file descriptor digest
+  local -a helm_destination_options=()
+  local -a oras_destination_options=()
   repo_url="$(read_yaml ".gitCharts.\"$chart\".repoURL")"
   path="$(read_yaml ".gitCharts.\"$chart\".path")"
   revision="$(read_yaml ".gitCharts.\"$chart\".revision")"
   version="$(read_yaml ".gitCharts.\"$chart\".version")"
   destination="$(read_yaml ".gitCharts.\"$chart\".destination")"
   work_dir="$(mktemp -d)"
+
+  if uses_plain_http "$destination"; then
+    helm_destination_options+=(--plain-http)
+    oras_destination_options+=(--plain-http)
+  fi
 
   printf 'Packaging git chart %s from %s at %s\n' "$chart" "$repo_url" "$revision"
   git clone --filter=blob:none --no-checkout "$repo_url" "$work_dir/repository" >/dev/null
@@ -240,8 +271,8 @@ mirror_git_chart() {
     exit 1
   fi
 
-  helm push "$package_file" "oci://$(strip_oci_scheme "${destination%/*}")"
-  descriptor="$(oras manifest fetch --descriptor "$(strip_oci_scheme "$destination"):${version}")"
+  helm push "${helm_destination_options[@]}" "$package_file" "oci://$(strip_oci_scheme "${destination%/*}")"
+  descriptor="$(oras manifest fetch "${oras_destination_options[@]}" --descriptor "$(strip_oci_scheme "$destination"):${version}")"
   digest="$(printf '%s' "$descriptor" | yq -p=json -r '.digest')"
   yq -i ".gitCharts.\"$chart\".digest = \"$digest\"" "$VERSIONS_FILE"
   rm -rf "$work_dir"

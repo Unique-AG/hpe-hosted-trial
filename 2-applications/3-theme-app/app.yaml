@@ -6,7 +6,7 @@ spec:
     namespace: unique
   source:
     # HPE: oci://harbor.ingress.pcai0201.fr2.hpecolo.net/unique/helm/theme-app
-    repoURL: oci://harbor.localhost/unique/helm/theme-app
+    repoURL: oci://harbor.localhost/library/helm/theme-app
     targetRevision: sha256:5a97cce07e2f2e40cb5ea018c94b740e6d5b7f082251b4c9a21869bb42314cee
     path: .
     helm:

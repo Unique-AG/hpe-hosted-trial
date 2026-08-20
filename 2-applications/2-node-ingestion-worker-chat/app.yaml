@@ -6,7 +6,7 @@ spec:
     namespace: unique
   source:
     # HPE: oci://harbor.ingress.pcai0201.fr2.hpecolo.net/unique/helm/ingestion-chat-worker
-    repoURL: oci://harbor.localhost/unique/helm/ingestion-chat-worker
+    repoURL: oci://harbor.localhost/library/helm/ingestion-chat-worker
     targetRevision: sha256:e0da1c82eace7fa1b462faefa58675f06beb8ec01d4d790d1214cf23e2b17516
     path: .
     helm:

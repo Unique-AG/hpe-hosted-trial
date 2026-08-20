@@ -119,6 +119,9 @@ Mirror all pinned OCI charts, Git-hosted charts, and container images:
 ```
 
 The command records mirrored chart digests and updates runtime references.
+For local Kind, the mirror clients use plain HTTP for the in-cluster Harbor
+exposed at `harbor.localhost` and store artifacts in its `library` project;
+non-local registry destinations continue to use HTTPS.
 Commit and push those changes before opening the application gate:
 
 ```bash

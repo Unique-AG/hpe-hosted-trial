@@ -6,7 +6,7 @@ spec:
     namespace: unique
   source:
     # HPE: oci://harbor.ingress.pcai0201.fr2.hpecolo.net/unique/helm/mcp-hub
-    repoURL: oci://harbor.localhost/unique/helm/mcp-hub
+    repoURL: oci://harbor.localhost/library/helm/mcp-hub
     targetRevision: sha256:6a2db0a140cc4975b70238e22a54a9a6a7f66d2fd0fb9cf16d21de5e0e9dac3e
     path: .
     helm:

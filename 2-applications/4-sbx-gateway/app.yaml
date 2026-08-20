@@ -6,7 +6,7 @@ spec:
     namespace: unique
   source:
     # HPE: oci://harbor.ingress.pcai0201.fr2.hpecolo.net/unique/helm/sbx-gateway
-    repoURL: oci://harbor.localhost/unique/helm/sbx-gateway
+    repoURL: oci://harbor.localhost/library/helm/sbx-gateway
     targetRevision: sha256:d8a5423303b7d48ff012c8ed235b768468a10499735fe5837b8d1499075cf9da
     path: .
     helm:
