@@ -27,6 +27,16 @@ spec:
             - key: unique.dev/app-rollout-group
               operator: In
               values:
+                - kong-gateway
+        - matchExpressions:
+            - key: unique.dev/app-rollout-group
+              operator: In
+              values:
+                - kong-config
+        - matchExpressions:
+            - key: unique.dev/app-rollout-group
+              operator: In
+              values:
                 - core
         - matchExpressions:
             - key: unique.dev/app-rollout-group

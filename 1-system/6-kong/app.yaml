@@ -49,35 +49,7 @@ spec:
                   memory: 300Mi
 
           gateway:
-            image:
-              tag: "3.9.0"
-            extraObjects:
-              - apiVersion: v1
-                kind: ConfigMap
-                metadata:
-                  name: kong-gateway-environment
-                data:
-                  KONG_LOG_LEVEL: info
-            envFrom:
-              - configMapRef:
-                  name: kong-gateway-environment
-            proxy:
-              type: ClusterIP
-              tls:
-                enabled: false
-            plugins:
-              configMaps:
-                - name: kong-plugin-unique-jwt-auth
-                  pluginName: unique-jwt-auth
-                - name: kong-plugin-unique-app-repo-auth
-                  pluginName: unique-app-repo-auth
-            resources:
-              limits:
-                cpu: 500m
-                memory: 1Gi
-              requests:
-                cpu: 250m
-                memory: 512Mi
+            enabled: false
   ignoreDifferences:
     - group: ""
       kind: Secret
