@@ -93,6 +93,30 @@ runtime_chart_repository() {
   printf '%s' "${destination/$mirror_registry/$runtime_registry}"
 }
 
+login_local_harbor() {
+  local registry password
+
+  registry="$(read_yaml '.harbor.registry')"
+  if ! uses_plain_http "$registry"; then
+    return
+  fi
+
+  require_tool kubectl
+  password="$(
+    kubectl -n unique get secret harbor-password-secret -o json |
+      yq -p=json -r '.data.HARBOR_ADMIN_PASSWORD | @base64d'
+  )"
+  if [[ -z "$password" ]]; then
+    printf 'Error: Harbor admin password is empty\n' >&2
+    exit 1
+  fi
+
+  printf 'Authenticating mirror tools with local Harbor %s\n' "$registry"
+  printf '%s' "$password" | oras login --plain-http -u admin --password-stdin "$registry"
+  printf '%s' "$password" | helm registry login --plain-http -u admin --password-stdin "$registry"
+  printf '%s' "$password" | skopeo login --tls-verify=false -u admin --password-stdin "$registry"
+}
+
 chart_source_reference() {
   local chart="$1"
   local digest version
@@ -366,6 +390,8 @@ case "$MODE" in
   mirror)
     require_tool oras
     require_tool skopeo
+    require_tool helm
+    login_local_harbor
 
     while IFS= read -r chart; do
       copy_chart "$chart"
@@ -373,7 +399,6 @@ case "$MODE" in
     done < <(chart_names)
 
     require_tool git
-    require_tool helm
     while IFS= read -r chart; do
       mirror_git_chart "$chart"
     done < <(git_chart_names)
