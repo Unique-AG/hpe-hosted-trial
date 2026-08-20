@@ -57,6 +57,7 @@ Apply the bootstrap Application:
 ```bash
 kubectl create namespace unique --dry-run=client -o yaml | kubectl apply -f -
 kubectl apply -f bootstrap.application.yaml
+argocd app sync argocd-bootstrap
 ```
 
 Argo CD automatically deploys the `1-system` applications until it reaches the
@@ -89,9 +90,10 @@ Watch the system rollout:
 kubectl -n unique get applications.argoproj.io -w
 ```
 
-Do not continue until the system applications are Healthy and the
-`application-secrets` Application exists. Its existence confirms that the
-system rollout reached the final `secret-gate` step.
+Do not continue until the preceding system applications are Healthy and the
+`application-secrets` Application exists. The final gate can remain OutOfSync;
+the Application's existence confirms that the system rollout reached the
+`secret-gate` step.
 
 ### 6. Mirror artifacts and sync application secrets
 
@@ -102,6 +104,9 @@ oras login <harbor-domain>
 skopeo login <harbor-domain>
 helm registry login <harbor-domain>
 ```
+
+Log in to private source registries referenced by `versions.yaml` with the
+corresponding tools as well.
 
 Mirror all pinned OCI charts, Git-hosted charts, and container images:
 
