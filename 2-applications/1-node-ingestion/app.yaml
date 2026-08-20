@@ -45,7 +45,7 @@ spec:
             port: 5432
             url:
               fromSecret:
-                name: node-ingestion-secrets
+                name: node-ingestion-connections
                 key: DATABASE_URL
         redis:
           connection:
@@ -56,7 +56,7 @@ spec:
             host: rabbitmq.unique.svc.cluster.local
             url:
               fromSecret:
-                name: node-ingestion-secrets
+                name: node-ingestion-connections
                 key: AMQP_URL
         objectStorage:
           endpoint: http://rustfs-svc.unique.svc.cluster.local:9000

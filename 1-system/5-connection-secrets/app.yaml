@@ -1,0 +1,11 @@
+spec:
+  name: connection-secrets
+  rolloutStep: infrastructure
+  autoSync: true
+  source:
+    repoURL: https://github.com/Unique-AG/hpe-hosted-trial
+    targetRevision: feat/upgrade-to-2026
+    path: "1-system/5-connection-secrets"
+    directory:
+      include: '*.yaml'
+      exclude: '{app.yaml}'

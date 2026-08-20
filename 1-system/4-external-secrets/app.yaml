@@ -1,0 +1,27 @@
+spec:
+  name: external-secrets
+  rolloutStep: operators
+  autoSync: true
+  syncOptions:
+    - ServerSideApply=true
+  source:
+    chart: external-secrets
+    repoURL: https://charts.external-secrets.io
+    targetRevision: 2.9.0
+    helm:
+      releaseName: external-secrets
+      valuesObject:
+        installCRDs: true
+        crds:
+          createClusterExternalSecret: false
+          createClusterGenerator: false
+          createClusterPushSecret: false
+          createClusterSecretStore: false
+          createPushSecret: false
+        scopedNamespace: unique
+        scopedRBAC: true
+        processClusterExternalSecret: false
+        processClusterGenerator: false
+        processClusterPushSecret: false
+        processClusterStore: false
+        processPushSecret: false

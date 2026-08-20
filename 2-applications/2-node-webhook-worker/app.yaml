@@ -45,7 +45,7 @@ spec:
             host: rabbitmq.unique.svc.cluster.local
             url:
               fromSecret:
-                name: node-webhook-worker-secrets
+                name: node-webhook-worker-connections
                 key: AMQP_URL
         objectStorage:
           endpoint: http://rustfs-svc.unique.svc.cluster.local:9000

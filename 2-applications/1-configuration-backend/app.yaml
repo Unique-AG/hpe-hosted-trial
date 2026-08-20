@@ -38,7 +38,7 @@ spec:
             port: 5432
             url:
               fromSecret:
-                name: configuration-backend-secrets
+                name: configuration-backend-connections
                 key: DATABASE_URL
         redis:
           connection:
@@ -56,5 +56,3 @@ spec:
             host: litellm.unique.svc.cluster.local
             port: 4000
         namespaceOverride: unique
-        extraEnvSecrets:
-          - configuration-backend-secrets

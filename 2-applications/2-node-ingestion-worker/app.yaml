@@ -59,7 +59,7 @@ spec:
                 podPort: 5672
             url:
               fromSecret:
-                name: node-ingestion-worker-secrets
+                name: node-ingestion-worker-connections
                 key: AMQP_URL
         objectStorage:
           endpoint: http://rustfs-svc.unique.svc.cluster.local:9000

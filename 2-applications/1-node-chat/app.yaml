@@ -80,7 +80,7 @@ spec:
             port: 5432
             url:
               fromSecret:
-                name: node-chat-secrets
+                name: node-chat-connections
                 key: DATABASE_URL
         redis:
           connection:
@@ -96,7 +96,7 @@ spec:
                 podPort: 5672
             url:
               fromSecret:
-                name: node-chat-secrets
+                name: node-chat-connections
                 key: AMQP_URL
         objectStorage:
           endpoint: http://rustfs-svc.unique.svc.cluster.local:9000

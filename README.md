@@ -10,6 +10,7 @@ Before starting, provide:
 - `kubectl`, `argocd`, `kubeseal`, `helm`, `git`, `yq`, `rg`, `oras`, and
   `skopeo`
 - Credentials for every source registry
+- Access to `charts.external-secrets.io` and `ghcr.io/external-secrets`
 - DNS records for the configured ingress domains
 
 ## Deployment
@@ -67,6 +68,10 @@ Copy every required `*.secret.yaml.example` file to the adjacent
 `*.secret.yaml`, then fill in the real values. Plaintext `*.secret.yaml` files
 are ignored by Git.
 
+Application `DATABASE_URL` and `AMQP_URL` values are generated automatically
+from `postgres-secret` and `rabbitmq-password-secret`. Do not add those URLs to
+application secret files.
+
 Seal all secrets with the production certificate:
 
 ```bash
@@ -91,7 +96,8 @@ kubectl -n unique get applications.argoproj.io -w
 Do not continue until the preceding system applications are Healthy and the
 `application-secrets` Application exists. The final gate can remain OutOfSync;
 the Application's existence confirms that the system rollout reached the
-`secret-gate` step.
+`secret-gate` step. The `connection-secrets` Application derives application
+and LiteLLM connection Secrets during the infrastructure rollout.
 
 ### 6. Mirror artifacts and sync application secrets
 
@@ -123,8 +129,8 @@ argocd app sync application-secrets
 ```
 
 The manual sync applies application SealedSecrets at sync wave 0. After they
-become healthy, it creates the `applications` ApplicationSet at sync wave 1.
-No downstream Application exists before this point, preventing Argo CD from
+become healthy, it creates the `applications` ApplicationSet at sync wave 1. No
+downstream Application exists before this point, preventing Argo CD from
 querying Harbor before mirroring is complete.
 
 ### 7. Wait for the application rollout
