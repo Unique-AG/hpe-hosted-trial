@@ -57,10 +57,10 @@ The kind nodes resolve `harbor.localhost` through Docker Desktop and configure
 containerd to use the registry over HTTP. Recreate clusters made before this
 registry configuration was added.
 
-The local `gl4f-filesystem` StorageClass is backed by an in-cluster NFS server
-and the `nfs-subdir-external-provisioner` chart. This provides development RWX
-semantics for workloads that share assistant and sandbox state. Data is stored
-inside the kind cluster and is deleted with the cluster.
+The local `gl4f-filesystem` StorageClass is backed by the userspace
+NFS-Ganesha server and external provisioner. This provides development RWX
+semantics for workloads that share assistant and sandbox state without running
+a kernel NFS daemon inside a kind node. Data is deleted with the cluster.
 
 Remove the entire local cluster with:
 

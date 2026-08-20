@@ -46,6 +46,11 @@ spec:
               operator: In
               values:
                 - platform-services
+        - matchExpressions:
+            - key: unique.dev/rollout-step
+              operator: In
+              values:
+                - applications
   generators:
   - git:
       repoURL: https://github.com/Unique-AG/hpe-hosted-trial
@@ -85,11 +90,6 @@ spec:
             duration: 5s
             factor: 2
             maxDuration: 2m
-        {{- if .spec.autoSync }}
-        automated:
-          prune: true
-          selfHeal: true
-        {{- end }}
         syncOptions:
           - CreateNamespace=true
           {{- if hasKey .spec "syncOptions" }}

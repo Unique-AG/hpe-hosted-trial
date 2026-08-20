@@ -17,9 +17,11 @@ Application directories under `2-applications` are prefixed by rollout order:
 specialists. Each directory contains one self-contained `app.yaml` and any
 service-specific secret templates.
 
-The application rollout starts with the manually gated `application-secrets`
-Application. It recursively applies all adjacent `*.sealed-secret.yaml` files
-before Argo CD continues with prerequisites and services.
+The `2-applications` ApplicationSet is created only after every `1-system`
+rollout step is healthy. Its rollout starts with the manually gated
+`application-secrets` Application, which recursively applies all adjacent
+`*.sealed-secret.yaml` files before Argo CD continues with prerequisites and
+services.
 
 ## Sealed Secrets
 

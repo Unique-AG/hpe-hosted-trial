@@ -72,13 +72,7 @@ spec:
       {{- if hasKey .spec "additionalValues" }}
       {{- .spec.additionalValues | toYaml | nindent 2 }}
       {{- end }}
-      {{- if or (hasKey .spec "autoSync") (hasKey .spec "syncOptions") }}
       syncPolicy:
-        {{- if .spec.autoSync }}
-        automated:
-          prune: true
-          selfHeal: true
-        {{- end }}
         retry:
           limit: 5
           backoff:
@@ -90,4 +84,3 @@ spec:
           {{- if hasKey .spec "syncOptions" }}
           {{- .spec.syncOptions | toYaml | nindent 6 }}
           {{- end }}
-      {{- end }}
