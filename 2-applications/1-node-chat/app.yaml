@@ -112,9 +112,10 @@ spec:
             port: 4000
             apiKey:
               fromSecret:
-                name: node-chat-secrets
+                name: node-chat-connections
                 key: LITELLM_MASTER_KEY
         nameOverride: node-chat
         fullnameOverride: node-chat
         extraEnvSecrets:
+          - node-chat-connections
           - node-chat-secrets

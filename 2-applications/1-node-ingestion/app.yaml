@@ -69,4 +69,5 @@ spec:
         nameOverride: node-ingestion
         fullnameOverride: node-ingestion
         extraEnvSecrets:
+          - node-ingestion-connections
           - node-ingestion-secrets

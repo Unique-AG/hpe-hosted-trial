@@ -68,8 +68,8 @@ Copy every required `*.secret.yaml.example` file to the adjacent
 `*.secret.yaml`, then fill in the real values. Plaintext `*.secret.yaml` files
 are ignored by Git.
 
-Application `DATABASE_URL` and `AMQP_URL` values are generated automatically
-from `postgres-secret` and `rabbitmq-password-secret`. Do not add those URLs to
+Application database, RabbitMQ, RustFS, and LiteLLM credentials are generated
+automatically from their system Secrets. Do not duplicate those values in
 application secret files.
 
 Seal all secrets with the production certificate:
