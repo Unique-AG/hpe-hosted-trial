@@ -33,7 +33,8 @@ spec:
       max_connections: "200"
   storage:
     size: 20Gi
-    storageClass: gl4f-filesystem
+    # HPE: use gl4f-filesystem
+    storageClass: standard
   resources:
     limits:
       cpu: 2

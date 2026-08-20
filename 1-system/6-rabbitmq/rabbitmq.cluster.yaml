@@ -10,7 +10,8 @@ spec:
     externalSecret:
       name: rabbitmq-password-secret
   persistence:
-    storageClassName: gl4f-filesystem
+    # HPE: use gl4f-filesystem
+    storageClassName: standard
     storage: 50Gi
   rabbitmq:
     additionalConfig: |

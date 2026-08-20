@@ -67,19 +67,20 @@ spec:
 
           persistence:
             persistentVolumeClaim:
+              # HPE: use gl4f-filesystem for all claims and 500Gi for registry
               registry:
-                storageClass: gl4f-filesystem
-                size: 500Gi
+                storageClass: standard
+                size: 20Gi
               chartmuseum:
-                storageClass: gl4f-filesystem
+                storageClass: standard
               jobservice:
-                storageClass: gl4f-filesystem
+                storageClass: standard
               database:
-                storageClass: gl4f-filesystem
+                storageClass: standard
               redis:
-                storageClass: gl4f-filesystem
+                storageClass: standard
               trivy:
-                storageClass: gl4f-filesystem
+                storageClass: standard
 
           nginx:
             resources:

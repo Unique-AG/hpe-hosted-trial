@@ -24,9 +24,10 @@ spec:
           replicaCount: 1
           secret:
             existingSecret: rustfs-credentials
+          # HPE: use gl4f-filesystem with 1Ti data storage
           storageclass:
-            name: gl4f-filesystem
-            dataStorageSize: 1Ti
+            name: standard
+            dataStorageSize: 20Gi
             logStorageSize: 1Gi
           resources:
             requests:

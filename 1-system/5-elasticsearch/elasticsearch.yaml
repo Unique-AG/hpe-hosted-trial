@@ -28,4 +28,5 @@ spec:
             resources:
               requests:
                 storage: 100Gi
-            storageClassName: gl4f-filesystem
+            # HPE: use gl4f-filesystem
+            storageClassName: standard

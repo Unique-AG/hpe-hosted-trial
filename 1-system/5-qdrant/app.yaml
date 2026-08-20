@@ -25,6 +25,7 @@ spec:
               memory: 2Gi
           persistence:
             size: 100Gi
-            storageClassName: gl4f-filesystem
+            # HPE: use gl4f-filesystem
+            storageClassName: standard
           ingress:
             enabled: false
