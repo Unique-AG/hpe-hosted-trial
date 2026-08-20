@@ -101,6 +101,11 @@ and LiteLLM connection Secrets during the infrastructure rollout.
 
 ### 6. Mirror artifacts and sync application secrets
 
+Set `ZITADEL_ROOT_ORG_ID` in
+`2-applications/1-node-scope-management/node-scope-management.secret.yaml` to
+the generated ID of the `Cluster IAM` organization before sealing the
+application secrets.
+
 The mirror script authenticates its tools against the destination Harbor using
 `harbor-password-secret`. When initially building the delivery cache, the
 operator also needs credentials for the private source registries referenced by
@@ -166,6 +171,9 @@ assistant returns a response. Also verify the API, identity provider, Harbor,
 and object-storage routes used by the deployment.
 
 ## Local Kind
+
+Kind uses Cilium as its CNI. Existing clusters created with kindnet must be
+deleted and recreated with `.local/kind/down.sh` and `.local/kind/up.sh`.
 
 For local Kind, fetch the current controller certificate and seal in one step:
 

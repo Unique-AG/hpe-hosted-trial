@@ -38,8 +38,6 @@ spec:
             namespace: unique
           # HPE: api.ingress.pcai0201.fr2.hpecolo.net
           hostname: api.localhost
-        internalServices:
-          namespace: unique
         postgresql:
           connection:
             host: postgres-rw.unique.svc.cluster.local

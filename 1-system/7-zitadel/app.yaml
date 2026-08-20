@@ -22,6 +22,10 @@ spec:
           postgresql:
             enabled: false
 
+          serviceAccount:
+            create: false
+            name: zitadel
+
           image:
             tag: v3.4.11@sha256:53e69236b5c12f745962f62d438dd4831f39ba813694cdc773ee9a8ca35f813c
           

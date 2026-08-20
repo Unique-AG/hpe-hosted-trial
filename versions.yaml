@@ -217,7 +217,7 @@ charts:
     version: "2026.30.0"
     # HPE: oci://harbor.ingress.pcai0201.fr2.hpecolo.net/unique/helm/search-proxy
     destination: oci://harbor.localhost/library/helm/search-proxy
-    runtimeFile: 2-applications/4-search-proxy/app.yaml
+    runtimeFile: 2-applications/4-search-proxy/_app.yaml
   agent-sandbox-controller:
     source: oci://ghcr.io/unique-ag/helm-charts/agent-sandbox-controller
     version: 0.4.6-rc.1

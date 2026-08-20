@@ -113,7 +113,7 @@ done <<'EOF'
 2-applications/4-sbx-storage/app.yaml|sbx-storage
 2-applications/4-speech/app.yaml|speech
 2-applications/4-unique-api/app.yaml|unique-api
-2-applications/4-search-proxy/app.yaml|search-proxy
+2-applications/4-search-proxy/_app.yaml|search-proxy
 2-applications/4-outlook-semantic-mcp/_app.yaml|outlook-semantic-mcp
 2-applications/4-sharepoint-connector/_app.yaml|sharepoint-connector
 EOF

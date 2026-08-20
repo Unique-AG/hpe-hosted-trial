@@ -34,8 +34,12 @@ spec:
           CHAT_APP_URL: http://unique.localhost/chat
           # HPE: https://api.ingress.pcai0201.fr2.hpecolo.net/chat
           CHAT_BACKEND_API_URL: http://api.localhost/chat
+          # HPE: https://api.ingress.pcai0201.fr2.hpecolo.net/ingestion
+          INGESTION_BACKEND_API_URL: http://api.localhost/ingestion
           # HPE: https://unique.ingress.pcai0201.fr2.hpecolo.net/knowledge-upload
           KNOWLEDGE_UPLOAD_APP_URL: http://unique.localhost/knowledge-upload
+          # HPE: https://api.ingress.pcai0201.fr2.hpecolo.net
+          REFLECTOR_BACKEND_API_URL: http://api.localhost
           # HPE: https://api.ingress.pcai0201.fr2.hpecolo.net/scope-management
           SCOPE_MANAGEMENT_BACKEND_API_URL: http://api.localhost/scope-management
           STATIC_TAB_NAME: Unique HPE
@@ -48,8 +52,6 @@ spec:
             namespace: unique
           # HPE: unique.ingress.pcai0201.fr2.hpecolo.net
           hostname: unique.localhost
-        internalServices:
-          namespace: unique
         postgresql:
           connection:
             host: postgres-rw.unique.svc.cluster.local

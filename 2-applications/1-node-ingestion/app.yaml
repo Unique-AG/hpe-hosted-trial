@@ -22,6 +22,11 @@ spec:
         image:
           repository: library/images/ingestion
         env:
+          AZURE_OPENAI_API_VERSION: 2023-03-15-preview
+          FILE_RETENTION_IN_DAYS: 30
+          # HPE: https://api.ingress.pcai0201.fr2.hpecolo.net/scoped/ingestion/upload
+          INGESTION_UPLOAD_API_URL: http://api.localhost/scoped/ingestion/upload
+          MAX_HEAP_MB: 950
           UNIQUE_INSTALLATION_ID: hpe-hosted-trial
           # HPE: https://id.ingress.pcai0201.fr2.hpecolo.net
           ZITADEL_ISSUER: http://id.localhost
@@ -36,11 +41,36 @@ spec:
           # HPE: api.ingress.pcai0201.fr2.hpecolo.net
           hostname: api.localhost
         internalServices:
-          namespace: unique
           dependencies:
             scopeManagement:
               name: node-scope-management
               namespace: unique
+        elasticsearch:
+          connection:
+            host:
+              fromKubernetesService:
+                name: elasticsearch-ingestion-es-http
+                namespace: unique
+                podPort: 9200
+                skipClusterDomain: true
+            password:
+              fromSecret:
+                name: elasticsearch-ingestion-es-elastic-user
+                key: elastic
+            caBundle:
+              fromSecret:
+                name: elasticsearch-ingestion-es-http-certs-public
+                key: ca.crt
+              mountPath: /etc/ssl/elastic/ca.crt
+        qdrant:
+          readConsistency: 1
+          connection:
+            host:
+              fromKubernetesService:
+                name: qdrant-headless
+                namespace: unique
+                podPort: 6333
+            port: 6333
         postgresql:
           connection:
             host: postgres-rw.unique.svc.cluster.local

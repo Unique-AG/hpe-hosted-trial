@@ -22,18 +22,21 @@ spec:
         image:
           repository: library/images/ingestor
         env:
+          MAX_CONCURRENT_JOBS_PER_REPLICA: 2
+          NUM_THREADS_ACCELERATOR_DEVICE: 4
           UNIQUE_INSTALLATION_ID: hpe-hosted-trial
           # HPE: https://id.ingress.pcai0201.fr2.hpecolo.net
           ZITADEL_ISSUER: http://id.localhost
           ZITADEL_PROJECT_ID: hpe-hosted-trial
+        pvc:
+          # HPE: gl4f-filesystem
+          storageClassName: standard
         routes:
           gateway:
             name: unique
             namespace: unique
           # HPE: api.ingress.pcai0201.fr2.hpecolo.net
           hostname: api.localhost
-        internalServices:
-          namespace: unique
         postgresql:
           connection:
             host: postgres-rw.unique.svc.cluster.local

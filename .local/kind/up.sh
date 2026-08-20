@@ -5,6 +5,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 CLUSTER_NAME="${KIND_CLUSTER_NAME:-hpe-hosted-trial}"
 LOCAL_PATH_VERSION="${LOCAL_PATH_VERSION:-v0.0.36}"
 ARGO_CD_CHART_VERSION="${ARGO_CD_CHART_VERSION:-10.3.3}"
+CILIUM_CHART_VERSION="${CILIUM_CHART_VERSION:-1.20.1}"
 ISTIO_VERSION="${ISTIO_VERSION:-1.30.3}"
 METRICS_SERVER_CHART_VERSION="${METRICS_SERVER_CHART_VERSION:-3.13.0}"
 NFS_SERVER_PROVISIONER_CHART_VERSION="${NFS_SERVER_PROVISIONER_CHART_VERSION:-1.8.0}"
@@ -89,8 +90,32 @@ if ! kind get clusters 2>/dev/null | awk -v name="${CLUSTER_NAME}" '$0 == name {
 fi
 
 kubectl config use-context "kind-${CLUSTER_NAME}" >/dev/null
+if kubectl -n kube-system get daemonset kindnet >/dev/null 2>&1; then
+  printf 'existing cluster uses kindnet; recreate it before enabling Cilium: %s\n' \
+    "${SCRIPT_DIR}/down.sh" >&2
+  exit 1
+fi
 configure_local_harbor_registry
 configure_gvisor_runtime
+
+helm repo add cilium https://helm.cilium.io \
+  --force-update >/dev/null
+helm repo update cilium >/dev/null
+helm upgrade --install cilium cilium/cilium \
+  --version "${CILIUM_CHART_VERSION}" \
+  --namespace kube-system \
+  --set image.pullPolicy=IfNotPresent \
+  --set ipam.mode=kubernetes \
+  --set kubeProxyReplacement=false \
+  --set operator.replicas=1 \
+  --wait \
+  --timeout 10m
+kubectl -n kube-system rollout status daemonset/cilium --timeout=10m
+kubectl -n kube-system rollout status deployment/cilium-operator --timeout=10m
+kubectl wait --for=condition=Established --timeout=5m \
+  crd/ciliumnetworkpolicies.cilium.io \
+  crd/ciliumclusterwidenetworkpolicies.cilium.io
+kubectl wait --for=condition=Ready nodes --all --timeout=10m
 
 kubectl create namespace unique --dry-run=client -o yaml | kubectl apply -f -
 

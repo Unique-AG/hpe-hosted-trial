@@ -22,6 +22,8 @@ spec:
         image:
           repository: library/images/gatekeeper
         env:
+          ADMIN_ROOT_COMPANY_ID: hpe-hosted-trial-root-company
+          ADMIN_ROOT_USER_ID: hpe-hosted-trial-root-user
           UNIQUE_INSTALLATION_ID: hpe-hosted-trial
           # HPE: https://id.ingress.pcai0201.fr2.hpecolo.net
           ZITADEL_ISSUER: http://id.localhost
@@ -32,12 +34,20 @@ spec:
             namespace: unique
           # HPE: api.ingress.pcai0201.fr2.hpecolo.net
           hostname: api.localhost
-        internalServices:
-          namespace: unique
         postgresql:
           connection:
             host: postgres-rw.unique.svc.cluster.local
             port: 5432
+            database: gatekeeper
+            username:
+              fromSecret:
+                name: postgres-secret
+                key: username
+            password:
+              fromSecret:
+                name: postgres-secret
+                key: password
+            sslMode: disable
         redis:
           connection:
             host: redis-master.unique.svc.cluster.local
@@ -45,6 +55,14 @@ spec:
         rabbitmq:
           connection:
             host: rabbitmq.unique.svc.cluster.local
+            username:
+              fromSecret:
+                name: rabbitmq-password-secret
+                key: username
+            password:
+              fromSecret:
+                name: rabbitmq-password-secret
+                key: password
         objectStorage:
           endpoint: http://rustfs-svc.unique.svc.cluster.local:9000
           region: us-east-1

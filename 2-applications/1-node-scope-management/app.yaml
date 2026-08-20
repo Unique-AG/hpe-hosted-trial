@@ -22,18 +22,21 @@ spec:
         image:
           repository: library/images/node-scope-management
         env:
+          CORS_ALLOWED_ORIGINS: ""
+          MAX_HEAP_MB: 700
           UNIQUE_INSTALLATION_ID: hpe-hosted-trial
+          # HPE: https://id.ingress.pcai0201.fr2.hpecolo.net
+          ZITADEL_HOST: http://id.localhost
           # HPE: https://id.ingress.pcai0201.fr2.hpecolo.net
           ZITADEL_ISSUER: http://id.localhost
           ZITADEL_PROJECT_ID: hpe-hosted-trial
+          ZITADEL_ROOT_ORG_ID: overridden-by-node-scope-management-secrets
         routes:
           gateway:
             name: unique
             namespace: unique
           # HPE: api.ingress.pcai0201.fr2.hpecolo.net
           hostname: api.localhost
-        internalServices:
-          namespace: unique
         postgresql:
           connection:
             host: postgres-rw.unique.svc.cluster.local

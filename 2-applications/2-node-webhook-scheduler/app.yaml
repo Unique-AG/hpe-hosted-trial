@@ -22,6 +22,7 @@ spec:
         image:
           repository: library/images/webhook-scheduler
         env:
+          MAX_HEAP_MB: 200
           UNIQUE_INSTALLATION_ID: hpe-hosted-trial
           # HPE: https://id.ingress.pcai0201.fr2.hpecolo.net
           ZITADEL_ISSUER: http://id.localhost
@@ -32,8 +33,6 @@ spec:
             namespace: unique
           # HPE: api.ingress.pcai0201.fr2.hpecolo.net
           hostname: api.localhost
-        internalServices:
-          namespace: unique
         postgresql:
           connection:
             host: postgres-rw.unique.svc.cluster.local

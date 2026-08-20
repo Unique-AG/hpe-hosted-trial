@@ -32,6 +32,7 @@ spec:
           CHAT_FRONTEND_URL: http://unique.localhost/chat
           ENABLE_EXTERNAL_ASSISTANT: "true"
           GATEKEEPER_RUNNING_MODE: enforce
+          MAX_HEAP_MB: 1400
           # HPE: https://api.ingress.pcai0201.fr2.hpecolo.net
           MCP_HUB_BASE_URL: http://api.localhost
           OPENAI_PROVIDER: litellm
@@ -45,7 +46,6 @@ spec:
           # HPE: api.ingress.pcai0201.fr2.hpecolo.net
           hostname: api.localhost
         internalServices:
-          namespace: unique
           dependencies:
             appRepository:
               name: node-app-repository
