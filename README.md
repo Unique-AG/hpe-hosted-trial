@@ -7,10 +7,9 @@ Deploy Unique to an HPE Private Cloud AI Kubernetes cluster with Argo CD.
 Before starting, provide:
 
 - A Kubernetes cluster with Argo CD installed in the `unique` namespace
-- A Harbor registry reachable from the cluster and the deployment workstation
 - `kubectl`, `argocd`, `kubeseal`, `helm`, `git`, `yq`, `rg`, `oras`, and
   `skopeo`
-- Credentials for every source registry and the destination Harbor registry
+- Credentials for every source registry
 - DNS records for the configured ingress domains
 
 ## Deployment
@@ -55,7 +54,6 @@ Commit and push the configuration.
 Apply the bootstrap Application:
 
 ```bash
-kubectl create namespace unique --dry-run=client -o yaml | kubectl apply -f -
 kubectl apply -f bootstrap.application.yaml
 argocd app sync argocd-bootstrap
 ```
