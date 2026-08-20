@@ -6,7 +6,7 @@ spec:
     namespace: unique
   source:
     # HPE: oci://harbor.ingress.pcai0201.fr2.hpecolo.net/unique/helm/ingestion
-    repoURL: oci://harbor.localhost/library/helm/ingestion
+    repoURL: oci://harbor.unique.svc.cluster.local/library/helm/ingestion
     targetRevision: sha256:7392ecb2c290640d8c1b9219940afa52cdaf5fd272508b29b703d8f3d2f33fa8
     path: .
     helm:

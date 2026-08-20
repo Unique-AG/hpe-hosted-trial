@@ -6,7 +6,7 @@ spec:
     namespace: unique
   source:
     # HPE: oci://harbor.ingress.pcai0201.fr2.hpecolo.net/unique/helm/sbx-templates
-    repoURL: oci://harbor.localhost/library/helm/sbx-templates
+    repoURL: oci://harbor.unique.svc.cluster.local/library/helm/sbx-templates
     targetRevision: 0.1.0
     path: .
     helm:

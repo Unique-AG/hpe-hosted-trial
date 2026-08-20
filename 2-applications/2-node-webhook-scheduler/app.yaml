@@ -6,7 +6,7 @@ spec:
     namespace: unique
   source:
     # HPE: oci://harbor.ingress.pcai0201.fr2.hpecolo.net/unique/helm/webhook-scheduler
-    repoURL: oci://harbor.localhost/library/helm/webhook-scheduler
+    repoURL: oci://harbor.unique.svc.cluster.local/library/helm/webhook-scheduler
     targetRevision: sha256:c6825bbbc628ca3fa922fbf06a9e6f593d4343e59dfb75ac6364b9659028eabc
     path: .
     helm:

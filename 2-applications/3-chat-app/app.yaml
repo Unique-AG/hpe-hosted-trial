@@ -6,7 +6,7 @@ spec:
     namespace: unique
   source:
     # HPE: oci://harbor.ingress.pcai0201.fr2.hpecolo.net/unique/helm/chat-app
-    repoURL: oci://harbor.localhost/library/helm/chat-app
+    repoURL: oci://harbor.unique.svc.cluster.local/library/helm/chat-app
     targetRevision: sha256:194aee523332634385f649f98b64e7f31e28d409bf72d12774e9c9c5f9b5e7e8
     path: .
     helm:

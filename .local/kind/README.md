@@ -56,6 +56,7 @@ credentials.
 The kind nodes resolve `harbor.localhost` through Docker Desktop and configure
 containerd to use the registry over HTTP. Recreate clusters made before this
 registry configuration was added.
+Argo CD pulls OCI charts directly from the in-cluster Harbor service over HTTP.
 
 The default `standard` StorageClass uses local-path volumes for RWO workloads.
 The local `gl4f-filesystem` StorageClass is backed by the userspace NFS-Ganesha

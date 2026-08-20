@@ -14,6 +14,7 @@ release: "2026.34"
 harbor:
   # HPE: harbor.ingress.pcai0201.fr2.hpecolo.net
   registry: harbor.localhost
+  runtimeRegistry: harbor.unique.svc.cluster.local
   chartProject: library/helm
   imageProject: library/images
 charts:

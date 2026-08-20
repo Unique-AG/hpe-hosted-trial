@@ -84,6 +84,15 @@ uses_plain_http() {
   [[ "$registry" == "localhost" || "$registry" == localhost:* || "$registry" == *.localhost || "$registry" == *.localhost:* ]]
 }
 
+runtime_chart_repository() {
+  local destination="$1"
+  local mirror_registry runtime_registry
+
+  mirror_registry="$(read_yaml '.harbor.registry')"
+  runtime_registry="$(read_yaml '.harbor.runtimeRegistry')"
+  printf '%s' "${destination/$mirror_registry/$runtime_registry}"
+}
+
 chart_source_reference() {
   local chart="$1"
   local digest version
@@ -282,7 +291,7 @@ update_runtime_chart_specs() {
   while IFS= read -r chart; do
     local runtime_file destination target_revision
     runtime_file="$(read_yaml ".charts.\"$chart\".runtimeFile")"
-    destination="$(read_yaml ".charts.\"$chart\".destination")"
+    destination="$(runtime_chart_repository "$(read_yaml ".charts.\"$chart\".destination")")"
     target_revision="$(chart_source_reference "$chart")"
     require_file "$SCRIPT_DIR/$runtime_file"
 
@@ -298,7 +307,7 @@ update_git_chart_specs() {
   while IFS= read -r chart; do
     local runtime_file destination target_revision
     runtime_file="$(read_yaml ".gitCharts.\"$chart\".runtimeFile")"
-    destination="$(read_yaml ".gitCharts.\"$chart\".destination")"
+    destination="$(runtime_chart_repository "$(read_yaml ".gitCharts.\"$chart\".destination")")"
     target_revision="$(git_chart_target_revision "$chart")"
     require_file "$SCRIPT_DIR/$runtime_file"
 
@@ -314,7 +323,7 @@ validate_runtime_references() {
   while IFS= read -r chart; do
     local runtime_file expected_repo expected_revision actual_repo actual_revision
     runtime_file="$(read_yaml ".charts.\"$chart\".runtimeFile")"
-    expected_repo="$(read_yaml ".charts.\"$chart\".destination")"
+    expected_repo="$(runtime_chart_repository "$(read_yaml ".charts.\"$chart\".destination")")"
     expected_revision="$(chart_source_reference "$chart")"
     actual_repo="$(yq -r '.spec.source.repoURL' "$SCRIPT_DIR/$runtime_file")"
     actual_revision="$(yq -r '.spec.source.targetRevision' "$SCRIPT_DIR/$runtime_file")"
@@ -328,7 +337,7 @@ validate_runtime_references() {
   while IFS= read -r chart; do
     local runtime_file expected_repo expected_revision actual_repo actual_revision
     runtime_file="$(read_yaml ".gitCharts.\"$chart\".runtimeFile")"
-    expected_repo="$(read_yaml ".gitCharts.\"$chart\".destination")"
+    expected_repo="$(runtime_chart_repository "$(read_yaml ".gitCharts.\"$chart\".destination")")"
     expected_revision="$(git_chart_target_revision "$chart")"
     actual_repo="$(yq -r '.spec.source.repoURL' "$SCRIPT_DIR/$runtime_file")"
     actual_revision="$(yq -r '.spec.source.targetRevision' "$SCRIPT_DIR/$runtime_file")"

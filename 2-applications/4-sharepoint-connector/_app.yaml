@@ -6,7 +6,7 @@ spec:
     namespace: unique
   source:
     # HPE: oci://harbor.ingress.pcai0201.fr2.hpecolo.net/unique/helm/sharepoint-connector
-    repoURL: oci://harbor.localhost/library/helm/sharepoint-connector
+    repoURL: oci://harbor.unique.svc.cluster.local/library/helm/sharepoint-connector
     path: .
     targetRevision: 3.1.0
     helm:

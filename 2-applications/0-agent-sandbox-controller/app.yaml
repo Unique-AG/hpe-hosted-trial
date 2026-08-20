@@ -8,7 +8,7 @@ spec:
     - ServerSideApply=true
   source:
     # HPE: oci://harbor.ingress.pcai0201.fr2.hpecolo.net/unique/helm/agent-sandbox-controller
-    repoURL: oci://harbor.localhost/library/helm/agent-sandbox-controller
+    repoURL: oci://harbor.unique.svc.cluster.local/library/helm/agent-sandbox-controller
     path: .
     targetRevision: 0.4.6-rc.1
     helm:

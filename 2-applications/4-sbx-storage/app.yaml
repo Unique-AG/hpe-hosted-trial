@@ -6,7 +6,7 @@ spec:
     namespace: unique
   source:
     # HPE: oci://harbor.ingress.pcai0201.fr2.hpecolo.net/unique/helm/sbx-storage
-    repoURL: oci://harbor.localhost/library/helm/sbx-storage
+    repoURL: oci://harbor.unique.svc.cluster.local/library/helm/sbx-storage
     targetRevision: sha256:2e6c59b2f8fc05b0ad9e9af30eb81d5cf99f1dbeebace87578a11df28136cf79
     path: .
     helm:

@@ -1,4 +1,9 @@
 configs:
+  credentialTemplates:
+    harbor:
+      insecureOCIForceHttp: "true"
+      type: oci
+      url: oci://harbor.unique.svc.cluster.local/library
   params:
     applicationsetcontroller.enable.progressive.syncs: "true"
     controller.sync.wave.delay.seconds: "5"

@@ -6,7 +6,7 @@ spec:
     namespace: unique
   source:
     # HPE: oci://harbor.ingress.pcai0201.fr2.hpecolo.net/unique/helm/outlook-semantic-mcp
-    repoURL: oci://harbor.localhost/library/helm/outlook-semantic-mcp
+    repoURL: oci://harbor.unique.svc.cluster.local/library/helm/outlook-semantic-mcp
     path: .
     targetRevision: 3.3.0
     helm:

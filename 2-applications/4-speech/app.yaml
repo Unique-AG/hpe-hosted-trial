@@ -6,7 +6,7 @@ spec:
     namespace: unique
   source:
     # HPE: oci://harbor.ingress.pcai0201.fr2.hpecolo.net/unique/helm/speech
-    repoURL: oci://harbor.localhost/library/helm/speech
+    repoURL: oci://harbor.unique.svc.cluster.local/library/helm/speech
     targetRevision: sha256:5adbe193d85e03d1f1b784add1edc515745d086703c75bc5a310c368c83bb5ab
     path: .
     helm:

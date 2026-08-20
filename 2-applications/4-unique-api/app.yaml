@@ -6,7 +6,7 @@ spec:
     namespace: unique
   source:
     # HPE: oci://harbor.ingress.pcai0201.fr2.hpecolo.net/unique/helm/unique-api
-    repoURL: oci://harbor.localhost/library/helm/unique-api
+    repoURL: oci://harbor.unique.svc.cluster.local/library/helm/unique-api
     targetRevision: sha256:e8ca5416a0b26f50bdee34d935d2287c3cbe0a9d9ca7ba0bf0b5b1f4e9ce0075
     path: .
     helm:

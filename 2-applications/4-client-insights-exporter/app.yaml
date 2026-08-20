@@ -6,7 +6,7 @@ spec:
     namespace: unique
   source:
     # HPE: oci://harbor.ingress.pcai0201.fr2.hpecolo.net/unique/helm/client-insights-exporter
-    repoURL: oci://harbor.localhost/library/helm/client-insights-exporter
+    repoURL: oci://harbor.unique.svc.cluster.local/library/helm/client-insights-exporter
     targetRevision: sha256:e4cdefe7bb82f51708b72b27722fcb7b130f0b55c59d2aba443ed1dbbc21032d
     path: .
     helm:

@@ -6,7 +6,7 @@ spec:
     namespace: unique
   source:
     # HPE: oci://harbor.ingress.pcai0201.fr2.hpecolo.net/unique/helm/assistants-core
-    repoURL: oci://harbor.localhost/library/helm/assistants-core
+    repoURL: oci://harbor.unique.svc.cluster.local/library/helm/assistants-core
     targetRevision: sha256:62e47f917370253dcb2b9494120a45100ba91f8083582a3b2e7dffcaebf425de
     path: .
     helm:
