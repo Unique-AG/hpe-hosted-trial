@@ -33,6 +33,14 @@ assert_file_contains ".local/kind/up.sh" 'helm upgrade --install cilium cilium/c
 assert_file_contains ".local/kind/up.sh" 'crd/ciliumnetworkpolicies\.cilium\.io'
 assert_file_contains ".local/kind/up.sh" 'daemonset kindnet'
 
+assert_yaml_value "1-system/6-kong-plugins/app.yaml" '.spec.source.repoURL' "ghcr.io/unique-ag/helm-charts"
+assert_yaml_value "1-system/6-kong-plugins/app.yaml" '.spec.source.chart' "kong-plugins"
+assert_yaml_value "1-system/6-kong-plugins/app.yaml" '.spec.source.targetRevision' "2.5.0"
+if yq -r '.charts | keys | .[]' "$REPOSITORY_DIR/versions.yaml" | rg -qx 'kong-plugins'; then
+  printf 'FAIL: public kong-plugins chart is still included in the Harbor mirror\n' >&2
+  exit 1
+fi
+
 if [ -f "$REPOSITORY_DIR/2-applications/4-search-proxy/app.yaml" ]; then
   printf 'FAIL: search-proxy app.yaml is still discoverable by the ApplicationSet\n' >&2
   exit 1

@@ -225,13 +225,6 @@ charts:
     destination: oci://harbor.localhost/library/helm/agent-sandbox-controller
     runtimeFile: 2-applications/0-agent-sandbox-controller/app.yaml
     digest: sha256:2eca7f113777f44129562cdcfaaac2d2132496c8b338d0ae5e0b0c62fdc9f11e
-  kong-plugins:
-    source: oci://ghcr.io/unique-ag/helm-charts/kong-plugins
-    digest: sha256:dba0e472cab21ac603b8065601dd2ccd96bd230cfca8fe23fb48af4e145dd528
-    version: 2.5.0
-    # HPE: oci://harbor.ingress.pcai0201.fr2.hpecolo.net/unique/helm/kong-plugins
-    destination: oci://harbor.localhost/library/helm/kong-plugins
-    runtimeFile: 1-system/6-kong-plugins/app.yaml
 gitCharts:
   teams-mcp:
     repoURL: git@github.com:Unique-AG/connectors.git

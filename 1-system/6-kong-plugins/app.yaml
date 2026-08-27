@@ -3,9 +3,8 @@ spec:
   rolloutStep: kong-plugins
   autoSync: true
   source:
-    # HPE: oci://harbor.ingress.pcai0201.fr2.hpecolo.net/unique/helm/kong-plugins
-    repoURL: oci://harbor.unique.svc.cluster.local/library/helm/kong-plugins
-    path: .
-    targetRevision: sha256:dba0e472cab21ac603b8065601dd2ccd96bd230cfca8fe23fb48af4e145dd528
+    repoURL: ghcr.io/unique-ag/helm-charts
+    chart: kong-plugins
+    targetRevision: 2.5.0
     helm:
       releaseName: unique-kong-plugins

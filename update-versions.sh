@@ -520,7 +520,7 @@ validate_runtime_references() {
 }
 
 validate_isolated_runtime_sources() {
-  local forbidden_pattern='Unique-AG/(monorepo|connectors)|uniqueapp\.azurecr\.io|uniquecr\.azurecr\.io|ghcr\.io/unique-ag'
+  local forbidden_pattern='Unique-AG/(monorepo|connectors)|uniqueapp\.azurecr\.io|uniquecr\.azurecr\.io'
 
   if rg -n "$forbidden_pattern" "$SCRIPT_DIR/1-system" "$SCRIPT_DIR/2-applications" --glob '*.yaml'; then
     printf 'ERROR: runtime manifests contain Unique-owned external sources\n' >&2
