@@ -18,6 +18,7 @@ spec:
           registry: harbor.localhost
           repository: library/images/outlook-semantic-mcp
           tag: 3.3.0
+          useDigest: false
         postgresql:
           connection:
             url:
