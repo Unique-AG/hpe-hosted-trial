@@ -16,6 +16,12 @@ spec:
             - key: unique.dev/app-rollout-group
               operator: In
               values:
+                - secrets
+          maxUpdate: 0
+        - matchExpressions:
+            - key: unique.dev/app-rollout-group
+              operator: In
+              values:
                 - prerequisites
         - matchExpressions:
             - key: unique.dev/app-rollout-group
@@ -43,6 +49,7 @@ spec:
       repoURL: https://github.com/Unique-AG/hpe-hosted-trial
       revision: feat/upgrade-to-2026
       files:
+      - path: "2-applications/0-secrets/secret.app.yaml"
       - path: "2-applications/*/app.yaml"
   template:
     metadata:

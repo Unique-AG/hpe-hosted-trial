@@ -94,10 +94,10 @@ kubectl -n unique get applications.argoproj.io -w
 ```
 
 Do not continue until the preceding system applications are Healthy and the
-`application-secrets` Application exists. The final gate can remain OutOfSync;
-the Application's existence confirms that the system rollout reached the
-`secret-gate` step. The `connection-secrets` Application derives application
-and LiteLLM connection Secrets during the infrastructure rollout.
+`application-secrets` Application exists. All application entries are generated
+at this point, but the application rollout remains paused at the OutOfSync
+`application-secrets` gate. The `connection-secrets` Application derives
+application and LiteLLM connection Secrets during the infrastructure rollout.
 
 ### 6. Mirror artifacts and sync application secrets
 
@@ -140,10 +140,9 @@ git push
 argocd app sync application-secrets
 ```
 
-The manual sync applies application SealedSecrets at sync wave 0. After they
-become healthy, it creates the `applications` ApplicationSet at sync wave 1. No
-downstream Application exists before this point, preventing Argo CD from
-querying Harbor before mirroring is complete.
+The manual sync applies the application SealedSecrets. After they become
+healthy, the existing `applications` ApplicationSet advances from the secrets
+gate and progressively syncs the remaining application groups.
 
 ### 7. Wait for the application rollout
 

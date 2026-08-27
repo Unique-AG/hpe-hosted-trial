@@ -41,6 +41,17 @@ if yq -r '.charts | keys | .[]' "$REPOSITORY_DIR/versions.yaml" | rg -qx 'kong-p
   exit 1
 fi
 
+assert_yaml_value "1-system/8-applications/app.yaml" '.spec.source.directory.include' "apps.application-set.yaml"
+assert_yaml_value "2-applications/0-secrets/secret.app.yaml" '.spec.source.directory.include' "*.sealed-secret.yaml"
+assert_yaml_value "2-applications/apps.application-set.yaml" '.spec.strategy.rollingSync.steps[0].matchExpressions[0].values[0]' "secrets"
+assert_yaml_value "2-applications/apps.application-set.yaml" '.spec.strategy.rollingSync.steps[0].maxUpdate' "0"
+assert_yaml_value "2-applications/apps.application-set.yaml" '.spec.generators[0].git.files[0].path' "2-applications/0-secrets/secret.app.yaml"
+assert_yaml_value "2-applications/apps.application-set.yaml" '.spec.generators[0].git.files[1].path' "2-applications/*/app.yaml"
+if [ -f "$REPOSITORY_DIR/2-applications/secret-gate.application-set.yaml" ]; then
+  printf 'FAIL: application secrets must be part of the unified ApplicationSet\n' >&2
+  exit 1
+fi
+
 if [ -f "$REPOSITORY_DIR/2-applications/4-search-proxy/app.yaml" ]; then
   printf 'FAIL: search-proxy app.yaml is still discoverable by the ApplicationSet\n' >&2
   exit 1
