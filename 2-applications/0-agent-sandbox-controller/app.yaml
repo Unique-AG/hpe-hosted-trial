@@ -19,7 +19,6 @@ spec:
             # HPE: harbor.ingress.pcai0201.fr2.hpecolo.net/library/images/sandbox-router
             repository: harbor.localhost/library/images/sandbox-router
             tag: v20260514-v0.4.6
-            digest: sha256:b8ec35527be94a0f16a91219cf0aec2f35e7cd942db0adfeb2b7cb70a49d666a
           networkPolicy:
             enabled: true
             ingress:

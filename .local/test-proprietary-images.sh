@@ -53,6 +53,16 @@ assert_application_value() {
   fi
 }
 
+assert_application_value_absent() {
+  local file="$1"
+  local expression="$2"
+
+  if [ "$(yq -r "$expression // \"\"" "$REPOSITORY_DIR/$file")" != "" ]; then
+    printf 'FAIL: %s must not set %s\n' "$file" "$expression" >&2
+    exit 1
+  fi
+}
+
 while IFS='|' read -r key source destination; do
   assert_image "$key" "$source" "$destination"
 done <<'EOF'
@@ -126,5 +136,11 @@ assert_application_value \
   "2-applications/4-sbx-templates-unique-polyagent-001/app.yaml" \
   '.spec.source.helm.valuesObject.sandboxTemplate.image.repository' \
   'harbor.localhost/library/images/unique-polyagent-001'
+assert_application_value_absent \
+  "2-applications/0-agent-sandbox-controller/app.yaml" \
+  '.spec.source.helm.valuesObject.router.image.digest'
+assert_application_value_absent \
+  "2-applications/4-sbx-templates-unique-polyagent-001/app.yaml" \
+  '.spec.source.helm.valuesObject.sandboxTemplate.image.digest'
 
 printf 'PASS: proprietary images are mirrored through library/images\n'

@@ -20,7 +20,6 @@ spec:
             # HPE: harbor.ingress.pcai0201.fr2.hpecolo.net/library/images/unique-polyagent-001
             repository: harbor.localhost/library/images/unique-polyagent-001
             tag: 2026.34.0-c2cb33
-            digest: sha256:43048f992b91ba9d3ed6447acf8551e5a4cc96d2dc329a2c0e643a83a4e700c2
             pullPolicy: IfNotPresent
           imagePullSecrets:
             - name: harbor-pull-secret
