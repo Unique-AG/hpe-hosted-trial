@@ -19,6 +19,7 @@ spec:
             registry: harbor.localhost
         image:
           repository: library/images/sbx-storage
+          useDigest: false
         pvc:
           accessMode: ReadWriteMany
           storageClassName: gl4f-filesystem

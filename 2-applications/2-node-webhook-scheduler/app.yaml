@@ -21,6 +21,7 @@ spec:
               - name: harbor-pull-secret
         image:
           repository: library/images/webhook-scheduler
+          useDigest: false
         env:
           MAX_HEAP_MB: 200
           UNIQUE_INSTALLATION_ID: hpe-hosted-trial

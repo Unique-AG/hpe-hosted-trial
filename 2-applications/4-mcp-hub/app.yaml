@@ -21,6 +21,7 @@ spec:
               - name: harbor-pull-secret
         image:
           repository: library/images/mcp-hub
+          useDigest: false
         env:
           # HPE: https://unique.ingress.pcai0201.fr2.hpecolo.net
           NEXT_APP_URL: http://unique.localhost

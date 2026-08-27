@@ -21,6 +21,7 @@ spec:
               - name: harbor-pull-secret
         image:
           repository: library/images/gatekeeper
+          useDigest: false
         env:
           ADMIN_ROOT_COMPANY_ID: hpe-hosted-trial-root-company
           ADMIN_ROOT_USER_ID: hpe-hosted-trial-root-user

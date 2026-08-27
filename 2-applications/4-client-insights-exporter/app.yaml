@@ -21,6 +21,7 @@ spec:
               - name: harbor-pull-secret
         image:
           repository: library/images/client-insights-exporter
+          useDigest: false
         env:
           CLIENT_INSIGHT_SERVER_URL: https://gateway.unique.app/insights/client-insights
           MAX_HEAP_MB: 200

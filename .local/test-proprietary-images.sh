@@ -38,6 +38,10 @@ assert_application_image() {
     printf 'FAIL: %s image repository is %s, expected library/images/%s\n' "$file" "$actual_repository" "$repository" >&2
     exit 1
   fi
+  if [ "$(yq -r '.spec.source.helm.valuesObject.image.useDigest' "$REPOSITORY_DIR/$file")" != "false" ]; then
+    printf 'FAIL: %s must disable image digest rendering\n' "$file" >&2
+    exit 1
+  fi
 }
 
 assert_application_value() {

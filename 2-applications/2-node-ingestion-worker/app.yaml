@@ -21,6 +21,7 @@ spec:
               - name: harbor-pull-secret
         image:
           repository: library/images/ingestion-worker
+          useDigest: false
         env:
           MAX_HEAP_MB: 3000
           NUMBER_OF_PDF_PAGES_IN_PARALLEL: 10

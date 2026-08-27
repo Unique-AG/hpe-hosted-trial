@@ -21,6 +21,7 @@ spec:
               - name: harbor-pull-secret
         image:
           repository: library/images/ingestion
+          useDigest: false
         env:
           AZURE_OPENAI_API_VERSION: 2023-03-15-preview
           FILE_RETENTION_IN_DAYS: 30
