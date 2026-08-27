@@ -123,8 +123,14 @@ assert_yaml_value "2-applications/3-chat-app/app.yaml" '.spec.source.helm.values
 assert_yaml_value "2-applications/3-chat-app/app.yaml" '.spec.source.helm.valuesObject.env.REFLECTOR_BACKEND_API_URL' "http://api.localhost"
 assert_yaml_value "2-applications/3-knowledge-upload-app/app.yaml" '.spec.source.helm.valuesObject.env.INGESTION_BACKEND_API_URL' "http://api.localhost/ingestion"
 
-assert_yaml_value "1-system/7-zitadel/app.yaml" '.spec.sources[1].helm.valuesObject.serviceAccount.create' "false"
-assert_yaml_value "1-system/7-zitadel/app.yaml" '.spec.sources[1].helm.valuesObject.serviceAccount.name' "zitadel"
-assert_yaml_value "1-system/7-zitadel/zitadel.service-account.yaml" '.metadata.name' "zitadel"
+if yq -r '.spec.sources[1].helm.valuesObject | keys | .[]' \
+  "$REPOSITORY_DIR/1-system/7-zitadel/app.yaml" | rg -qx 'serviceAccount'; then
+  printf 'FAIL: Zitadel must use the chart hook-managed ServiceAccount\n' >&2
+  exit 1
+fi
+if [ -f "$REPOSITORY_DIR/1-system/7-zitadel/zitadel.service-account.yaml" ]; then
+  printf 'FAIL: standalone Zitadel ServiceAccount runs after the chart PreSync hooks\n' >&2
+  exit 1
+fi
 
 printf 'PASS: application configuration is compatible with the pinned charts\n'
