@@ -1,12 +1,17 @@
 # Local kind cluster
 
-Prerequisites: Docker, `kind`, `kubectl`, and Helm.
+Prerequisites: Docker, `kind`, `kubectl`, and Helm. The cluster uses an amd64
+kind node image because the Unique application images are published for
+linux/amd64. On Apple Silicon, enable Docker Desktop's amd64 emulation.
 
 Start the cluster and install the local prerequisites:
 
 ```bash
 ./.local/kind/up.sh
 ```
+
+Set `KIND_NODE_IMAGE` to override the pinned amd64 node image. Existing arm64
+clusters must be deleted and recreated before application images can run.
 
 The cluster context is `kind-hpe-hosted-trial`. Argo CD and the HPE system
 resources use the `unique` namespace. The sealed-secrets controller is

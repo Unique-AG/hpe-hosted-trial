@@ -21,13 +21,15 @@ assert_file_contains() {
   local file="$1"
   local pattern="$2"
 
-  if ! rg -q "$pattern" "$REPOSITORY_DIR/$file"; then
+  if ! rg -q -- "$pattern" "$REPOSITORY_DIR/$file"; then
     printf 'FAIL: %s does not contain %s\n' "$file" "$pattern" >&2
     exit 1
   fi
 }
 
 assert_yaml_value ".local/kind/kind-config.yaml" '.networking.disableDefaultCNI' "true"
+assert_file_contains ".local/kind/up.sh" 'KIND_NODE_IMAGE="\$\{KIND_NODE_IMAGE:-kindest/node:v1\.36\.1@sha256:21c46cf61fd45873f89e6a1bfcba4b7904dffa84c2bec88aeeca9a0409af4725\}"'
+assert_file_contains ".local/kind/up.sh" '--image "\$\{KIND_NODE_IMAGE\}"'
 assert_file_contains ".local/kind/up.sh" 'CILIUM_CHART_VERSION="\$\{CILIUM_CHART_VERSION:-1\.20\.1\}"'
 assert_file_contains ".local/kind/up.sh" 'helm upgrade --install cilium cilium/cilium'
 assert_file_contains ".local/kind/up.sh" 'crd/ciliumnetworkpolicies\.cilium\.io'
