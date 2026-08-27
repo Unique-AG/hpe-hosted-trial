@@ -3,7 +3,6 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 CLUSTER_NAME="${KIND_CLUSTER_NAME:-hpe-hosted-trial}"
-KIND_NODE_IMAGE="${KIND_NODE_IMAGE:-kindest/node:v1.36.1@sha256:21c46cf61fd45873f89e6a1bfcba4b7904dffa84c2bec88aeeca9a0409af4725}"
 LOCAL_PATH_VERSION="${LOCAL_PATH_VERSION:-v0.0.36}"
 ARGO_CD_CHART_VERSION="${ARGO_CD_CHART_VERSION:-10.3.3}"
 CILIUM_CHART_VERSION="${CILIUM_CHART_VERSION:-1.20.1}"
@@ -87,7 +86,6 @@ done
 if ! kind get clusters 2>/dev/null | awk -v name="${CLUSTER_NAME}" '$0 == name { found = 1 } END { exit !found }'; then
   kind create cluster \
     --name "${CLUSTER_NAME}" \
-    --image "${KIND_NODE_IMAGE}" \
     --config "${SCRIPT_DIR}/kind-config.yaml"
 fi
 
