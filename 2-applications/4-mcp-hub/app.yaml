@@ -55,6 +55,15 @@ spec:
             namespace: unique
           # HPE: api.ingress.pcai0201.fr2.hpecolo.net
           hostname: api.2.28.18.215.sslip.io
+        # The chart's well-known route has its own parentRefs and does not
+        # inherit routes.gateway.
+        extraRoutes:
+          well-known:
+            parentRefs:
+              - name: unique
+                namespace: unique
+                group: gateway.networking.k8s.io
+                kind: Gateway
         postgresql:
           connection:
             host: postgres-rw.unique.svc.cluster.local

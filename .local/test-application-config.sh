@@ -68,6 +68,8 @@ assert_yaml_value "2-applications/1-ingestor/app.yaml" '.spec.source.helm.values
 assert_yaml_value "2-applications/4-sbx-gateway/app.yaml" '.spec.source.helm.valuesObject.volumeMounts | map(.name) | join(",")' "egress-config,egress-ca,egress-audit,mitmproxy-confdir,tmp,postgres-ca"
 assert_yaml_value "2-applications/4-assistants-agentic-table/app.yaml" '.spec.source.helm.valuesObject.volumeMounts | map(.name) | join(",")' "tmp-volume,gunicorn-runtime,postgres-ca"
 assert_yaml_value "2-applications/4-mcp-hub/app.yaml" '.spec.source.helm.valuesObject.extraEnvSecrets[]' "node-chat-secrets"
+assert_yaml_value "2-applications/4-mcp-hub/app.yaml" '.spec.source.helm.valuesObject.extraRoutes.well-known.parentRefs[0].name' "unique"
+assert_yaml_value "2-applications/4-mcp-hub/app.yaml" '.spec.source.helm.valuesObject.extraRoutes.well-known.parentRefs[0].namespace' "unique"
 assert_file_contains "setup-models.sh" 'UNIQUE_ACCESS_TOKEN_FILE'
 assert_file_contains "setup-models.sh" 'companyMetaUpdate'
 assert_file_contains "setup-models.sh" 'markForReembedding'
