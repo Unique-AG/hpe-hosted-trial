@@ -1,0 +1,31 @@
+#cloud-config
+package_update: true
+package_upgrade: false
+packages:
+  - apt-transport-https
+  - ca-certificates
+  - curl
+  - debian-archive-keyring
+  - debian-keyring
+  - gpg
+  - jq
+  - nfs-common
+
+write_files:
+  - path: /var/lib/rancher/k3s/agent/etc/containerd/config-v3.toml.tmpl
+    permissions: "0644"
+    content: |
+      {{ template "base" . }}
+
+      [plugins.'io.containerd.cri.v1.runtime'.containerd.runtimes.runsc]
+        runtime_type = "io.containerd.runsc.v1"
+
+runcmd:
+  - curl -1sLf https://dl.cloudsmith.io/public/caddy/stable/gpg.key | gpg --dearmor -o /usr/share/keyrings/caddy-stable-archive-keyring.gpg
+  - curl -1sLf https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt -o /etc/apt/sources.list.d/caddy-stable.list
+  - apt-get update && apt-get install -y caddy
+  - curl -fsSL -o /usr/local/bin/runsc https://storage.googleapis.com/gvisor/releases/release/__RUNSC_VERSION__/x86_64/runsc
+  - curl -fsSL -o /usr/local/bin/containerd-shim-runsc-v1 https://storage.googleapis.com/gvisor/releases/release/__RUNSC_VERSION__/x86_64/containerd-shim-runsc-v1
+  - chmod 0755 /usr/local/bin/runsc /usr/local/bin/containerd-shim-runsc-v1
+  - public_ip="$(curl -fsS http://169.254.169.254/hetzner/v1/metadata/public-ipv4)" && curl -sfL https://get.k3s.io | INSTALL_K3S_VERSION=__K3S_VERSION__ INSTALL_K3S_EXEC="server --flannel-backend=none --disable-network-policy --disable=traefik --disable=servicelb --tls-san ${public_ip}" sh -
+  - systemctl enable caddy

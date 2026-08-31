@@ -169,19 +169,41 @@ Open the configured Unique domain, sign in, create a chat, and confirm that the
 assistant returns a response. Also verify the API, identity provider, Harbor,
 and object-storage routes used by the deployment.
 
-## Local Kind
+## Local trial clusters
 
-Kind uses Cilium as its CNI. Existing clusters created with kindnet must be
-deleted and recreated with `.local/kind/down.sh` and `.local/kind/up.sh`.
-
-For local Kind, fetch the current controller certificate and seal in one step:
+The cluster lifecycle has the same four commands for Kind and Hetzner:
 
 ```bash
-./.local/kind/seal-secrets.sh --all
+# Create the cluster and install Cilium, storage, metrics-server, Istio and Argo CD.
+./up.sh kind                 # reports http://argocd.localhost
+# or:
+export HCLOUD_TOKEN='<token>'
+./up.sh hetzner              # reports the public https://argocd.<ip>.sslip.io URL
+
+# Configure every deployment hostname. The leading dot is optional.
+./set-hostname.sh .localhost
+# For Hetzner, use the suffix reported by up.sh, for example:
+./set-hostname.sh .192.0.2.10.sslip.io
+
+# Download this cluster's Sealed Secrets certificate and reseal secrets.
+./seal-secrets.sh --all
+
+# Remove the cluster. The provider is auto-detected, or may be explicit.
+./down.sh
+./down.sh kind
+./down.sh hetzner
 ```
 
-A fresh Kind cluster normally generates a different key from the production
-certificate stored in the repository.
+`up.sh` applies the bootstrap Application; the rollout pauses at the manually
+synced `secrets` Application. Commit and push hostname and sealed-secret changes
+before opening that gate. A fresh cluster has a new sealing key.
+
+The Hetzner option provisions one amd64 CCX43 server with k3s, Cilium, gVisor,
+Istio, Argo CD and Caddy-managed HTTPS. Its state and kubeconfig are kept under
+the ignored `.local/hetzner/state` directory. The local disk is intended for an
+ephemeral trial. Change the initial Zitadel root password immediately because
+the endpoint is public. The placeholder NVIDIA predictor URLs are intentionally
+not rewritten; configure reachable model endpoints before testing inference.
 
 ## Use custom models with Unique
 

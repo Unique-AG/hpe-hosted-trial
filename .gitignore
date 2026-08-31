@@ -1,4 +1,5 @@
 **/*.secret.yaml
 .local/mirror-cache/
+.local/hetzner/state/
 superuser.pem
 superuser.pub
