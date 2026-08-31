@@ -23,10 +23,23 @@ spec:
           repository: library/images/reflector
           useDigest: false
         env:
+          NODE_EXTRA_CA_CERTS: /etc/ssl/postgres/ca.crt
           UNIQUE_INSTALLATION_ID: hpe-hosted-trial
           # HPE: https://id.ingress.pcai0201.fr2.hpecolo.net
           ZITADEL_ISSUER: https://id.2.28.18.215.sslip.io
           ZITADEL_PROJECT_ID: hpe-hosted-trial
+        volumes:
+          - name: postgres-ca
+            secret:
+              secretName: postgres-ca
+              items:
+                - key: ca.crt
+                  path: ca.crt
+        volumeMounts:
+          - name: postgres-ca
+            mountPath: /etc/ssl/postgres/ca.crt
+            subPath: ca.crt
+            readOnly: true
         routes:
           gateway:
             name: unique

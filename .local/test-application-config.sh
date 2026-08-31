@@ -3,6 +3,12 @@
 set -euo pipefail
 
 REPOSITORY_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+CONFIGURED_DOMAIN="$(yq -r '.harbor.registry' "${REPOSITORY_DIR}/versions.yaml" | sed 's/^harbor\.//')"
+if [[ "${CONFIGURED_DOMAIN}" == "localhost" ]]; then
+  CONFIGURED_SCHEME=http
+else
+  CONFIGURED_SCHEME=https
+fi
 
 assert_yaml_value() {
   local file="$1"
@@ -104,19 +110,22 @@ assert_yaml_value "2-applications/1-gatekeeper/app.yaml" '.spec.source.helm.valu
 assert_yaml_value "2-applications/1-gatekeeper/app.yaml" '.spec.source.helm.valuesObject.env.ADMIN_ROOT_USER_ID' "hpe-hosted-trial-root-user"
 assert_yaml_value "2-applications/1-gatekeeper/app.yaml" '.spec.source.helm.valuesObject.env.ADMIN_ROOT_COMPANY_ID' "hpe-hosted-trial-root-company"
 assert_yaml_value "2-applications/4-mcp-hub/app.yaml" '.spec.source.helm.valuesObject.postgresql.connection.database' "chat"
-assert_yaml_value "2-applications/4-mcp-hub/app.yaml" '.spec.source.helm.valuesObject.env.NEXT_APP_URL' "http://unique.localhost"
+assert_yaml_value "2-applications/4-mcp-hub/app.yaml" '.spec.source.helm.valuesObject.env.NEXT_APP_URL' "${CONFIGURED_SCHEME}://unique.${CONFIGURED_DOMAIN}"
 assert_yaml_value "2-applications/1-node-ingestion/app.yaml" '.spec.source.helm.valuesObject.elasticsearch.connection.password.fromSecret.name' "elasticsearch-ingestion-es-elastic-user"
 assert_yaml_value "2-applications/1-node-ingestion/app.yaml" '.spec.source.helm.valuesObject.qdrant.connection.host.fromKubernetesService.name' "qdrant-headless"
 assert_yaml_value "2-applications/1-node-ingestion/app.yaml" '.spec.source.helm.valuesObject.env.AZURE_OPENAI_API_VERSION' "2023-03-15-preview"
 assert_yaml_value "2-applications/1-node-ingestion/app.yaml" '.spec.source.helm.valuesObject.env.FILE_RETENTION_IN_DAYS' "30"
 assert_yaml_value "2-applications/1-node-ingestion/app.yaml" '.spec.source.helm.valuesObject.env.MAX_HEAP_MB' "950"
-assert_yaml_value "2-applications/1-node-ingestion/app.yaml" '.spec.source.helm.valuesObject.env.INGESTION_UPLOAD_API_URL' "http://api.localhost/scoped/ingestion/upload"
+assert_yaml_value "2-applications/1-node-ingestion/app.yaml" '.spec.source.helm.valuesObject.env.INGESTION_UPLOAD_API_URL' "${CONFIGURED_SCHEME}://api.${CONFIGURED_DOMAIN}/scoped/ingestion/upload"
 assert_yaml_value "2-applications/1-node-chat/app.yaml" '.spec.source.helm.valuesObject.env.MAX_HEAP_MB' "1400"
 
 assert_yaml_value "2-applications/1-ingestor/app.yaml" '.spec.source.helm.valuesObject.env.MAX_CONCURRENT_JOBS_PER_REPLICA' "2"
 assert_yaml_value "2-applications/1-ingestor/app.yaml" '.spec.source.helm.valuesObject.env.NUM_THREADS_ACCELERATOR_DEVICE' "4"
-assert_yaml_value "2-applications/1-ingestor/app.yaml" '.spec.source.helm.valuesObject.pvc.storageClassName' "standard"
+assert_yaml_value "2-applications/1-ingestor/app.yaml" '.spec.source.helm.valuesObject.pvc.storageClassName' "gl4f-filesystem"
 assert_yaml_value "2-applications/2-node-ingestion-worker/app.yaml" '.spec.source.helm.valuesObject.env.MAX_HEAP_MB' "3000"
+assert_yaml_value "2-applications/2-node-ingestion-worker/app.yaml" '.spec.source.helm.valuesObject.keda.enabled' "false"
+assert_yaml_value "2-applications/2-node-ingestion-worker-chat/app.yaml" '.spec.source.helm.valuesObject.keda.enabled' "false"
+assert_yaml_value "2-applications/4-mcp-hub/app.yaml" '.spec.source.helm.valuesObject.workloadIdentity.azure.enabled' "false"
 assert_yaml_value "2-applications/2-node-ingestion-worker/app.yaml" '.spec.source.helm.valuesObject.env.NUMBER_OF_PDF_PAGES_IN_PARALLEL' "10"
 assert_yaml_value "2-applications/2-node-ingestion-worker-chat/app.yaml" '.spec.source.helm.valuesObject.env.MAX_HEAP_MB' "1500"
 assert_yaml_value "2-applications/2-node-ingestion-worker-chat/app.yaml" '.spec.source.helm.valuesObject.env.NUMBER_OF_PDF_PAGES_IN_PARALLEL' "10"
@@ -124,15 +133,23 @@ assert_yaml_value "2-applications/2-node-webhook-scheduler/app.yaml" '.spec.sour
 assert_yaml_value "2-applications/2-node-webhook-worker/app.yaml" '.spec.source.helm.valuesObject.env.MAX_HEAP_MB' "200"
 assert_yaml_value "2-applications/1-node-scope-management/app.yaml" '.spec.source.helm.valuesObject.env.CORS_ALLOWED_ORIGINS' ""
 assert_yaml_value "2-applications/1-node-scope-management/app.yaml" '.spec.source.helm.valuesObject.env.MAX_HEAP_MB' "700"
-assert_yaml_value "2-applications/1-node-scope-management/app.yaml" '.spec.source.helm.valuesObject.env.ZITADEL_HOST' "http://id.localhost"
+assert_yaml_value "2-applications/1-node-scope-management/app.yaml" '.spec.source.helm.valuesObject.env.ZITADEL_HOST' "${CONFIGURED_SCHEME}://id.${CONFIGURED_DOMAIN}"
 assert_yaml_value "2-applications/1-node-scope-management/app.yaml" '.spec.source.helm.valuesObject.env.ZITADEL_ROOT_ORG_ID' "overridden-by-node-scope-management-secrets"
 assert_yaml_value "2-applications/1-node-scope-management/node-scope-management.secret.yaml.example" '.stringData.ZITADEL_ROOT_ORG_ID' ""
 assert_yaml_value "2-applications/4-client-insights-exporter/app.yaml" '.spec.source.helm.valuesObject.env.MAX_HEAP_MB' "200"
 assert_yaml_value "2-applications/4-client-insights-exporter/app.yaml" '.spec.source.helm.valuesObject.env.CLIENT_INSIGHT_SERVER_URL' "https://gateway.unique.app/insights/client-insights"
-assert_yaml_value "2-applications/3-admin-app/app.yaml" '.spec.source.helm.valuesObject.env.INGESTION_BACKEND_API_URL' "http://api.localhost/ingestion"
-assert_yaml_value "2-applications/3-chat-app/app.yaml" '.spec.source.helm.valuesObject.env.INGESTION_BACKEND_API_URL' "http://api.localhost/ingestion"
-assert_yaml_value "2-applications/3-chat-app/app.yaml" '.spec.source.helm.valuesObject.env.REFLECTOR_BACKEND_API_URL' "http://api.localhost"
-assert_yaml_value "2-applications/3-knowledge-upload-app/app.yaml" '.spec.source.helm.valuesObject.env.INGESTION_BACKEND_API_URL' "http://api.localhost/ingestion"
+assert_yaml_value "2-applications/3-admin-app/app.yaml" '.spec.source.helm.valuesObject.env.INGESTION_BACKEND_API_URL' "${CONFIGURED_SCHEME}://api.${CONFIGURED_DOMAIN}/ingestion"
+assert_yaml_value "2-applications/3-chat-app/app.yaml" '.spec.source.helm.valuesObject.env.INGESTION_BACKEND_API_URL' "${CONFIGURED_SCHEME}://api.${CONFIGURED_DOMAIN}/ingestion"
+assert_yaml_value "2-applications/3-chat-app/app.yaml" '.spec.source.helm.valuesObject.env.REFLECTOR_BACKEND_API_URL' "${CONFIGURED_SCHEME}://api.${CONFIGURED_DOMAIN}"
+assert_yaml_value "2-applications/3-knowledge-upload-app/app.yaml" '.spec.source.helm.valuesObject.env.INGESTION_BACKEND_API_URL' "${CONFIGURED_SCHEME}://api.${CONFIGURED_DOMAIN}/ingestion"
+
+while IFS= read -r file; do
+  relative_file="${file#"${REPOSITORY_DIR}/"}"
+  assert_yaml_value "${relative_file}" '.spec.source.helm.valuesObject.env.NODE_EXTRA_CA_CERTS' "/etc/ssl/postgres/ca.crt"
+  assert_yaml_value "${relative_file}" '.spec.source.helm.valuesObject.volumes[] | select(.name == "postgres-ca") | .secret.secretName' "postgres-ca"
+  assert_yaml_value "${relative_file}" '.spec.source.helm.valuesObject.volumeMounts[] | select(.name == "postgres-ca") | .mountPath' "/etc/ssl/postgres/ca.crt"
+done < <(rg -l 'host: postgres-rw\.unique\.svc\.cluster\.local' \
+  "${REPOSITORY_DIR}/2-applications" --glob '*.yaml')
 
 if yq -r '.spec.sources[1].helm.valuesObject | keys | .[]' \
   "$REPOSITORY_DIR/1-system/7-zitadel/app.yaml" | rg -qx 'serviceAccount'; then

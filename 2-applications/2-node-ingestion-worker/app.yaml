@@ -22,7 +22,10 @@ spec:
         image:
           repository: library/images/ingestion-worker
           useDigest: false
+        keda:
+          enabled: false
         env:
+          NODE_EXTRA_CA_CERTS: /etc/ssl/postgres/ca.crt
           MAX_HEAP_MB: 3000
           NUMBER_OF_PDF_PAGES_IN_PARALLEL: 10
           UNIQUE_INSTALLATION_ID: hpe-hosted-trial
@@ -32,6 +35,18 @@ spec:
           S3_BUCKET_ENDPOINT: http://rustfs-svc.unique.svc.cluster.local:9000
           S3_BUCKET_NAME: unique-ingestion-bucket
           S3_BUCKET_REGION: us-east-1
+        volumes:
+          - name: postgres-ca
+            secret:
+              secretName: postgres-ca
+              items:
+                - key: ca.crt
+                  path: ca.crt
+        volumeMounts:
+          - name: postgres-ca
+            mountPath: /etc/ssl/postgres/ca.crt
+            subPath: ca.crt
+            readOnly: true
         routes:
           gateway:
             name: unique

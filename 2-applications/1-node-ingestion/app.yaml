@@ -23,6 +23,7 @@ spec:
           repository: library/images/ingestion
           useDigest: false
         env:
+          NODE_EXTRA_CA_CERTS: /etc/ssl/postgres/ca.crt
           AZURE_OPENAI_API_VERSION: 2023-03-15-preview
           FILE_RETENTION_IN_DAYS: 30
           # HPE: https://api.ingress.pcai0201.fr2.hpecolo.net/scoped/ingestion/upload
@@ -35,6 +36,18 @@ spec:
           S3_BUCKET_ENDPOINT: http://rustfs-svc.unique.svc.cluster.local:9000
           S3_BUCKET_NAME: unique-ingestion-bucket
           S3_BUCKET_REGION: us-east-1
+        volumes:
+          - name: postgres-ca
+            secret:
+              secretName: postgres-ca
+              items:
+                - key: ca.crt
+                  path: ca.crt
+        volumeMounts:
+          - name: postgres-ca
+            mountPath: /etc/ssl/postgres/ca.crt
+            subPath: ca.crt
+            readOnly: true
         routes:
           gateway:
             name: unique
