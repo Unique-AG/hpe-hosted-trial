@@ -33,7 +33,12 @@ spec:
         pvc:
           # RWX cache shared by ingestor replicas.
           storageClassName: gl4f-filesystem
+        # Helm replaces the chart's default lists when these are overridden, so
+        # retain the writable temp and model-cache mounts required by Docling.
         volumes:
+          - name: tmp-volume
+            emptyDir:
+              sizeLimit: 20Gi
           - name: postgres-ca
             secret:
               secretName: postgres-ca
@@ -41,6 +46,11 @@ spec:
                 - key: ca.crt
                   path: ca.crt
         volumeMounts:
+          - name: tmp-volume
+            mountPath: /tmp
+          - name: artifacts-cache
+            mountPath: /artifacts
+            readOnly: false
           - name: postgres-ca
             mountPath: /etc/ssl/postgres/ca.crt
             subPath: ca.crt

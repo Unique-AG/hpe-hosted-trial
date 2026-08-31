@@ -57,6 +57,10 @@ assert_yaml_value "1-system/7-litellm/litellm.values.yaml" '.proxy_config.model_
 assert_yaml_value "1-system/7-litellm/litellm.values.yaml" '.proxy_config.model_list[1].litellm_params.model' "together_ai/intfloat/multilingual-e5-large-instruct"
 assert_yaml_value "1-system/2-secrets/litellm/litellm.secret.yaml.example" '.stringData.TOGETHERAI_API_KEY' '{{ .togetherAiApiKey }}'
 assert_yaml_value "1-system/5-connection-secrets/node-ingestion-connections.external-secret.yaml" '.spec.target.template.data.LITELLM_MASTER_KEY' '{{ .litellmMasterKey }}'
+assert_yaml_value "1-system/5-connection-secrets/node-chat-connections.external-secret.yaml" '.spec.target.template.data.LITELLM_MASTER_KEY' '{{ .litellmMasterKey }}'
+assert_file_contains "1-system/5-connection-secrets/node-chat-connections.external-secret.yaml" 'AZURE_OPENAI_API_ENDPOINTS_JSON'
+assert_file_contains "1-system/5-connection-secrets/node-chat-connections.external-secret.yaml" 'deploymentName.*unique-chat-glm-5\.3'
+assert_file_contains "1-system/5-connection-secrets/node-chat-connections.external-secret.yaml" 'key.*\{\{ \.litellmMasterKey \}\}'
 assert_yaml_value "2-applications/1-node-ingestion/app.yaml" '.spec.source.helm.valuesObject.env.USE_OPENAI_V1_EMBEDDINGS' "true"
 assert_yaml_value "2-applications/1-node-chat/app.yaml" '.spec.source.helm.valuesObject.env.FEATURE_FLAG_USE_OPENAI_V1_13819' "true"
 assert_file_contains "setup-models.sh" 'UNIQUE_ACCESS_TOKEN_FILE'
