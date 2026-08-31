@@ -197,6 +197,7 @@ assert_yaml_value "2-applications/2-node-ingestion-worker-chat/app.yaml" '.spec.
 assert_yaml_value "2-applications/2-node-webhook-scheduler/app.yaml" '.spec.source.helm.valuesObject.env.MAX_HEAP_MB' "200"
 assert_yaml_value "2-applications/2-node-webhook-worker/app.yaml" '.spec.source.helm.valuesObject.env.MAX_HEAP_MB' "200"
 assert_yaml_value "2-applications/1-node-scope-management/app.yaml" '.spec.source.helm.valuesObject.env.CORS_ALLOWED_ORIGINS' ""
+assert_yaml_value "2-applications/1-node-scope-management/app.yaml" '.spec.source.helm.valuesObject.env.GATEKEEPER_RUNNING_MODE' "enforce"
 assert_yaml_value "2-applications/1-node-scope-management/app.yaml" '.spec.source.helm.valuesObject.env.MAX_HEAP_MB' "700"
 assert_yaml_value "2-applications/1-node-scope-management/app.yaml" '.spec.source.helm.valuesObject.env.ZITADEL_HOST' "${CONFIGURED_SCHEME}://id.${CONFIGURED_DOMAIN}"
 assert_yaml_value "2-applications/1-gatekeeper/app.yaml" '.spec.source.helm.valuesObject.internalServices.dependencies.scopeManagement.name // ""' ""
