@@ -22,6 +22,8 @@ spec:
         image:
           repository: library/images/sbx-gateway
           useDigest: false
+        autoscaling:
+          enabled: false
         env:
           NODE_EXTRA_CA_CERTS: /etc/ssl/postgres/ca.crt
           UNIQUE_INSTALLATION_ID: hpe-hosted-trial
@@ -67,8 +69,8 @@ spec:
             port: 4000
         egressGateway:
           allowHostsConfig: |
-            node-chat.unique.svc.cluster.local: true
-            node-ingestion.unique.svc.cluster.local: true
+            chat.unique.svc.cluster.local: true
+            ingestion.unique.svc.cluster.local: true
             # HPE: api.ingress.pcai0201.fr2.hpecolo.net: true
             api.2.28.18.215.sslip.io: true
             rustfs-svc.unique.svc.cluster.local: true
@@ -76,9 +78,9 @@ spec:
             pypi.org: true
             files.pythonhosted.org: true
           allowPathsConfig: |
-            node-chat.unique.svc.cluster.local:
+            chat.unique.svc.cluster.local:
               - /public/*
-            node-ingestion.unique.svc.cluster.local:
+            ingestion.unique.svc.cluster.local:
               - /scoped/upload
             # HPE: api.ingress.pcai0201.fr2.hpecolo.net:
             api.2.28.18.215.sslip.io:
@@ -93,7 +95,7 @@ spec:
             files.pythonhosted.org:
               - /packages/*
           allowMethodsConfig: |
-            node-ingestion.unique.svc.cluster.local:
+            ingestion.unique.svc.cluster.local:
               - PUT
             # HPE: api.ingress.pcai0201.fr2.hpecolo.net:
             api.2.28.18.215.sslip.io:

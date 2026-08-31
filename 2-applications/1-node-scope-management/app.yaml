@@ -11,7 +11,7 @@ spec:
     path: .
     helm:
       passCredentials: true
-      releaseName: node-scope-management
+      releaseName: scope-management
       valuesObject:
         global:
           image:
@@ -78,7 +78,5 @@ spec:
           connection:
             host: litellm.unique.svc.cluster.local
             port: 4000
-        nameOverride: node-scope-management
-        fullnameOverride: node-scope-management
         extraEnvSecrets:
           - node-scope-management-secrets

@@ -21,10 +21,10 @@ spec:
         internalServices:
           dependencies:
             ingestion:
-              name: node-ingestion
+              name: ingestion
               namespace: unique
             scopeManagement:
-              name: node-scope-management
+              name: scope-management
               namespace: unique
         networkPolicy:
           enabled: true

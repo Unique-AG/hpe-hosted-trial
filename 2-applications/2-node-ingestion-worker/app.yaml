@@ -11,7 +11,7 @@ spec:
     path: .
     helm:
       passCredentials: true
-      releaseName: node-ingestion-worker
+      releaseName: ingestion-worker
       valuesObject:
         global:
           image:
@@ -56,10 +56,8 @@ spec:
         internalServices:
           dependencies:
             chat:
-              name: node-chat
               namespace: unique
             ingestion:
-              name: node-ingestion
               namespace: unique
         postgresql:
           connection:
@@ -88,5 +86,3 @@ spec:
           connection:
             host: litellm.unique.svc.cluster.local
             port: 4000
-        nameOverride: node-ingestion-worker
-        fullnameOverride: node-ingestion-worker

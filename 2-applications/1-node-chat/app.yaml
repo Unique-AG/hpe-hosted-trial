@@ -11,7 +11,7 @@ spec:
     path: .
     helm:
       passCredentials: true
-      releaseName: node-chat
+      releaseName: chat
       valuesObject:
         global:
           image:
@@ -22,6 +22,8 @@ spec:
         image:
           repository: library/images/node-chat
           useDigest: false
+        autoscaling:
+          enabled: false
         env:
           NODE_EXTRA_CA_CERTS: /etc/ssl/postgres/ca.crt
           UNIQUE_INSTALLATION_ID: hpe-hosted-trial
@@ -33,6 +35,7 @@ spec:
           # HPE: https://unique.ingress.pcai0201.fr2.hpecolo.net/chat
           CHAT_FRONTEND_URL: https://unique.2.28.18.215.sslip.io/chat
           ENABLE_EXTERNAL_ASSISTANT: "true"
+          FEATURE_FLAG_USE_OPENAI_V1_13819: "true"
           GATEKEEPER_RUNNING_MODE: enforce
           MAX_HEAP_MB: 1400
           # HPE: https://api.ingress.pcai0201.fr2.hpecolo.net
@@ -62,33 +65,24 @@ spec:
         internalServices:
           dependencies:
             appRepository:
-              name: node-app-repository
               namespace: unique
             assistantsCore:
-              name: assistants-core
               namespace: unique
             gatekeeper:
               enabled: true
-              name: gatekeeper
               namespace: unique
             ingestion:
-              name: node-ingestion
               namespace: unique
             sbxGateway:
-              name: sbx-gateway
               namespace: unique
             scopeManagement:
-              name: node-scope-management
               namespace: unique
           dependents:
             agenticIngestion:
-              name: agentic-ingestion
               namespace: unique
             assistantsCore:
-              name: assistants-core
               namespace: unique
             ingestionWorker:
-              name: node-ingestion-worker
               namespace: unique
         postgresql:
           connection:
@@ -130,8 +124,6 @@ spec:
               fromSecret:
                 name: node-chat-connections
                 key: LITELLM_MASTER_KEY
-        nameOverride: node-chat
-        fullnameOverride: node-chat
         extraEnvSecrets:
           - node-chat-connections
           - node-chat-secrets

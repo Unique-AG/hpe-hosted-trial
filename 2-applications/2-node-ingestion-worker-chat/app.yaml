@@ -11,7 +11,7 @@ spec:
     path: .
     helm:
       passCredentials: true
-      releaseName: node-ingestion-worker-chat
+      releaseName: ingestion-chat-worker
       valuesObject:
         global:
           image:

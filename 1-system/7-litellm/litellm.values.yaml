@@ -1,0 +1,38 @@
+# LiteLLM routing configuration for environments without on-premise model endpoints.
+# Provider credentials are injected from the `litellm` Secret; never put keys here.
+proxy_config:
+  model_list:
+    - model_name: unique-chat-glm-5.3
+      litellm_params:
+        model: together_ai/zai-org/GLM-5.3
+        api_base: https://api.together.xyz/v1
+        api_key: os.environ/TOGETHERAI_API_KEY
+    - model_name: unique-embedding-e5
+      litellm_params:
+        model: together_ai/intfloat/multilingual-e5-large-instruct
+        api_base: https://api.together.xyz/v1
+        api_key: os.environ/TOGETHERAI_API_KEY
+
+  general_settings:
+    alerting: []
+    alerting_threshold: 300
+    spend_report_frequency: 1d
+    alerting_args:
+      daily_report_frequency: 43200
+      report_check_interval: 3600
+      budget_alert_ttl: 86400
+      outage_alert_ttl: 60
+      region_outage_alert_ttl: 60
+      minor_outage_alert_threshold: 5
+      major_outage_alert_threshold: 10
+      max_outage_alert_list_size: 1000
+      log_to_console: false
+
+  litellm_settings:
+    turn_off_message_logging: true
+    json_logs: true
+    cache: true
+    cache_params:
+      type: redis
+      namespace: litellm.caching.caching
+    redact_messages_in_exceptions: true

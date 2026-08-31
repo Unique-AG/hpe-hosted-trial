@@ -11,7 +11,7 @@ spec:
     path: .
     helm:
       passCredentials: true
-      releaseName: node-webhook-worker
+      releaseName: webhook-worker
       valuesObject:
         global:
           image:

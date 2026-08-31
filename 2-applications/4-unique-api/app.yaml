@@ -22,6 +22,8 @@ spec:
         image:
           repository: library/images/unique-api
           useDigest: false
+        autoscaling:
+          enabled: false
         env:
           NODE_EXTRA_CA_CERTS: /etc/ssl/postgres/ca.crt
           UNIQUE_INSTALLATION_ID: hpe-hosted-trial

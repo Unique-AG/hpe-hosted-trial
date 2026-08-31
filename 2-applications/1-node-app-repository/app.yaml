@@ -11,7 +11,7 @@ spec:
     path: .
     helm:
       passCredentials: true
-      releaseName: node-app-repository
+      releaseName: app-repository
       valuesObject:
         global:
           image:
@@ -73,7 +73,5 @@ spec:
           connection:
             host: litellm.unique.svc.cluster.local
             port: 4000
-        nameOverride: node-app-repository
-        fullnameOverride: node-app-repository
         extraEnvSecrets:
           - node-app-repository-secrets

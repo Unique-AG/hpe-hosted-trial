@@ -284,28 +284,58 @@ the ZITADEL endpoint is public. The placeholder NVIDIA predictor URLs are
 intentionally not rewritten; configure reachable model endpoints before testing
 inference.
 
-## Use custom models with Unique
+## Configure hosted models
 
-Most custom model configurations are stored in environment variables and configured via LiteLLM. However you need to ensure, that the 
-default fallback model for each assistant is set to a custom litellm model as well, or it will try to use OpenAI which is not available on premise. Use this GraphQL request to update each assistant:
+Hetzner and local test environments use Together AI because they have no
+on-premise inference endpoints. LiteLLM routing lives separately from the Argo
+Application definition in `1-system/7-litellm/litellm.values.yaml`:
 
-1. Copy the JWT from the browser console network tab. Use it as a Bearer token in the following GraphQL request.
-2. Execute the following GraphQL mutation against the Unique API endpoint `https://{api-domain}/chat/graphql`:
+- chat alias `unique-chat-glm-5.3` routes to `zai-org/GLM-5.3`;
+- embedding alias `unique-embedding-e5` routes to
+  `intfloat/multilingual-e5-large-instruct` (1024 dimensions).
 
+Both routes read `TOGETHERAI_API_KEY` from the `litellm` Secret. Populate the
+ignored plaintext file without exposing the key in shell history, then seal
+only that Secret:
+
+```bash
+read -rsp 'Together AI API key: ' TOGETHERAI_API_KEY; echo
+TOGETHERAI_API_KEY="$TOGETHERAI_API_KEY" yq -i \
+  '.stringData.TOGETHERAI_API_KEY = strenv(TOGETHERAI_API_KEY)' \
+  1-system/2-secrets/litellm/litellm.secret.yaml
+unset TOGETHERAI_API_KEY
+./seal-secrets.sh litellm
 ```
-mutation UpdateAssistant {
-    updateAssistant(
-        id: "{assistant-id}"
-        input: { languageModel: "litellm:{model-name}" }
-    ) {
-        id
-        name
-        languageModel
-        subtitle
-        title
-    }
-}
+
+Review, commit, and push the updated SealedSecret. Do not sync or open the
+`application-secrets` gate automatically. Once LiteLLM, chat, and ingestion are
+healthy, obtain a user token with `chat.admin.all` and ingestion administration
+access and store it in a mode-0600 file:
+
+```bash
+install -m 600 /dev/null .local/unique-admin.token
+read -rsp 'Unique admin token: ' TOKEN; echo
+printf '%s' "$TOKEN" > .local/unique-admin.token
+unset TOKEN
+UNIQUE_ACCESS_TOKEN_FILE=.local/unique-admin.token \
+  ./setup-models.sh --update-assistants
 ```
+
+`setup-models.sh` idempotently registers the GLM model group, selects E5 for the
+token's company, and optionally updates every company assistant to that model
+group. Use `--check` for read-only verification. Changing an embedding model
+requires existing content to be re-embedded; this is intentionally not
+automatic because it can saturate ingestion. Run the explicitly destructive
+maintenance step only during an approved window:
+
+```bash
+UNIQUE_ACCESS_TOKEN_FILE=.local/unique-admin.token ./setup-models.sh --reembed
+```
+
+Ingestion uses the OpenAI v1 embedding API through the in-cluster LiteLLM
+endpoint. The generated `node-ingestion-connections` Secret receives the
+LiteLLM master key and `ADDITIONAL_EMBEDDING_MODELS_JSON` through External
+Secrets, so no gateway credential is committed in application values.
 
 
 ## Version Management

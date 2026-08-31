@@ -75,8 +75,6 @@ spec:
                 namespace: unique
                 podPort: 4000
             port: 4000
-        nameOverride: assistants-core
-        fullnameOverride: assistants-core
         persistentVolumeClaims:
           enabled: true
           claims:

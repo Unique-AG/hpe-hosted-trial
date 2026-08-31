@@ -42,9 +42,26 @@ assert_file_contains ".local/kind/up.sh" 'CILIUM_CHART_VERSION="\$\{CILIUM_CHART
 assert_file_contains ".local/kind/up.sh" 'helm upgrade --install cilium cilium/cilium'
 assert_file_contains ".local/kind/up.sh" 'crd/ciliumnetworkpolicies\.cilium\.io'
 assert_file_contains ".local/kind/up.sh" 'daemonset kindnet'
+assert_file_contains ".local/kind/up.sh" 'set autoscaleEnabled=false'
+assert_file_contains ".local/hetzner/deploy.sh" 'set autoscaleEnabled=false'
+assert_yaml_value ".local/kind/istio-gateway.values.yaml" '.autoscaling.enabled' "false"
 
 assert_yaml_value "1-system/6-kong-plugins/app.yaml" '.spec.source.repoURL' "ghcr.io/unique-ag/helm-charts"
 assert_yaml_value "1-system/6-kong-plugins/app.yaml" '.spec.source.chart' "kong-plugins"
+assert_yaml_value "1-system/7-litellm/app.yaml" '.spec.sources[0].ref' "values"
+assert_yaml_value "1-system/7-litellm/app.yaml" '.spec.sources[1].helm.valueFiles[0]' '$values/1-system/7-litellm/litellm.values.yaml'
+assert_yaml_value "1-system/7-litellm/app.yaml" '.spec.sources[1].helm.valuesObject.proxy_config // ""' ""
+assert_yaml_value "1-system/7-litellm/litellm.values.yaml" '.proxy_config.model_list[0].model_name' "unique-chat-glm-5.3"
+assert_yaml_value "1-system/7-litellm/litellm.values.yaml" '.proxy_config.model_list[0].litellm_params.model' "together_ai/zai-org/GLM-5.3"
+assert_yaml_value "1-system/7-litellm/litellm.values.yaml" '.proxy_config.model_list[1].model_name' "unique-embedding-e5"
+assert_yaml_value "1-system/7-litellm/litellm.values.yaml" '.proxy_config.model_list[1].litellm_params.model' "together_ai/intfloat/multilingual-e5-large-instruct"
+assert_yaml_value "1-system/2-secrets/litellm/litellm.secret.yaml.example" '.stringData.TOGETHERAI_API_KEY' '{{ .togetherAiApiKey }}'
+assert_yaml_value "1-system/5-connection-secrets/node-ingestion-connections.external-secret.yaml" '.spec.target.template.data.LITELLM_MASTER_KEY' '{{ .litellmMasterKey }}'
+assert_yaml_value "2-applications/1-node-ingestion/app.yaml" '.spec.source.helm.valuesObject.env.USE_OPENAI_V1_EMBEDDINGS' "true"
+assert_yaml_value "2-applications/1-node-chat/app.yaml" '.spec.source.helm.valuesObject.env.FEATURE_FLAG_USE_OPENAI_V1_13819' "true"
+assert_file_contains "setup-models.sh" 'UNIQUE_ACCESS_TOKEN_FILE'
+assert_file_contains "setup-models.sh" 'companyMetaUpdate'
+assert_file_contains "setup-models.sh" 'markForReembedding'
 assert_yaml_value "1-system/6-kong-plugins/app.yaml" '.spec.source.targetRevision' "2.5.0"
 if yq -r '.charts | keys | .[]' "$REPOSITORY_DIR/versions.yaml" | rg -qx 'kong-plugins'; then
   printf 'FAIL: public kong-plugins chart is still included in the Harbor mirror\n' >&2
@@ -71,6 +88,28 @@ if [ ! -f "$REPOSITORY_DIR/2-applications/4-search-proxy/_app.yaml" ]; then
   exit 1
 fi
 assert_yaml_value "versions.yaml" '.charts.search-proxy.runtimeFile' "2-applications/4-search-proxy/_app.yaml"
+
+# HPE requires every platform application to stay in the unique namespace.
+while IFS= read -r file; do
+  relative_file="${file#"${REPOSITORY_DIR}/"}"
+  assert_yaml_value "${relative_file}" '.spec.destination.namespace' "unique"
+done < <(find "${REPOSITORY_DIR}/2-applications" -type f \( -name 'app.yaml' -o -name '_app.yaml' \) | sort)
+
+# Use chart-native workload and Service names so the charts' default internal
+# service URLs work without per-consumer name overrides.
+assert_yaml_value "2-applications/1-node-app-repository/app.yaml" '.spec.source.helm.releaseName' "app-repository"
+assert_yaml_value "2-applications/1-node-chat/app.yaml" '.spec.source.helm.releaseName' "chat"
+assert_yaml_value "2-applications/1-node-ingestion/app.yaml" '.spec.source.helm.releaseName' "ingestion"
+assert_yaml_value "2-applications/1-node-scope-management/app.yaml" '.spec.source.helm.releaseName' "scope-management"
+assert_yaml_value "2-applications/2-node-ingestion-worker/app.yaml" '.spec.source.helm.releaseName' "ingestion-worker"
+assert_yaml_value "2-applications/2-node-ingestion-worker-chat/app.yaml" '.spec.source.helm.releaseName' "ingestion-chat-worker"
+assert_yaml_value "2-applications/2-node-webhook-scheduler/app.yaml" '.spec.source.helm.releaseName' "webhook-scheduler"
+assert_yaml_value "2-applications/2-node-webhook-worker/app.yaml" '.spec.source.helm.releaseName' "webhook-worker"
+while IFS= read -r file; do
+  relative_file="${file#"${REPOSITORY_DIR}/"}"
+  assert_yaml_value "${relative_file}" '.spec.source.helm.valuesObject.nameOverride // ""' ""
+  assert_yaml_value "${relative_file}" '.spec.source.helm.valuesObject.fullnameOverride // ""' ""
+done < <(find "${REPOSITORY_DIR}/2-applications" -type f -name 'app.yaml' | sort)
 
 while IFS= read -r file; do
   assert_yaml_value "$file" '.spec.source.helm.valuesObject.internalServices.namespace // ""' ""
@@ -113,6 +152,16 @@ done
 assert_yaml_value "2-applications/1-gatekeeper/app.yaml" '.spec.source.helm.valuesObject.postgresql.connection.database' "gatekeeper"
 assert_yaml_value "2-applications/1-gatekeeper/app.yaml" '.spec.source.helm.valuesObject.env.ADMIN_ROOT_USER_ID' "hpe-hosted-trial-root-user"
 assert_yaml_value "2-applications/1-gatekeeper/app.yaml" '.spec.source.helm.valuesObject.env.ADMIN_ROOT_COMPANY_ID' "hpe-hosted-trial-root-company"
+assert_yaml_value "2-applications/1-configuration-backend/app.yaml" '.spec.source.helm.valuesObject.autoscaling.enabled' "false"
+assert_yaml_value "2-applications/1-node-chat/app.yaml" '.spec.source.helm.valuesObject.autoscaling.enabled' "false"
+assert_yaml_value "2-applications/4-unique-api/app.yaml" '.spec.source.helm.valuesObject.autoscaling.enabled' "false"
+assert_yaml_value "2-applications/4-sbx-gateway/app.yaml" '.spec.source.helm.valuesObject.autoscaling.enabled' "false"
+assert_yaml_value "2-applications/1-configuration-backend/app.yaml" '.spec.source.helm.valuesObject.env.MAX_HEAP_MB' "560"
+assert_yaml_value "2-applications/1-configuration-backend/app.yaml" '.spec.source.helm.valuesObject.resources.requests.cpu' "100m"
+assert_yaml_value "2-applications/1-configuration-backend/app.yaml" '.spec.source.helm.valuesObject.resources.requests.memory' "600Mi"
+assert_yaml_value "2-applications/1-configuration-backend/app.yaml" '.spec.source.helm.valuesObject.internalServices.dependencies.chat.name // ""' ""
+assert_yaml_value "2-applications/1-configuration-backend/app.yaml" '.spec.source.helm.valuesObject.internalServices.dependencies.scopeManagement.name // ""' ""
+assert_yaml_value "2-applications/1-configuration-backend/app.yaml" '.spec.source.helm.valuesObject.internalServices.dependencies.gatekeeper.enabled' "true"
 assert_yaml_value "2-applications/4-mcp-hub/app.yaml" '.spec.source.helm.valuesObject.postgresql.connection.database' "chat"
 assert_yaml_value "2-applications/4-mcp-hub/app.yaml" '.spec.source.helm.valuesObject.env.NEXT_APP_URL' "${CONFIGURED_SCHEME}://unique.${CONFIGURED_DOMAIN}"
 assert_yaml_value "2-applications/1-node-ingestion/app.yaml" '.spec.source.helm.valuesObject.elasticsearch.connection.password.fromSecret.name' "elasticsearch-ingestion-es-elastic-user"
@@ -138,8 +187,8 @@ assert_yaml_value "2-applications/2-node-webhook-worker/app.yaml" '.spec.source.
 assert_yaml_value "2-applications/1-node-scope-management/app.yaml" '.spec.source.helm.valuesObject.env.CORS_ALLOWED_ORIGINS' ""
 assert_yaml_value "2-applications/1-node-scope-management/app.yaml" '.spec.source.helm.valuesObject.env.MAX_HEAP_MB' "700"
 assert_yaml_value "2-applications/1-node-scope-management/app.yaml" '.spec.source.helm.valuesObject.env.ZITADEL_HOST' "${CONFIGURED_SCHEME}://id.${CONFIGURED_DOMAIN}"
-assert_yaml_value "2-applications/1-gatekeeper/app.yaml" '.spec.source.helm.valuesObject.internalServices.dependencies.scopeManagement.name' "node-scope-management"
-assert_yaml_value "2-applications/1-gatekeeper/app.yaml" '.spec.source.helm.valuesObject.internalServices.dependencies.chat.name' "node-chat"
+assert_yaml_value "2-applications/1-gatekeeper/app.yaml" '.spec.source.helm.valuesObject.internalServices.dependencies.scopeManagement.name // ""' ""
+assert_yaml_value "2-applications/1-gatekeeper/app.yaml" '.spec.source.helm.valuesObject.internalServices.dependencies.chat.name // ""' ""
 assert_yaml_value "2-applications/1-node-scope-management/app.yaml" '.spec.source.helm.valuesObject.extraEnvSecrets[]' "node-scope-management-secrets"
 assert_yaml_value "2-applications/1-node-scope-management/node-scope-management.secret.yaml.example" '.stringData.ZITADEL_ROOT_ORG_ID' ""
 assert_yaml_value "2-applications/4-client-insights-exporter/app.yaml" '.spec.source.helm.valuesObject.env.MAX_HEAP_MB' "200"

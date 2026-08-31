@@ -6,4 +6,4 @@ metadata:
     kubernetes.io/ingress.class: kong
 plugin: unique-app-repo-auth
 config:
-  app_repository_url: http://node-app-repository.unique.svc.cluster.local
+  app_repository_url: http://app-repository.unique.svc.cluster.local

@@ -114,6 +114,7 @@ helm upgrade --install istio-base istio/base \
 helm upgrade --install istiod istio/istiod \
   --version "${ISTIO_VERSION}" \
   --namespace istio-system \
+  --set autoscaleEnabled=false \
   --wait \
   --timeout 10m
 helm upgrade --install istio-ingressgateway istio/gateway \

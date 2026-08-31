@@ -85,10 +85,4 @@ spec:
           connection:
             host: litellm.unique.svc.cluster.local
             port: 4000
-        internalServices:
-          dependencies:
-            chat:
-              name: node-chat
-            scopeManagement:
-              name: node-scope-management
         namespaceOverride: unique

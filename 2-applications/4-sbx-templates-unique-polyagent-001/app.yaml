@@ -39,9 +39,9 @@ spec:
                   name: sbx-templates-unique-polyagent-001-secrets
                   key: UNIQUE_API_KEY
             - name: UNIQUE_API_BASE
-              value: http://node-chat.unique.svc.cluster.local:8093/public
+              value: http://chat.unique.svc.cluster.local:8093/public
             - name: INGESTION_UPLOAD_API_URL_INTERNAL
-              value: http://node-ingestion.unique.svc.cluster.local:8091/scoped/upload
+              value: http://ingestion.unique.svc.cluster.local:8091/scoped/upload
             - name: SBX_STORAGE_URL
               value: http://sbx-storage.unique.svc.cluster.local:80
           tmpVolume:
