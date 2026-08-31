@@ -29,6 +29,12 @@ variable "oidc_dev_mode" {
   default     = false
 }
 
+variable "transport_headers" {
+  description = "Headers sent to ZITADEL. The bootstrap uses Host while connecting through a local Kubernetes port-forward."
+  type        = map(string)
+  default     = {}
+}
+
 variable "zitadel_access_token" {
   description = "Personal access token used by the provider; supplied by setup-zitadel.sh through TF_VAR."
   type        = string

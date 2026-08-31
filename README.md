@@ -163,7 +163,11 @@ change the default `HPE Hosted Trial` target organization.
 
 OIDC `dev_mode` defaults to `false` for HTTPS and `true` only for an HTTP/local
 endpoint. Set `ZITADEL_OIDC_DEV_MODE=true|false` only when an explicit override
-is reviewed. Use `ZITADEL_ACCESS_TOKEN` or a mode-restricted
+is reviewed. The Hetzner Caddy route preserves h2c for ZITADEL provider gRPC
+calls, so the script uses the external ingress by default. If an environment's
+proxy terminates provider streams, set `ZITADEL_USE_PORT_FORWARD=true` to open a
+temporary local h2c port-forward while retaining the external Host used for
+instance selection. Use `ZITADEL_ACCESS_TOKEN` or a mode-restricted
 `ZITADEL_ACCESS_TOKEN_FILE` only when the Kubernetes Secret is unavailable.
 Terraform state and its `TF_DATA_DIR` are kept below the ignored
 `.local/zitadel-bootstrap` directory with restrictive permissions; the ignored

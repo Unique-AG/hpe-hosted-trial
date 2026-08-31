@@ -18,6 +18,8 @@ TEMP_FILES=()
 APPLICATION_GATE_TIMEOUT_SECONDS="${ZITADEL_APPLICATION_GATE_TIMEOUT_SECONDS:-600}"
 HEALTH_TIMEOUT_SECONDS="${ZITADEL_HEALTH_TIMEOUT_SECONDS:-600}"
 POLL_SECONDS="${ZITADEL_BOOTSTRAP_POLL_SECONDS:-5}"
+PORT_FORWARD_PID=""
+PORT_FORWARD_LOG="${STATE_DIR}/port-forward.log"
 
 MODE=apply
 SEAL=0
@@ -54,7 +56,8 @@ Configuration:
   ZITADEL_POST_LOGOUT_REDIRECT_URIS        Comma-separated exact logout override.
   ZITADEL_TARGET_ORG_NAME                  Target organization (default HPE Hosted Trial).
   ZITADEL_OIDC_DEV_MODE=true|false         Optional explicit OIDC dev-mode override.
-  ZITADEL_INSECURE_SKIP_VERIFY_TLS= true   Only for explicitly approved test TLS.
+  ZITADEL_USE_PORT_FORWARD=true|false       Use a local h2c fallback (default false).
+  ZITADEL_INSECURE_SKIP_VERIFY_TLS=true     Only for explicitly approved test TLS.
 
 The generated PAT is never printed. It is written only to Terraform state and
 the ignored node-scope-management Secret, both kept with mode 0600. Do not
@@ -206,12 +209,19 @@ case "${ZITADEL_INSECURE_SKIP_VERIFY_TLS}" in
   *) die "ZITADEL_INSECURE_SKIP_VERIFY_TLS must be true or false" ;;
 esac
 
+ZITADEL_USE_PORT_FORWARD="${ZITADEL_USE_PORT_FORWARD:-false}"
+case "${ZITADEL_USE_PORT_FORWARD}" in
+  true|false) ;;
+  *) die "ZITADEL_USE_PORT_FORWARD must be true or false" ;;
+esac
+
 export TF_DATA_DIR
 export TF_VAR_zitadel_domain="${ZITADEL_DOMAIN}"
 export TF_VAR_zitadel_insecure="${ZITADEL_INSECURE}"
 export TF_VAR_oidc_dev_mode="${OIDC_DEV_MODE}"
 export TF_VAR_insecure_skip_verify_tls="${ZITADEL_INSECURE_SKIP_VERIFY_TLS}"
 export TF_VAR_frontend_base_url="${UNIQUE_FRONTEND_BASE_URL}"
+export TF_VAR_transport_headers='{}'
 if [[ -n "${ZITADEL_PORT}" ]]; then
   export TF_VAR_zitadel_port="${ZITADEL_PORT}"
 else
@@ -420,6 +430,41 @@ validate_repository_reference_shape() {
     [[ "${frontend_populated_count}" == 4 ]] \
       || die "frontend and application ZITADEL IDs are in a mixed placeholder/populated state; refusing to continue"
   fi
+}
+
+start_zitadel_port_forward() {
+  local forwarded_port=""
+  local deadline
+
+  [[ "${ZITADEL_USE_PORT_FORWARD}" == true ]] || return 0
+  : >"${PORT_FORWARD_LOG}"
+  chmod 600 "${PORT_FORWARD_LOG}"
+  kubectl --namespace unique port-forward service/zitadel :8080 \
+    >"${PORT_FORWARD_LOG}" 2>&1 &
+  PORT_FORWARD_PID=$!
+  deadline=$(( $(date +%s) + 30 ))
+  while (( $(date +%s) < deadline )); do
+    if ! kill -0 "${PORT_FORWARD_PID}" 2>/dev/null; then
+      die "ZITADEL port-forward exited early: $(tail -n 1 "${PORT_FORWARD_LOG}")"
+    fi
+    forwarded_port="$(sed -nE 's/^Forwarding from 127\.0\.0\.1:([0-9]+) -> 8080$/\1/p' \
+      "${PORT_FORWARD_LOG}" | head -n1)"
+    [[ -n "${forwarded_port}" ]] && break
+    sleep 1
+  done
+  [[ "${forwarded_port}" =~ ^[0-9]+$ ]] \
+    || die "could not determine the local ZITADEL port-forward port"
+
+  # The external ingress serves ordinary HTTP/2 but closes the provider's gRPC
+  # streams. Connect to the h2c Service directly while preserving the external
+  # Host so ZITADEL can select the correct instance.
+  export TF_VAR_zitadel_domain=127.0.0.1
+  export TF_VAR_zitadel_port="${forwarded_port}"
+  export TF_VAR_zitadel_insecure=true
+  export TF_VAR_insecure_skip_verify_tls=false
+  export TF_VAR_transport_headers
+  TF_VAR_transport_headers="$(jq -cn --arg host "${ZITADEL_AUTHORITY}" '{Host: $host}')"
+  printf 'Using local h2c port-forward for ZITADEL provider API calls.\n'
 }
 
 has_repository_placeholders() {
@@ -703,7 +748,11 @@ secure_local_state_files() {
 }
 
 cleanup_local_plan() {
-  rm -f "${PLAN_FILE}" "${PLAN_JSON_FILE}"
+  if [[ -n "${PORT_FORWARD_PID}" ]]; then
+    kill "${PORT_FORWARD_PID}" 2>/dev/null || true
+    wait "${PORT_FORWARD_PID}" 2>/dev/null || true
+  fi
+  rm -f "${PLAN_FILE}" "${PLAN_JSON_FILE}" "${PORT_FORWARD_LOG}"
   ((${#TEMP_FILES[@]} == 0)) || rm -f "${TEMP_FILES[@]}"
   secure_local_state_files
 }
@@ -713,6 +762,7 @@ validate_repository_reference_shape
 read_access_token
 wait_for_zitadel
 wait_for_application_gate
+start_zitadel_port_forward
 run_terraform_init
 secure_local_state_files
 check_state_safety_before_plan

@@ -22,5 +22,4 @@ spec:
           headers:
             request:
               set:
-                # HPE: https
-                X-Forwarded-Proto: http
+                X-Forwarded-Proto: https

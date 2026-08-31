@@ -11,6 +11,8 @@ output "project_id" {
 output "client_id" {
   description = "Client ID of the Standalone Apps WEB PKCE application."
   value       = zitadel_application_oidc.standalone_apps.client_id
+  # The provider schema marks client_id sensitive even for PKCE clients.
+  sensitive = true
 }
 
 output "target_org_id" {

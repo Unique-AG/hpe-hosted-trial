@@ -4,4 +4,5 @@ provider "zitadel" {
   insecure                 = var.zitadel_insecure
   insecure_skip_verify_tls = var.insecure_skip_verify_tls
   access_token             = var.zitadel_access_token
+  transport_headers        = var.transport_headers
 }

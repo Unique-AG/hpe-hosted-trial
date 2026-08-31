@@ -179,6 +179,14 @@ assert_file_contains "setup-zitadel.sh" '\-\-rotate-secret requires \-\-seal'
 assert_file_contains "setup-zitadel.sh" 'encrypted_keys'
 assert_file_contains "setup-zitadel.sh" 'has_root_org_id'
 assert_file_contains "setup-zitadel.sh" 'The generated PAT is never printed'
+assert_file_contains "setup-zitadel.sh" 'ZITADEL_USE_PORT_FORWARD:-false'
+assert_file_contains "setup-zitadel.sh" 'port-forward service/zitadel :8080'
+assert_file_contains ".local/hetzner/deploy.sh" 'reverse_proxy h2c://127.0.0.1:30080'
+assert_yaml_value "1-system/7-zitadel/zitadel.virtual-service.yaml" \
+  '.spec.http[0].route[0].headers.request.set.X-Forwarded-Proto' "https"
+assert_file_contains "setup-zitadel.sh" 'TF_VAR_transport_headers'
+assert_file_contains "terraform/zitadel-bootstrap/provider.tf" 'transport_headers.*var.transport_headers'
+assert_file_contains "terraform/zitadel-bootstrap/outputs.tf" 'sensitive = true'
 if rg -q "ZITADEL_PAT=%s" "$REPOSITORY_DIR/setup-zitadel.sh"; then
   printf 'FAIL: setup-zitadel.sh must never print the generated PAT\n' >&2
   exit 1

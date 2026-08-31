@@ -130,7 +130,6 @@ caddy_hosts="$(
     "argocd.${base_domain}" \
     "grafana.${base_domain}" \
     "harbor.${base_domain}" \
-    "id.${base_domain}" \
     "litellm.${base_domain}" \
     "rabbitmq.${base_domain}" \
     "rustfs.${base_domain}" \
@@ -142,6 +141,11 @@ caddy_hosts="$(
   if [[ -n "${CADDY_ACME_EMAIL:-}" ]]; then
     printf '{\n  email %s\n}\n\n' "${CADDY_ACME_EMAIL}"
   fi
+  # ZITADEL's management APIs use gRPC. Preserve HTTP/2 over the plaintext
+  # Caddy-to-Istio hop instead of downgrading those streams to HTTP/1.1.
+  printf 'id.%s {\n' "${base_domain}"
+  printf '  reverse_proxy h2c://127.0.0.1:30080\n'
+  printf '}\n\n'
   printf '%s {\n' "${caddy_hosts}"
   printf '  reverse_proxy 127.0.0.1:30080\n'
   printf '}\n'
