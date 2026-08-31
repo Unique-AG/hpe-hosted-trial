@@ -58,6 +58,9 @@ spec:
                   name: kong-gateway-environment
                 data:
                   KONG_LOG_LEVEL: info
+                  # Let's Encrypt's current YE1 chain exceeds Kong's default
+                  # OpenResty verification depth of one certificate.
+                  KONG_LUA_SSL_VERIFY_DEPTH: "5"
             envFrom:
               - configMapRef:
                   name: kong-gateway-environment

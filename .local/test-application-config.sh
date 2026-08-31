@@ -48,6 +48,7 @@ assert_yaml_value ".local/kind/istio-gateway.values.yaml" '.autoscaling.enabled'
 
 assert_yaml_value "1-system/6-kong-plugins/app.yaml" '.spec.source.repoURL' "ghcr.io/unique-ag/helm-charts"
 assert_yaml_value "1-system/6-kong-plugins/app.yaml" '.spec.source.chart' "kong-plugins"
+assert_yaml_value "1-system/6-kong/app.yaml" '.spec.sources[1].helm.valuesObject.gateway.extraObjects[0].data.KONG_LUA_SSL_VERIFY_DEPTH' "5"
 assert_yaml_value "1-system/7-litellm/app.yaml" '.spec.sources[0].ref' "values"
 assert_yaml_value "1-system/7-litellm/app.yaml" '.spec.sources[1].helm.valueFiles[0]' '$values/1-system/7-litellm/litellm.values.yaml'
 assert_yaml_value "1-system/7-litellm/app.yaml" '.spec.sources[1].helm.valuesObject.proxy_config // ""' ""
