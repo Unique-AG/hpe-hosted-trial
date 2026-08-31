@@ -16,7 +16,7 @@ spec:
         global:
           image:
             # HPE: harbor.ingress.pcai0201.fr2.hpecolo.net
-            registry: harbor.localhost
+            registry: harbor.2.28.18.215.sslip.io
             pullSecrets:
               - name: harbor-pull-secret
         image:
@@ -25,17 +25,17 @@ spec:
         env:
           UNIQUE_INSTALLATION_ID: hpe-hosted-trial
           # HPE: https://id.ingress.pcai0201.fr2.hpecolo.net
-          ZITADEL_ISSUER: http://id.localhost
+          ZITADEL_ISSUER: https://id.2.28.18.215.sslip.io
           ZITADEL_PROJECT_ID: hpe-hosted-trial
           # HPE: https://unique.ingress.pcai0201.fr2.hpecolo.net/admin
-          ADMIN_FRONTEND_URL: http://unique.localhost/admin
+          ADMIN_FRONTEND_URL: https://unique.2.28.18.215.sslip.io/admin
           # HPE: https://unique.ingress.pcai0201.fr2.hpecolo.net/chat
-          CHAT_FRONTEND_URL: http://unique.localhost/chat
+          CHAT_FRONTEND_URL: https://unique.2.28.18.215.sslip.io/chat
           ENABLE_EXTERNAL_ASSISTANT: "true"
           GATEKEEPER_RUNNING_MODE: enforce
           MAX_HEAP_MB: 1400
           # HPE: https://api.ingress.pcai0201.fr2.hpecolo.net
-          MCP_HUB_BASE_URL: http://api.localhost
+          MCP_HUB_BASE_URL: https://api.2.28.18.215.sslip.io
           OPENAI_PROVIDER: litellm
           S3_BUCKET_ENDPOINT: http://rustfs-svc.unique.svc.cluster.local:9000
           S3_BUCKET_NAME: unique-ingestion-bucket
@@ -45,7 +45,7 @@ spec:
             name: unique
             namespace: unique
           # HPE: api.ingress.pcai0201.fr2.hpecolo.net
-          hostname: api.localhost
+          hostname: api.2.28.18.215.sslip.io
         internalServices:
           dependencies:
             appRepository:

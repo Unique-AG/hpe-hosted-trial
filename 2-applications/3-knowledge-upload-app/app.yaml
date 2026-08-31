@@ -16,7 +16,7 @@ spec:
         global:
           image:
             # HPE: harbor.ingress.pcai0201.fr2.hpecolo.net
-            registry: harbor.localhost
+            registry: harbor.2.28.18.215.sslip.io
             pullSecrets:
               - name: harbor-pull-secret
         image:
@@ -25,32 +25,32 @@ spec:
         env:
           UNIQUE_INSTALLATION_ID: hpe-hosted-trial
           # HPE: https://id.ingress.pcai0201.fr2.hpecolo.net
-          ZITADEL_ISSUER: http://id.localhost
+          ZITADEL_ISSUER: https://id.2.28.18.215.sslip.io
           ZITADEL_PROJECT_ID: hpe-hosted-trial
           # HPE: https://unique.ingress.pcai0201.fr2.hpecolo.net/admin
-          ADMIN_APP_URL: http://unique.localhost/admin
+          ADMIN_APP_URL: https://unique.2.28.18.215.sslip.io/admin
           # HPE: https://api.ingress.pcai0201.fr2.hpecolo.net/apps
-          APP_REPOSITORY_BACKEND_API_URL: http://api.localhost/apps
+          APP_REPOSITORY_BACKEND_API_URL: https://api.2.28.18.215.sslip.io/apps
           # HPE: https://unique.ingress.pcai0201.fr2.hpecolo.net/chat
-          CHAT_APP_URL: http://unique.localhost/chat
+          CHAT_APP_URL: https://unique.2.28.18.215.sslip.io/chat
           # HPE: https://api.ingress.pcai0201.fr2.hpecolo.net/chat
-          CHAT_BACKEND_API_URL: http://api.localhost/chat
+          CHAT_BACKEND_API_URL: https://api.2.28.18.215.sslip.io/chat
           # HPE: https://api.ingress.pcai0201.fr2.hpecolo.net/ingestion
-          INGESTION_BACKEND_API_URL: http://api.localhost/ingestion
+          INGESTION_BACKEND_API_URL: https://api.2.28.18.215.sslip.io/ingestion
           # HPE: https://unique.ingress.pcai0201.fr2.hpecolo.net/knowledge-upload
-          KNOWLEDGE_UPLOAD_APP_URL: http://unique.localhost/knowledge-upload
+          KNOWLEDGE_UPLOAD_APP_URL: https://unique.2.28.18.215.sslip.io/knowledge-upload
           # HPE: https://api.ingress.pcai0201.fr2.hpecolo.net/scope-management
-          SCOPE_MANAGEMENT_BACKEND_API_URL: http://api.localhost/scope-management
+          SCOPE_MANAGEMENT_BACKEND_API_URL: https://api.2.28.18.215.sslip.io/scope-management
           STATIC_TAB_NAME: Unique HPE
           # HPE: https://api.ingress.pcai0201.fr2.hpecolo.net/configuration
-          THEME_BACKEND_API_URL: http://api.localhost/configuration
+          THEME_BACKEND_API_URL: https://api.2.28.18.215.sslip.io/configuration
           ZITADEL_CLIENT_ID: change-me
         routes:
           gateway:
             name: unique
             namespace: unique
           # HPE: unique.ingress.pcai0201.fr2.hpecolo.net
-          hostname: unique.localhost
+          hostname: unique.2.28.18.215.sslip.io
         postgresql:
           connection:
             host: postgres-rw.unique.svc.cluster.local

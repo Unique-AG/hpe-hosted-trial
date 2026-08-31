@@ -10,4 +10,4 @@ plugin: cors
 config:
   origins:
     # HPE: "https://unique.ingress.pcai0201.fr2.hpecolo.net"
-    - "http://unique.localhost"
+    - "https://unique.2.28.18.215.sslip.io"

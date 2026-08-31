@@ -16,7 +16,7 @@ spec:
         global:
           image:
             # HPE: harbor.ingress.pcai0201.fr2.hpecolo.net
-            registry: harbor.localhost
+            registry: harbor.2.28.18.215.sslip.io
         image:
           repository: library/images/sbx-storage
           useDigest: false

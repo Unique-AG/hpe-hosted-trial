@@ -117,6 +117,7 @@ ssh_arguments() {
     "-o" "BatchMode=yes" \
     "-o" "ConnectTimeout=10" \
     "-o" "StrictHostKeyChecking=accept-new" \
+    "-o" "UserKnownHostsFile=${STATE_DIR}/known_hosts" \
     "root@${server_ip}"
 }
 

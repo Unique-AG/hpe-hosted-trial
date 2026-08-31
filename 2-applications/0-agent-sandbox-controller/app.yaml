@@ -17,7 +17,7 @@ spec:
         router:
           image:
             # HPE: harbor.ingress.pcai0201.fr2.hpecolo.net/library/images/sandbox-router
-            repository: harbor.localhost/library/images/sandbox-router
+            repository: harbor.2.28.18.215.sslip.io/library/images/sandbox-router
             tag: v20260514-v0.4.6
             digest: ""
           networkPolicy:

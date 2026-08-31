@@ -27,8 +27,10 @@ assert_file_contains "${REPOSITORY_DIR}/seal-secrets.sh" 'tls\\\.crt'
 assert_file_contains "${REPOSITORY_DIR}/set-hostname.sh" 'service_names'
 assert_file_contains "${HETZNER_DIR}/provision.sh" 'HETZNER_SERVER_TYPE:-ccx43'
 assert_file_contains "${HETZNER_DIR}/deploy.sh" 'rollout status deployment/metrics-server'
+assert_file_contains "${HETZNER_DIR}/deploy.sh" "sed 's/,/, /g'"
 assert_file_contains "${HETZNER_DIR}/deploy.sh" 'reverse_proxy 127\.0\.0\.1:30080'
 assert_file_contains "${HETZNER_DIR}/common.sh" '409|422'
+assert_file_contains "${HETZNER_DIR}/common.sh" 'UserKnownHostsFile=.*known_hosts'
 assert_file_contains "${HETZNER_DIR}/cloud-init.yaml" 'containerd\.runtimes\.runsc'
 
 git -C "${REPOSITORY_DIR}" check-ignore -q .hostname || {

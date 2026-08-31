@@ -11,7 +11,7 @@ ISTIO_VERSION="${ISTIO_VERSION:-1.30.3}"
 NFS_SERVER_PROVISIONER_CHART_VERSION="${NFS_SERVER_PROVISIONER_CHART_VERSION:-1.8.0}"
 NFS_STORAGE_SIZE="${NFS_STORAGE_SIZE:-100Gi}"
 
-for command in helm jq kubectl paste; do
+for command in helm jq kubectl paste sed; do
   require_command "${command}"
 done
 require_state
@@ -95,7 +95,8 @@ caddy_hosts="$(
     "rabbitmq.${base_domain}" \
     "rustfs.${base_domain}" \
     "unique.${base_domain}" |
-    paste -sd, -
+    paste -sd, - |
+    sed 's/,/, /g'
 )"
 {
   if [[ -n "${CADDY_ACME_EMAIL:-}" ]]; then

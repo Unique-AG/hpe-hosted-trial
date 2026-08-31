@@ -16,7 +16,7 @@ spec:
         global:
           image:
             # HPE: harbor.ingress.pcai0201.fr2.hpecolo.net
-            registry: harbor.localhost
+            registry: harbor.2.28.18.215.sslip.io
             pullSecrets:
               - name: harbor-pull-secret
         image:
@@ -27,14 +27,14 @@ spec:
           ADMIN_ROOT_USER_ID: hpe-hosted-trial-root-user
           UNIQUE_INSTALLATION_ID: hpe-hosted-trial
           # HPE: https://id.ingress.pcai0201.fr2.hpecolo.net
-          ZITADEL_ISSUER: http://id.localhost
+          ZITADEL_ISSUER: https://id.2.28.18.215.sslip.io
           ZITADEL_PROJECT_ID: hpe-hosted-trial
         routes:
           gateway:
             name: unique
             namespace: unique
           # HPE: api.ingress.pcai0201.fr2.hpecolo.net
-          hostname: api.localhost
+          hostname: api.2.28.18.215.sslip.io
         postgresql:
           connection:
             host: postgres-rw.unique.svc.cluster.local

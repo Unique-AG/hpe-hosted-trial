@@ -7,7 +7,7 @@ spec:
     - istio-system/ezaf-gateway
   hosts:
     # HPE: id.ingress.pcai0201.fr2.hpecolo.net
-    - id.localhost
+    - id.2.28.18.215.sslip.io
   http:
     - match:
         - uri:

@@ -16,7 +16,7 @@ spec:
         global:
           image:
             # HPE: harbor.ingress.pcai0201.fr2.hpecolo.net
-            registry: harbor.localhost
+            registry: harbor.2.28.18.215.sslip.io
             pullSecrets:
               - name: harbor-pull-secret
         image:
@@ -27,7 +27,7 @@ spec:
           NUMBER_OF_PDF_PAGES_IN_PARALLEL: 10
           UNIQUE_INSTALLATION_ID: hpe-hosted-trial
           # HPE: https://id.ingress.pcai0201.fr2.hpecolo.net
-          ZITADEL_ISSUER: http://id.localhost
+          ZITADEL_ISSUER: https://id.2.28.18.215.sslip.io
           ZITADEL_PROJECT_ID: hpe-hosted-trial
           S3_BUCKET_ENDPOINT: http://rustfs-svc.unique.svc.cluster.local:9000
           S3_BUCKET_NAME: unique-ingestion-bucket
@@ -37,7 +37,7 @@ spec:
             name: unique
             namespace: unique
           # HPE: api.ingress.pcai0201.fr2.hpecolo.net
-          hostname: api.localhost
+          hostname: api.2.28.18.215.sslip.io
         internalServices:
           dependencies:
             chat:
