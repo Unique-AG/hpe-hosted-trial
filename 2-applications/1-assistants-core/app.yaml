@@ -24,10 +24,10 @@ spec:
           useDigest: false
         env:
           NODE_EXTRA_CA_CERTS: /etc/ssl/postgres/ca.crt
-          UNIQUE_INSTALLATION_ID: hpe-hosted-trial
+          UNIQUE_INSTALLATION_ID: 388734592988807375
           # HPE: https://id.ingress.pcai0201.fr2.hpecolo.net
           ZITADEL_ISSUER: https://id.2.28.18.215.sslip.io
-          ZITADEL_PROJECT_ID: __ZITADEL_PROJECT_ID__
+          ZITADEL_PROJECT_ID: 388734592988807375
           OPENAI_PROVIDER: litellm
           QDRANT_URL: http://qdrant.unique.svc.cluster.local:6333
           SEARCH_PROXY_URL: http://search-proxy.unique.svc.cluster.local:8080

@@ -24,10 +24,10 @@ spec:
           useDigest: false
         env:
           NODE_EXTRA_CA_CERTS: /etc/ssl/postgres/ca.crt
-          UNIQUE_INSTALLATION_ID: hpe-hosted-trial
+          UNIQUE_INSTALLATION_ID: 388734592988807375
           # HPE: https://id.ingress.pcai0201.fr2.hpecolo.net
           ZITADEL_ISSUER: https://id.2.28.18.215.sslip.io
-          ZITADEL_PROJECT_ID: __ZITADEL_PROJECT_ID__
+          ZITADEL_PROJECT_ID: 388734592988807375
           # HPE: https://unique.ingress.pcai0201.fr2.hpecolo.net/admin
           ADMIN_APP_URL: https://unique.2.28.18.215.sslip.io/admin
           # HPE: https://api.ingress.pcai0201.fr2.hpecolo.net/apps
@@ -47,7 +47,7 @@ spec:
           STATIC_TAB_NAME: Unique HPE
           # HPE: https://api.ingress.pcai0201.fr2.hpecolo.net/configuration
           THEME_BACKEND_API_URL: https://api.2.28.18.215.sslip.io/configuration
-          ZITADEL_CLIENT_ID: __ZITADEL_CLIENT_ID__
+          ZITADEL_CLIENT_ID: 388734593123025103
         volumes:
           - name: postgres-ca
             secret:
