@@ -2,5 +2,6 @@
 .hostname
 .local/mirror-cache/
 .local/hetzner/state/
+.local/zitadel-bootstrap/
 superuser.pem
 superuser.pub

@@ -10,7 +10,21 @@ The current compatibility baseline is Unique `2026.32.4`.
 - `bootstrap.application.yaml` bootstraps `1-system`; the `2-applications`
   source remains commented until that layer is enabled.
 - `1-system/` contains ArgoCD `ApplicationSet` inputs for cluster dependencies.
-- `2-applications/` contains Unique services and their routes.
+- `2-applications/` contains Unique services and their routes. ZITADEL project
+  and frontend client IDs are operator-populated placeholders until
+  `setup-zitadel.sh` completes.
+- `terraform/zitadel-bootstrap/` is the tracked operator-side Terraform module.
+  It uses the official `zitadel/zitadel` provider to reconcile the Helm-created
+  `Cluster IAM` organization, Unique Apps project and roles, tenant grant,
+  Standalone Apps OIDC client, and scope-management machine/PAT. The module
+  exposes only non-secret IDs plus a sensitive PAT output.
+- `setup-zitadel.sh` is the sole bootstrap entrypoint. It reads the Helm
+  first-instance PAT from `unique/iam-admin-pat` unless an operator provides a
+  protected env/file override, keeps Terraform state and `TF_DATA_DIR` under
+  ignored `.local/zitadel-bootstrap` (mode 0700/0600), and refuses ambiguous
+  duplicate objects or missing state. It never opens or syncs the Argo
+  `application-secrets` gate; `--seal` is explicitly limited to the
+  node-scope-management Secret.
 - `versions.yaml` is the image-version source for the HPE Harbor mirror.
 
 ## ArgoCD
@@ -33,7 +47,11 @@ enable the same `applicationsetcontroller.enable.progressive.syncs` parameter.
 
 ## Local operation
 
-- Never create or regenerate SealedSecret manifests or encrypted secret values.
+- Never create or regenerate SealedSecret manifests or encrypted secret values
+  implicitly. `setup-zitadel.sh --seal` is the sole explicit exception and is
+  limited to the node-scope-management Secret; it replaces the existing stale
+  one-key output only with `--seal`, and requires `--rotate-secret` for an
+  output that already contains `ZITADEL_ROOT_ORG_ID`.
 - When changing a Secret, update both the plaintext Secret manifest and its
   `.secret.yaml.example` counterpart; the user runs the sealing mechanism.
 - Never start or test the local kind cluster unless the user explicitly asks in

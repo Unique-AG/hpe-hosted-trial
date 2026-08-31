@@ -6,9 +6,10 @@ Deploy Unique to an HPE Private Cloud AI Kubernetes cluster with Argo CD.
 
 Before starting, provide:
 
-- A Kubernetes cluster with Argo CD installed in the `unique` namespace
-- `kubectl`, `argocd`, `kubeseal`, `helm`, `git`, `yq`, `rg`, `oras`, and
-  `skopeo`
+- A Kubernetes cluster with Argo CD installed in the `unique` namespace, and a
+  kubeconfig context with read access to `unique` Secrets and Applications
+- `kubectl`, `argocd`, `kubeseal`, `helm`, `terraform` (1.5+), `git`, `yq`,
+  `jq`, `curl`, `rg`, `oras`, and `skopeo`
 - Credentials for every source registry
 - Access to `charts.external-secrets.io` and `ghcr.io/external-secrets`
 - DNS records for the configured ingress domains
@@ -65,8 +66,11 @@ manual `secrets` gate.
 ### 4. Seal and sync the system secrets
 
 Copy every required `*.secret.yaml.example` file to the adjacent
-`*.secret.yaml`, then fill in the real values. Plaintext `*.secret.yaml` files
-are ignored by Git.
+`*.secret.yaml`, then fill in the real values. Leave
+`2-applications/1-node-scope-management/node-scope-management.secret.yaml.example`
+un-copied; `setup-zitadel.sh` creates and populates that ignored file after the
+ZITADEL first-instance PAT is available. Plaintext `*.secret.yaml` files are
+ignored by Git.
 
 Application database, RabbitMQ, RustFS, and LiteLLM credentials are generated
 automatically from their system Secrets. Do not duplicate those values in
@@ -99,13 +103,9 @@ at this point, but the application rollout remains paused at the OutOfSync
 `application-secrets` gate. The `connection-secrets` Application derives
 application and LiteLLM connection Secrets during the infrastructure rollout.
 
-### 6. Mirror artifacts and sync application secrets
+### 6. Mirror artifacts
 
-Set `ZITADEL_ROOT_ORG_ID` in
-`2-applications/1-node-scope-management/node-scope-management.secret.yaml` to
-the generated ID of the `Cluster IAM` organization before sealing the
-application secrets.
-
+Populate the HPE Harbor mirror before bootstrapping the application references.
 The mirror script authenticates its tools against the destination Harbor using
 `harbor-password-secret`. When initially building the delivery cache, the
 operator also needs credentials for the private source registries referenced by
@@ -132,11 +132,80 @@ The cache contains the complete proprietary Unique image set for the release.
 It can be transferred with the deployment bundle so the customer can populate
 `library/images` without access to Unique Azure registries. Public images remain
 configured to pull from their public sources.
-Commit and push those changes before opening the application gate:
+
+Do not sync `application-secrets` or commit the mirror changes yet; the next
+step updates the ZITADEL-dependent manifests before the reviewed commit.
+
+### 7. Bootstrap ZITADEL operator resources
+
+Wait for the ZITADEL Application to be Healthy and for the
+`application-secrets` Application to exist as the closed manual gate. The
+pinned ZITADEL Helm chart preserves the initial `root@cluster-iam.localhost`
+human console user and also creates the `iam-admin` first-instance machine. The
+initial human password is a bootstrap credential and must be changed immediately
+after the first login; retain that required password-change behavior. The
+machine PAT is kept in `unique/iam-admin-pat` under key `pat`.
+
+Run the bootstrap from the repository root:
 
 ```bash
-git add versions.yaml 1-system 2-applications
-git commit -m "chore(release): record mirrored artifacts"
+./setup-zitadel.sh
+```
+
+The script derives `https://id.<configured-domain>` and
+`https://unique.<configured-domain>` from `versions.yaml`. Set
+`ZITADEL_URL` and/or `UNIQUE_FRONTEND_BASE_URL` for a different ingress. The
+OIDC redirect and post-logout defaults are the four deployed frontend paths
+(`/chat`, `/admin`, `/knowledge-upload`, and `/theme`); override either list
+with a comma-separated `ZITADEL_REDIRECT_URIS` or
+`ZITADEL_POST_LOGOUT_REDIRECT_URIS` value. Set `ZITADEL_TARGET_ORG_NAME` to
+change the default `HPE Hosted Trial` target organization.
+
+OIDC `dev_mode` defaults to `false` for HTTPS and `true` only for an HTTP/local
+endpoint. Set `ZITADEL_OIDC_DEV_MODE=true|false` only when an explicit override
+is reviewed. Use `ZITADEL_ACCESS_TOKEN` or a mode-restricted
+`ZITADEL_ACCESS_TOKEN_FILE` only when the Kubernetes Secret is unavailable.
+Terraform state and its `TF_DATA_DIR` are kept below the ignored
+`.local/zitadel-bootstrap` directory with restrictive permissions; the ignored
+plaintext node-scope-management Secret is mode 0600. The script patches runtime
+placeholders and writes `ZITADEL_ROOT_ORG_ID` and the generated `ZITADEL_PAT`
+only to that ignored Secret and restrictive Terraform state; it never prints or
+writes a PAT to tracked files. It refuses to continue if exact-name duplicates
+or missing state could create duplicate managed resources.
+
+To inspect an already bootstrapped deployment without applying, patching, or
+sealing anything, run:
+
+```bash
+./setup-zitadel.sh --check
+```
+
+Review the Terraform result and the generated ignored plaintext Secret. Then
+explicitly authorize sealing only `node-scope-management`:
+
+```bash
+./setup-zitadel.sh --seal
+```
+
+The existing tracked `node-scope-management.sealed-secret.yaml` is a stale
+one-key SealedSecret, so `--seal` explicitly permits replacing it to add the
+missing `ZITADEL_ROOT_ORG_ID`. If a SealedSecret already contains
+`ZITADEL_ROOT_ORG_ID`, `--seal` refuses to rotate it; use
+`./setup-zitadel.sh --seal --rotate-secret` only after a separately reviewed,
+deliberate rotation. `--rotate-secret` requires `--seal`. Neither mode syncs or
+opens the `application-secrets` Argo CD gate. The generated PAT is never
+printed; it remains only in the ignored plaintext Secret and Terraform state.
+
+### 8. Review, commit, push, and sync application secrets
+
+Review the tracked manifest, Terraform, mirror, and SealedSecret changes. Do
+not add the ignored plaintext node-scope-management Secret or any Terraform
+state, and verify that no PAT appears in the staged diff. Commit and push the
+reviewed changes before opening the application gate:
+
+```bash
+git add versions.yaml 1-system 2-applications setup-zitadel.sh terraform README.md AGENT.md .gitignore .local/test-application-config.sh
+git commit -m "chore(release): bootstrap HPE ZITADEL"
 git push
 argocd app sync application-secrets
 ```
@@ -145,7 +214,7 @@ The manual sync applies the application SealedSecrets. After they become
 healthy, the existing `applications` ApplicationSet advances from the secrets
 gate and progressively syncs the remaining application groups.
 
-### 7. Wait for the application rollout
+### 9. Wait for the application rollout
 
 Watch Argo CD and the workloads:
 
@@ -158,7 +227,7 @@ Wait for the automatically enabled prerequisite, core, worker, and frontend
 applications to become Synced and Healthy. Specialist applications are
 intentionally paused and must be synced manually when required.
 
-### 8. Test Unique
+### 10. Test Unique
 
 Verify that no required pod is Pending or crash-looping:
 
@@ -205,9 +274,10 @@ The Hetzner option provisions one amd64 CCX43 server with k3s, Cilium, gVisor,
 Istio, Argo CD and Caddy-managed HTTPS. It uses the metrics-server component
 packaged and managed by k3s. Its state and kubeconfig are kept under the ignored
 `.local/hetzner/state` directory. The local disk is intended for an
-ephemeral trial. Change the initial Zitadel root password immediately because
-the endpoint is public. The placeholder NVIDIA predictor URLs are intentionally
-not rewritten; configure reachable model endpoints before testing inference.
+ephemeral trial. Protect and rotate the generated IAM-admin credentials because
+the ZITADEL endpoint is public. The placeholder NVIDIA predictor URLs are
+intentionally not rewritten; configure reachable model endpoints before testing
+inference.
 
 ## Use custom models with Unique
 

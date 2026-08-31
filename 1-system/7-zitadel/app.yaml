@@ -226,7 +226,22 @@ spec:
                   AllowRegister: false
                 Org:
                   Name: Cluster IAM
+                  # Preserve the initial console user for operator access. Change
+                  # this bootstrap password immediately after the first login; it
+                  # is required by ZITADEL's initial-human-user setup semantics.
                   Human:
                     Username: root@cluster-iam.localhost
-                    Password: "RootPassword1!" # must be changed on first login so not a problem
+                    Password: "RootPassword1!"
+                    PasswordChangeRequired: true
+                  # The chart setup hook also creates this IAM_OWNER machine and
+                  # writes its PAT to unique/iam-admin-pat for operator bootstrap.
+                  Machine:
+                    Machine:
+                      Username: iam-admin
+                      Name: Automatically Initialized IAM Admin
+                    MachineKey:
+                      ExpirationDate: '2029-01-01T00:00:00Z'
+                      Type: 1
+                    Pat:
+                      ExpirationDate: '2029-01-01T00:00:00Z'
             configSecretName: zitadel-secret-config

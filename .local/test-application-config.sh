@@ -3,6 +3,10 @@
 set -euo pipefail
 
 REPOSITORY_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+command -v rg >/dev/null 2>&1 || {
+  printf 'FAIL: ripgrep (rg) is required by the repository validation tests\n' >&2
+  exit 1
+}
 CONFIGURED_DOMAIN="$(yq -r '.harbor.registry' "${REPOSITORY_DIR}/versions.yaml" | sed 's/^harbor\.//')"
 if [[ "${CONFIGURED_DOMAIN}" == "localhost" ]]; then
   CONFIGURED_SCHEME=http
@@ -134,7 +138,8 @@ assert_yaml_value "2-applications/2-node-webhook-worker/app.yaml" '.spec.source.
 assert_yaml_value "2-applications/1-node-scope-management/app.yaml" '.spec.source.helm.valuesObject.env.CORS_ALLOWED_ORIGINS' ""
 assert_yaml_value "2-applications/1-node-scope-management/app.yaml" '.spec.source.helm.valuesObject.env.MAX_HEAP_MB' "700"
 assert_yaml_value "2-applications/1-node-scope-management/app.yaml" '.spec.source.helm.valuesObject.env.ZITADEL_HOST' "${CONFIGURED_SCHEME}://id.${CONFIGURED_DOMAIN}"
-assert_yaml_value "2-applications/1-node-scope-management/app.yaml" '.spec.source.helm.valuesObject.env.ZITADEL_ROOT_ORG_ID' "overridden-by-node-scope-management-secrets"
+assert_yaml_value "2-applications/1-node-scope-management/app.yaml" '.spec.source.helm.valuesObject.env.ZITADEL_ROOT_ORG_ID // ""' ""
+assert_yaml_value "2-applications/1-node-scope-management/app.yaml" '.spec.source.helm.valuesObject.extraEnvSecrets[]' "node-scope-management-secrets"
 assert_yaml_value "2-applications/1-node-scope-management/node-scope-management.secret.yaml.example" '.stringData.ZITADEL_ROOT_ORG_ID' ""
 assert_yaml_value "2-applications/4-client-insights-exporter/app.yaml" '.spec.source.helm.valuesObject.env.MAX_HEAP_MB' "200"
 assert_yaml_value "2-applications/4-client-insights-exporter/app.yaml" '.spec.source.helm.valuesObject.env.CLIENT_INSIGHT_SERVER_URL' "https://gateway.unique.app/insights/client-insights"
@@ -161,4 +166,160 @@ if [ -f "$REPOSITORY_DIR/1-system/7-zitadel/zitadel.service-account.yaml" ]; the
   exit 1
 fi
 
-printf 'PASS: application configuration is compatible with the pinned charts\n'
+# Operator-side ZITADEL bootstrap invariants. These checks deliberately inspect
+# structure and placeholders only; they never contact a cluster or reveal a PAT.
+bash -n "$REPOSITORY_DIR/setup-zitadel.sh"
+assert_file_contains "setup-zitadel.sh" 'kubectl --namespace unique get secret iam-admin-pat'
+assert_file_contains "setup-zitadel.sh" 'TF_DATA_DIR=.*STATE_DIR.*tfdata'
+assert_file_contains "setup-zitadel.sh" 'detailed-exitcode'
+assert_file_contains "setup-zitadel.sh" 'application-secrets'
+assert_file_contains "setup-zitadel.sh" 'sync.*!= OutOfSync'
+assert_file_contains "setup-zitadel.sh" 'refusing rotation'
+assert_file_contains "setup-zitadel.sh" '\-\-rotate-secret requires \-\-seal'
+assert_file_contains "setup-zitadel.sh" 'encrypted_keys'
+assert_file_contains "setup-zitadel.sh" 'has_root_org_id'
+assert_file_contains "setup-zitadel.sh" 'The generated PAT is never printed'
+if rg -q "ZITADEL_PAT=%s" "$REPOSITORY_DIR/setup-zitadel.sh"; then
+  printf 'FAIL: setup-zitadel.sh must never print the generated PAT\n' >&2
+  exit 1
+fi
+if rg -q 'argocd[[:space:]]+app[[:space:]]+sync' "$REPOSITORY_DIR/setup-zitadel.sh"; then
+  printf 'FAIL: setup-zitadel.sh must never sync an Argo CD Application\n' >&2
+  exit 1
+fi
+assert_file_contains "terraform/zitadel-bootstrap/versions.tf" 'source = "zitadel/zitadel"'
+assert_file_contains "terraform/zitadel-bootstrap/versions.tf" 'version = "= 3\.4\.0"'
+assert_file_contains "terraform/zitadel-bootstrap/main.tf" 'OIDC_APP_TYPE_WEB'
+assert_file_contains "terraform/zitadel-bootstrap/main.tf" 'OIDC_AUTH_METHOD_TYPE_NONE'
+assert_file_contains "terraform/zitadel-bootstrap/main.tf" 'OIDC_TOKEN_TYPE_JWT'
+assert_file_contains "terraform/zitadel-bootstrap/main.tf" 'effective_oidc_dev_mode'
+assert_file_contains "terraform/zitadel-bootstrap/main.tf" 'dev_mode                    = local.effective_oidc_dev_mode'
+assert_file_contains "terraform/zitadel-bootstrap/variables.tf" 'variable "oidc_dev_mode"'
+assert_file_contains "terraform/zitadel-bootstrap/variables.tf" 'default     = false'
+assert_file_contains "setup-zitadel.sh" 'ZITADEL_OIDC_DEV_MODE'
+assert_file_contains "terraform/zitadel-bootstrap/main.tf" 'id_token_userinfo_assertion = true'
+role_count="$(rg -c '^    "(chat|admin|connector)\.' \
+  "$REPOSITORY_DIR/terraform/zitadel-bootstrap/main.tf")"
+if [ "$role_count" != 13 ]; then
+  printf 'FAIL: expected all 13 init-zitadel project roles, found %s\n' "$role_count" >&2
+  exit 1
+fi
+assert_yaml_value "1-system/7-zitadel/app.yaml" \
+  '.spec.sources[1].helm.valuesObject.zitadel.configmapConfig.FirstInstance.Org.Human.Username' \
+  "root@cluster-iam.localhost"
+assert_yaml_value "1-system/7-zitadel/app.yaml" \
+  '.spec.sources[1].helm.valuesObject.zitadel.configmapConfig.FirstInstance.Org.Human.Password' \
+  "RootPassword1!"
+assert_yaml_value "1-system/7-zitadel/app.yaml" \
+  '.spec.sources[1].helm.valuesObject.zitadel.configmapConfig.FirstInstance.Org.Human.PasswordChangeRequired // false' \
+  "true"
+assert_file_contains "1-system/7-zitadel/app.yaml" 'password immediately after the first login'
+assert_yaml_value "1-system/7-zitadel/app.yaml" \
+  '.spec.sources[1].helm.valuesObject.zitadel.configmapConfig.FirstInstance.Org.Machine.Pat.ExpirationDate' \
+  "2029-01-01T00:00:00Z"
+project_files="$(rg -l --glob 'app.yaml' '^[[:space:]]*ZITADEL_PROJECT_ID:' \
+  "$REPOSITORY_DIR/2-applications" || true)"
+project_manifest_count="$(printf '%s\n' "$project_files" | sed '/^$/d' | wc -l | tr -d ' ')"
+if [ "$project_manifest_count" -ne 24 ]; then
+  printf 'FAIL: expected 24 application ZITADEL_PROJECT_ID values, found %s\n' "$project_manifest_count" >&2
+  exit 1
+fi
+project_placeholder_count=0
+while IFS= read -r file; do
+  [ -n "$file" ] || continue
+  value="$(sed -nE 's/^[[:space:]]*ZITADEL_PROJECT_ID:[[:space:]]*([^[:space:]]+).*$/\1/p' "$file" | head -n1)"
+  case "$value" in
+    __ZITADEL_PROJECT_ID__|change-me|hpe-hosted-trial)
+      project_placeholder_count=$((project_placeholder_count + 1))
+      ;;
+  esac
+done <<< "$project_files"
+if [ "$project_manifest_count" -eq 0 ]; then
+  printf 'FAIL: no application ZITADEL_PROJECT_ID values were found\n' >&2
+  exit 1
+fi
+if [ "$project_placeholder_count" -ne 0 ] && [ "$project_placeholder_count" -ne "$project_manifest_count" ]; then
+  printf 'FAIL: application ZITADEL_PROJECT_ID values are in a mixed placeholder/populated state\n' >&2
+  exit 1
+fi
+project_values="$(printf '%s\n' "$project_files" | while IFS= read -r file; do
+  [ -n "$file" ] || continue
+  yq -r '.spec.source.helm.valuesObject.env.ZITADEL_PROJECT_ID // ""' "$file"
+done)"
+project_value_count="$(printf '%s\n' "$project_values" | sed '/^$/d' | wc -l | tr -d ' ')"
+project_unique_count="$(printf '%s\n' "$project_values" | sort -u | sed '/^$/d' | wc -l | tr -d ' ')"
+if [ "$project_placeholder_count" -eq 0 ]; then
+  if [ "$project_value_count" != "$project_manifest_count" ] || [ "$project_unique_count" != 1 ]; then
+    printf 'FAIL: populated application ZITADEL_PROJECT_ID values are inconsistent\n' >&2
+    exit 1
+  fi
+  expected_project_id="$(printf '%s\n' "$project_values" | sed '/^$/d' | head -n1)"
+  case "$expected_project_id" in
+    ''|__ZITADEL_PROJECT_ID__|change-me|hpe-hosted-trial)
+      printf 'FAIL: populated application ZITADEL_PROJECT_ID is still a placeholder\n' >&2
+      exit 1
+      ;;
+  esac
+else
+  expected_project_id=__ZITADEL_PROJECT_ID__
+fi
+
+frontend_files="2-applications/3-admin-app/app.yaml
+2-applications/3-chat-app/app.yaml
+2-applications/3-knowledge-upload-app/app.yaml
+2-applications/3-theme-app/app.yaml"
+frontend_values="$(printf '%s\n' "$frontend_files" | while IFS= read -r file; do
+  yq -r '.spec.source.helm.valuesObject.env.ZITADEL_CLIENT_ID // ""' "$REPOSITORY_DIR/$file"
+done)"
+frontend_placeholder_count=0
+while IFS= read -r value; do
+  case "$value" in
+    __ZITADEL_CLIENT_ID__|change-me)
+      frontend_placeholder_count=$((frontend_placeholder_count + 1))
+      ;;
+  esac
+done <<< "$frontend_values"
+if [ "$frontend_placeholder_count" -ne 0 ] && [ "$frontend_placeholder_count" -ne 4 ]; then
+  printf 'FAIL: frontend ZITADEL_CLIENT_ID values are in a mixed placeholder/populated state\n' >&2
+  exit 1
+fi
+frontend_value_count="$(printf '%s\n' "$frontend_values" | sed '/^$/d' | wc -l | tr -d ' ')"
+frontend_unique_count="$(printf '%s\n' "$frontend_values" | sort -u | sed '/^$/d' | wc -l | tr -d ' ')"
+if [ "$frontend_placeholder_count" -eq 0 ]; then
+  if [ "$frontend_value_count" != 4 ] || [ "$frontend_unique_count" != 1 ]; then
+    printf 'FAIL: populated frontend ZITADEL_CLIENT_ID values are inconsistent\n' >&2
+    exit 1
+  fi
+  case "$(printf '%s\n' "$frontend_values" | sed '/^$/d' | head -n1)" in
+    ''|__ZITADEL_CLIENT_ID__|change-me)
+      printf 'FAIL: populated frontend ZITADEL_CLIENT_ID is still a placeholder\n' >&2
+      exit 1
+      ;;
+  esac
+fi
+
+plugin_project_id="$(yq -r '.config.zitadel_project_id // ""' \
+  "$REPOSITORY_DIR/2-applications/0-kong-config/jwt-auth.kong-cluster-plugin.yaml")"
+if [ "$expected_project_id" = "__ZITADEL_PROJECT_ID__" ]; then
+  case "$plugin_project_id" in
+    __ZITADEL_PROJECT_ID__|change-me|hpe-hosted-trial) ;;
+    *)
+      printf 'FAIL: Kong and application project IDs are in a mixed placeholder/populated state\n' >&2
+      exit 1
+      ;;
+  esac
+elif [ "$plugin_project_id" != "$expected_project_id" ]; then
+  printf 'FAIL: Kong project ID disagrees with populated application project IDs\n' >&2
+  exit 1
+fi
+if ! git -C "$REPOSITORY_DIR" check-ignore -q .local/zitadel-bootstrap/; then
+  printf 'FAIL: Terraform state directory must be ignored\n' >&2
+  exit 1
+fi
+if git -C "$REPOSITORY_DIR" ls-files --error-unmatch \
+  2-applications/1-node-scope-management/node-scope-management.secret.yaml >/dev/null 2>&1; then
+  printf 'FAIL: node-scope-management plaintext Secret must not be tracked\n' >&2
+  exit 1
+fi
+
+printf 'PASS: application configuration and ZITADEL bootstrap structure are valid\n'
