@@ -196,11 +196,14 @@ export HCLOUD_TOKEN='<token>'
 
 `up.sh` applies the bootstrap Application; the rollout pauses at the manually
 synced `secrets` Application. Commit and push hostname and sealed-secret changes
-before opening that gate. A fresh cluster has a new sealing key.
+before opening that gate. A fresh cluster has a new sealing key. `.hostname` is
+ignored local state used by `set-hostname.sh` to remember which suffix it should
+replace; the resulting deployment-file changes are what should be committed.
 
 The Hetzner option provisions one amd64 CCX43 server with k3s, Cilium, gVisor,
-Istio, Argo CD and Caddy-managed HTTPS. Its state and kubeconfig are kept under
-the ignored `.local/hetzner/state` directory. The local disk is intended for an
+Istio, Argo CD and Caddy-managed HTTPS. It uses the metrics-server component
+packaged and managed by k3s. Its state and kubeconfig are kept under the ignored
+`.local/hetzner/state` directory. The local disk is intended for an
 ephemeral trial. Change the initial Zitadel root password immediately because
 the endpoint is public. The placeholder NVIDIA predictor URLs are intentionally
 not rewritten; configure reachable model endpoints before testing inference.

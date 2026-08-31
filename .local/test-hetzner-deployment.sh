@@ -26,8 +26,19 @@ assert_file_contains "${REPOSITORY_DIR}/up.sh" 'deploy\.sh'
 assert_file_contains "${REPOSITORY_DIR}/seal-secrets.sh" 'tls\\\.crt'
 assert_file_contains "${REPOSITORY_DIR}/set-hostname.sh" 'service_names'
 assert_file_contains "${HETZNER_DIR}/provision.sh" 'HETZNER_SERVER_TYPE:-ccx43'
+assert_file_contains "${HETZNER_DIR}/deploy.sh" 'rollout status deployment/metrics-server'
 assert_file_contains "${HETZNER_DIR}/deploy.sh" 'reverse_proxy 127\.0\.0\.1:30080'
+assert_file_contains "${HETZNER_DIR}/common.sh" '409|422'
 assert_file_contains "${HETZNER_DIR}/cloud-init.yaml" 'containerd\.runtimes\.runsc'
+
+git -C "${REPOSITORY_DIR}" check-ignore -q .hostname || {
+  printf 'FAIL: .hostname must be ignored local state\n' >&2
+  exit 1
+}
+if rg -q 'helm upgrade --install metrics-server' "${HETZNER_DIR}/deploy.sh"; then
+  printf 'FAIL: Hetzner must use the metrics-server packaged with k3s\n' >&2
+  exit 1
+fi
 
 git -C "${REPOSITORY_DIR}" diff --exit-code -- \
   .local/kind/up.sh .local/kind/down.sh .local/kind/seal-secrets.sh

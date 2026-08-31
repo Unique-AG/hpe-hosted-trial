@@ -77,15 +77,33 @@ hcloud_status() {
 hcloud_delete() {
   local path="$1"
   local status
+  local attempt
 
-  status="$(hcloud_status DELETE "${path}")"
-  case "${status}" in
-    200|201|202|204|404) ;;
-    *)
-      printf 'Hetzner API deletion failed for %s with HTTP %s\n' "${path}" "${status}" >&2
-      return 1
-      ;;
-  esac
+  # Hetzner can report a server as deleted shortly before its firewall and SSH
+  # key attachments are released. Retry those temporary "resource in use"
+  # responses so teardown remains idempotent.
+  for attempt in {1..60}; do
+    status="$(hcloud_status DELETE "${path}")"
+    case "${status}" in
+      200|201|202|204|404)
+        return 0
+        ;;
+      409|422)
+        if (( attempt < 60 )); then
+          if (( attempt == 1 )); then
+            printf 'Waiting for Hetzner to release %s (HTTP %s)...\n' \
+              "${path}" "${status}" >&2
+          fi
+          sleep 2
+          continue
+        fi
+        ;;
+      *) break ;;
+    esac
+  done
+
+  printf 'Hetzner API deletion failed for %s with HTTP %s\n' "${path}" "${status}" >&2
+  return 1
 }
 
 ssh_arguments() {

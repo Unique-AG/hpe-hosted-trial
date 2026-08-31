@@ -8,7 +8,6 @@ source "${SCRIPT_DIR}/common.sh"
 ARGO_CD_CHART_VERSION="${ARGO_CD_CHART_VERSION:-10.3.3}"
 CILIUM_CHART_VERSION="${CILIUM_CHART_VERSION:-1.20.1}"
 ISTIO_VERSION="${ISTIO_VERSION:-1.30.3}"
-METRICS_SERVER_CHART_VERSION="${METRICS_SERVER_CHART_VERSION:-3.13.0}"
 NFS_SERVER_PROVISIONER_CHART_VERSION="${NFS_SERVER_PROVISIONER_CHART_VERSION:-1.8.0}"
 NFS_STORAGE_SIZE="${NFS_STORAGE_SIZE:-100Gi}"
 
@@ -38,6 +37,8 @@ helm upgrade --install cilium cilium/cilium \
 kubectl -n kube-system rollout status daemonset/cilium --timeout=10m
 kubectl -n kube-system rollout status deployment/cilium-operator --timeout=10m
 kubectl wait --for=condition=Ready nodes --all --timeout=10m
+# k3s installs and manages metrics-server as a packaged component.
+kubectl -n kube-system rollout status deployment/metrics-server --timeout=10m
 
 kubectl create namespace unique --dry-run=client -o yaml | kubectl apply -f -
 kubectl apply -f "${SCRIPT_DIR}/standard-storage-class.yaml"
@@ -60,17 +61,6 @@ helm upgrade --install nfs-server-provisioner \
   --set storageClass.name=gl4f-filesystem \
   --wait \
   --timeout 5m
-
-helm repo add metrics-server \
-  https://kubernetes-sigs.github.io/metrics-server/ \
-  --force-update >/dev/null
-helm repo update metrics-server >/dev/null
-helm upgrade --install metrics-server metrics-server/metrics-server \
-  --version "${METRICS_SERVER_CHART_VERSION}" \
-  --namespace kube-system \
-  --set 'args[0]=--kubelet-insecure-tls' \
-  --wait \
-  --timeout 10m
 
 helm repo add istio https://istio-release.storage.googleapis.com/charts \
   --force-update >/dev/null

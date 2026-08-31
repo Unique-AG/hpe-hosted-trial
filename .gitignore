@@ -1,4 +1,5 @@
 **/*.secret.yaml
+.hostname
 .local/mirror-cache/
 .local/hetzner/state/
 superuser.pem
