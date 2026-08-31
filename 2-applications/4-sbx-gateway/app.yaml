@@ -30,7 +30,21 @@ spec:
           # HPE: https://id.ingress.pcai0201.fr2.hpecolo.net
           ZITADEL_ISSUER: https://id.2.28.18.215.sslip.io
           ZITADEL_PROJECT_ID: "388746568834023667"
+        # Helm replaces the chart's default lists when these are overridden.
+        # Keep the gateway configuration and writable runtime directories.
         volumes:
+          - name: egress-config
+            configMap:
+              name: sbx-gateway-config
+          - name: egress-ca
+            secret:
+              secretName: egress-mitm-ca
+          - name: egress-audit
+            emptyDir: {}
+          - name: mitmproxy-confdir
+            emptyDir: {}
+          - name: tmp
+            emptyDir: {}
           - name: postgres-ca
             secret:
               secretName: postgres-ca
@@ -38,6 +52,18 @@ spec:
                 - key: ca.crt
                   path: ca.crt
         volumeMounts:
+          - name: egress-config
+            mountPath: /etc/egress-gateway
+            readOnly: true
+          - name: egress-ca
+            mountPath: /run/egress-ca
+            readOnly: true
+          - name: egress-audit
+            mountPath: /var/log/egress-gateway
+          - name: mitmproxy-confdir
+            mountPath: /home/app/.mitmproxy
+          - name: tmp
+            mountPath: /tmp
           - name: postgres-ca
             mountPath: /etc/ssl/postgres/ca.crt
             subPath: ca.crt

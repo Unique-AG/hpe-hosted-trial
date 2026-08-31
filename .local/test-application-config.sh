@@ -63,6 +63,9 @@ assert_file_contains "1-system/5-connection-secrets/node-chat-connections.extern
 assert_file_contains "1-system/5-connection-secrets/node-chat-connections.external-secret.yaml" 'key.*\{\{ \.litellmMasterKey \}\}'
 assert_yaml_value "2-applications/1-node-ingestion/app.yaml" '.spec.source.helm.valuesObject.env.USE_OPENAI_V1_EMBEDDINGS' "true"
 assert_yaml_value "2-applications/1-node-chat/app.yaml" '.spec.source.helm.valuesObject.env.FEATURE_FLAG_USE_OPENAI_V1_13819' "true"
+assert_yaml_value "2-applications/1-ingestor/app.yaml" '.spec.source.helm.valuesObject.resources.requests.cpu' "500m"
+assert_yaml_value "2-applications/1-ingestor/app.yaml" '.spec.source.helm.valuesObject.volumeMounts | map(.name) | join(",")' "tmp-volume,artifacts-cache,postgres-ca"
+assert_yaml_value "2-applications/4-sbx-gateway/app.yaml" '.spec.source.helm.valuesObject.volumeMounts | map(.name) | join(",")' "egress-config,egress-ca,egress-audit,mitmproxy-confdir,tmp,postgres-ca"
 assert_file_contains "setup-models.sh" 'UNIQUE_ACCESS_TOKEN_FILE'
 assert_file_contains "setup-models.sh" 'companyMetaUpdate'
 assert_file_contains "setup-models.sh" 'markForReembedding'

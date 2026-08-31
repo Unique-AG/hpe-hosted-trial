@@ -22,6 +22,13 @@ spec:
         image:
           repository: library/images/ingestor
           useDigest: false
+        resources:
+          requests:
+            cpu: 500m
+            memory: 6Gi
+          limits:
+            cpu: 4
+            memory: 8Gi
         env:
           NODE_EXTRA_CA_CERTS: /etc/ssl/postgres/ca.crt
           MAX_CONCURRENT_JOBS_PER_REPLICA: 2
