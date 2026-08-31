@@ -171,10 +171,11 @@ instance selection. Use `ZITADEL_ACCESS_TOKEN` or a mode-restricted
 `ZITADEL_ACCESS_TOKEN_FILE` only when the Kubernetes Secret is unavailable.
 Terraform state and its `TF_DATA_DIR` are kept below the ignored
 `.local/zitadel-bootstrap` directory with restrictive permissions; the ignored
-plaintext node-scope-management Secret is mode 0600. The script patches runtime
-placeholders and writes `ZITADEL_ROOT_ORG_ID` and the generated `ZITADEL_PAT`
-only to that ignored Secret and restrictive Terraform state; it never prints or
-writes a PAT to tracked files. It refuses to continue if exact-name duplicates
+plaintext node-scope-management Secret is mode 0600. The script patches the
+tracked, chart-required `env.ZITADEL_ROOT_ORG_ID` value and writes the same
+organization ID plus the generated `ZITADEL_PAT` to the ignored Secret and
+restrictive Terraform state; it never prints or writes a PAT to tracked files.
+It refuses to continue if exact-name duplicates
 or missing state could create duplicate managed resources.
 
 To inspect an already bootstrapped deployment without applying, patching, or

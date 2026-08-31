@@ -138,7 +138,6 @@ assert_yaml_value "2-applications/2-node-webhook-worker/app.yaml" '.spec.source.
 assert_yaml_value "2-applications/1-node-scope-management/app.yaml" '.spec.source.helm.valuesObject.env.CORS_ALLOWED_ORIGINS' ""
 assert_yaml_value "2-applications/1-node-scope-management/app.yaml" '.spec.source.helm.valuesObject.env.MAX_HEAP_MB' "700"
 assert_yaml_value "2-applications/1-node-scope-management/app.yaml" '.spec.source.helm.valuesObject.env.ZITADEL_HOST' "${CONFIGURED_SCHEME}://id.${CONFIGURED_DOMAIN}"
-assert_yaml_value "2-applications/1-node-scope-management/app.yaml" '.spec.source.helm.valuesObject.env.ZITADEL_ROOT_ORG_ID // ""' ""
 assert_yaml_value "2-applications/1-node-scope-management/app.yaml" '.spec.source.helm.valuesObject.extraEnvSecrets[]' "node-scope-management-secrets"
 assert_yaml_value "2-applications/1-node-scope-management/node-scope-management.secret.yaml.example" '.stringData.ZITADEL_ROOT_ORG_ID' ""
 assert_yaml_value "2-applications/4-client-insights-exporter/app.yaml" '.spec.source.helm.valuesObject.env.MAX_HEAP_MB' "200"
@@ -270,6 +269,22 @@ if [ "$project_placeholder_count" -eq 0 ]; then
   esac
 else
   expected_project_id=__ZITADEL_PROJECT_ID__
+fi
+
+root_org_id="$(yq -r '.spec.source.helm.valuesObject.env.ZITADEL_ROOT_ORG_ID // ""' \
+  "$REPOSITORY_DIR/2-applications/1-node-scope-management/app.yaml")"
+if [ "$expected_project_id" = __ZITADEL_PROJECT_ID__ ]; then
+  [ "$root_org_id" = __ZITADEL_ROOT_ORG_ID__ ] || {
+    printf 'FAIL: root organization ID and project IDs are in a mixed placeholder/populated state\n' >&2
+    exit 1
+  }
+else
+  case "$root_org_id" in
+    ''|__ZITADEL_ROOT_ORG_ID__|"$expected_project_id")
+      printf 'FAIL: populated root organization ID is missing, a placeholder, or the project ID\n' >&2
+      exit 1
+      ;;
+  esac
 fi
 
 frontend_files="2-applications/3-admin-app/app.yaml

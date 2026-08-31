@@ -29,7 +29,7 @@ spec:
           NODE_EXTRA_CA_CERTS: /etc/ssl/postgres/ca.crt
           # HPE: https://unique.ingress.pcai0201.fr2.hpecolo.net
           NEXT_APP_URL: https://unique.2.28.18.215.sslip.io
-          UNIQUE_INSTALLATION_ID: 388734592988807375
+          UNIQUE_INSTALLATION_ID: hpe-hosted-trial
           # HPE: https://id.ingress.pcai0201.fr2.hpecolo.net
           ZITADEL_ISSUER: https://id.2.28.18.215.sslip.io
           ZITADEL_PROJECT_ID: 388734592988807375

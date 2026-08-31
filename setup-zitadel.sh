@@ -375,6 +375,7 @@ validate_repository_reference_shape() {
   local frontend_placeholder_count=0
   local frontend_populated_count=0
   local plugin_value
+  local root_org_value
 
   while IFS= read -r -d '' file; do
     value="$(sed -nE 's/^[[:space:]]*ZITADEL_PROJECT_ID:[[:space:]]*([^[:space:]]+).*$/\1/p' "${file}" | head -n1)"
@@ -413,10 +414,16 @@ validate_repository_reference_shape() {
   [[ "${frontend_placeholder_count}" == 0 || "${frontend_populated_count}" == 0 ]] \
     || die "frontend ZITADEL_CLIENT_ID values are in a mixed placeholder/populated state; refusing to continue"
 
+  root_org_value="$(yq -r '.spec.source.helm.valuesObject.env.ZITADEL_ROOT_ORG_ID // ""' \
+    "${REPOSITORY_DIR}/2-applications/1-node-scope-management/app.yaml")"
+  [[ -n "${root_org_value}" ]] || die "node-scope-management ZITADEL_ROOT_ORG_ID is missing"
+
   plugin_value="$(yq -r '.config.zitadel_project_id // ""' \
     "${REPOSITORY_DIR}/2-applications/0-kong-config/jwt-auth.kong-cluster-plugin.yaml")"
   [[ -n "${plugin_value}" ]] || die "Kong zitadel_project_id is missing"
   if (( project_placeholder_count > 0 )); then
+    [[ "${root_org_value}" == __ZITADEL_ROOT_ORG_ID__ ]] \
+      || die "root organization ID and application project IDs are in a mixed placeholder/populated state"
     [[ "${project_populated_count}" == 0 && \
       ( "${plugin_value}" == __ZITADEL_PROJECT_ID__ || "${plugin_value}" == change-me || \
         "${plugin_value}" == hpe-hosted-trial ) ]] \
@@ -424,6 +431,8 @@ validate_repository_reference_shape() {
     [[ "${frontend_placeholder_count}" == 4 ]] \
       || die "frontend and application ZITADEL IDs are in a mixed placeholder/populated state; refusing to continue"
   else
+    [[ "${root_org_value}" != __ZITADEL_ROOT_ORG_ID__ ]] \
+      || die "root organization ID and application project IDs are in a mixed placeholder/populated state"
     [[ "${plugin_value}" != __ZITADEL_PROJECT_ID__ && \
       "${plugin_value}" != change-me && "${plugin_value}" != hpe-hosted-trial ]] \
       || die "Kong and application project IDs are in a mixed placeholder/populated state; refusing to continue"
@@ -473,7 +482,9 @@ has_repository_placeholders() {
     rg -q --glob 'app.yaml' '^[[:space:]]*ZITADEL_CLIENT_ID:[[:space:]]*(__ZITADEL_CLIENT_ID__|change-me)[[:space:]]*$' \
       "${REPOSITORY_DIR}/2-applications" ||
     rg -q '^[[:space:]]*zitadel_project_id:[[:space:]]*"(__ZITADEL_PROJECT_ID__|change-me|hpe-hosted-trial)"[[:space:]]*$' \
-      "${REPOSITORY_DIR}/2-applications/0-kong-config" \
+      "${REPOSITORY_DIR}/2-applications/0-kong-config" ||
+    [[ "$(yq -r '.spec.source.helm.valuesObject.env.ZITADEL_ROOT_ORG_ID // ""' \
+      "${REPOSITORY_DIR}/2-applications/1-node-scope-management/app.yaml")" == __ZITADEL_ROOT_ORG_ID__ ]] \
     || return 1
 }
 
@@ -583,31 +594,40 @@ check_plan_candidates() {
   done
 }
 
+replace_root_org_placeholder() {
+  local file="${REPOSITORY_DIR}/2-applications/1-node-scope-management/app.yaml"
+  local current
+
+  current="$(yq -r '.spec.source.helm.valuesObject.env.ZITADEL_ROOT_ORG_ID // ""' "${file}")"
+  [[ -n "${current}" ]] || die "ZITADEL_ROOT_ORG_ID is missing from ${file}"
+  if [[ "${current}" != __ZITADEL_ROOT_ORG_ID__ && "${current}" != "${ROOT_ORG_ID}" ]]; then
+    die "unexpected ZITADEL_ROOT_ORG_ID in ${file}; refusing to overwrite ${current}"
+  fi
+  [[ "${current}" == "${ROOT_ORG_ID}" ]] && return 0
+  ZITADEL_BOOTSTRAP_ROOT_ORG_ID="${ROOT_ORG_ID}" yq -i \
+    '.spec.source.helm.valuesObject.env.ZITADEL_ROOT_ORG_ID = strenv(ZITADEL_BOOTSTRAP_ROOT_ORG_ID)' \
+    "${file}"
+}
+
 replace_project_placeholders() {
   local file
-  local temp
   local current
   while IFS= read -r -d '' file; do
-    current="$(sed -nE 's/^[[:space:]]*ZITADEL_PROJECT_ID:[[:space:]]*([^[:space:]]+).*$/\1/p' "${file}" | head -n1)"
+    current="$(yq -r '.spec.source.helm.valuesObject.env.ZITADEL_PROJECT_ID // ""' "${file}")"
     [[ -n "${current}" ]] || continue
     if [[ "${current}" != __ZITADEL_PROJECT_ID__ && "${current}" != change-me &&
       "${current}" != hpe-hosted-trial && "${current}" != "${PROJECT_ID}" ]]; then
       die "unexpected ZITADEL_PROJECT_ID in ${file}; refusing to overwrite ${current}"
     fi
-    if [[ "${current}" == "${PROJECT_ID}" ]]; then
-      continue
-    fi
-    temp="${file}.bootstrap.tmp.$$"
-    TEMP_FILES+=("${temp}")
-    sed -E "s/(__ZITADEL_PROJECT_ID__|change-me|hpe-hosted-trial)/${PROJECT_ID}/g" "${file}" >"${temp}"
-    chmod 644 "${temp}"
-    mv "${temp}" "${file}"
+    [[ "${current}" == "${PROJECT_ID}" ]] && continue
+    ZITADEL_BOOTSTRAP_PROJECT_ID="${PROJECT_ID}" yq -i \
+      '.spec.source.helm.valuesObject.env.ZITADEL_PROJECT_ID = strenv(ZITADEL_BOOTSTRAP_PROJECT_ID)' \
+      "${file}"
   done < <(find "${REPOSITORY_DIR}/2-applications" -type f -name app.yaml -print0)
 }
 
 replace_frontend_client_placeholders() {
   local file
-  local temp
   local current
   for file in \
     "${REPOSITORY_DIR}/2-applications/3-admin-app/app.yaml" \
@@ -623,18 +643,15 @@ replace_frontend_client_placeholders() {
     if [[ "${current}" == "${CLIENT_ID}" ]]; then
       continue
     fi
-    temp="${file}.bootstrap.tmp.$$"
-    TEMP_FILES+=("${temp}")
-    sed -E "s/(__ZITADEL_CLIENT_ID__|change-me)/${CLIENT_ID}/g" "${file}" >"${temp}"
-    chmod 644 "${temp}"
-    mv "${temp}" "${file}"
+    ZITADEL_BOOTSTRAP_CLIENT_ID="${CLIENT_ID}" yq -i \
+      '.spec.source.helm.valuesObject.env.ZITADEL_CLIENT_ID = strenv(ZITADEL_BOOTSTRAP_CLIENT_ID)' \
+      "${file}"
   done
 }
 
 replace_kong_project_placeholder() {
   local file="${REPOSITORY_DIR}/2-applications/0-kong-config/jwt-auth.kong-cluster-plugin.yaml"
   local current
-  local temp
   [[ -f "${file}" ]] || die "missing Kong JWT plugin manifest"
   current="$(yq -r '.config.zitadel_project_id // ""' "${file}")"
   if [[ "${current}" != __ZITADEL_PROJECT_ID__ && "${current}" != change-me &&
@@ -642,11 +659,8 @@ replace_kong_project_placeholder() {
     die "unexpected Kong zitadel_project_id; refusing to overwrite ${current}"
   fi
   [[ "${current}" == "${PROJECT_ID}" ]] && return 0
-  temp="${file}.bootstrap.tmp.$$"
-  TEMP_FILES+=("${temp}")
-  sed -E "s/(__ZITADEL_PROJECT_ID__|change-me|hpe-hosted-trial)/${PROJECT_ID}/g" "${file}" >"${temp}"
-  chmod 644 "${temp}"
-  mv "${temp}" "${file}"
+  ZITADEL_BOOTSTRAP_PROJECT_ID="${PROJECT_ID}" yq -i \
+    '.config.zitadel_project_id = strenv(ZITADEL_BOOTSTRAP_PROJECT_ID)' "${file}"
 }
 
 write_node_scope_management_secret() {
@@ -678,6 +692,7 @@ validate_repository_consistency() {
   local frontend_count=0
   local plugin_value
   local secret_file="${REPOSITORY_DIR}/2-applications/1-node-scope-management/node-scope-management.secret.yaml"
+  local app_root
   local secret_root
   local secret_pat
 
@@ -714,6 +729,14 @@ validate_repository_consistency() {
   [[ "$(printf '%s' "${frontend_values}" | sort -u | sed '/^$/d' | wc -l | tr -d ' ')" == 1 ]] \
     || die "frontend ZITADEL_CLIENT_ID values are inconsistent"
 
+  app_root="$(yq -r '.spec.source.helm.valuesObject.env.ZITADEL_ROOT_ORG_ID // ""' \
+    "${REPOSITORY_DIR}/2-applications/1-node-scope-management/app.yaml")"
+  [[ -n "${app_root}" && "${app_root}" != __ZITADEL_ROOT_ORG_ID__ ]] \
+    || die "node-scope-management ZITADEL_ROOT_ORG_ID is empty or a placeholder"
+  if [[ -n "${expected_root}" && "${app_root}" != "${expected_root}" ]]; then
+    die "node-scope-management ZITADEL_ROOT_ORG_ID disagrees with Terraform state"
+  fi
+
   plugin_value="$(yq -r '.config.zitadel_project_id // ""' \
     "${REPOSITORY_DIR}/2-applications/0-kong-config/jwt-auth.kong-cluster-plugin.yaml")"
   [[ -n "${plugin_value}" && "${plugin_value}" != __ZITADEL_PROJECT_ID__ && "${plugin_value}" != change-me ]] \
@@ -730,6 +753,8 @@ validate_repository_consistency() {
     || die "node-scope-management root organization ID is empty or a placeholder"
   [[ -n "${secret_pat}" && "${secret_pat}" != change-me ]] \
     || die "node-scope-management PAT is empty or a placeholder"
+  [[ "${secret_root}" == "${app_root}" ]] \
+    || die "node-scope-management manifest and Secret root organization IDs disagree"
   if [[ -n "${expected_root}" && "${secret_root}" != "${expected_root}" ]]; then
     die "node-scope-management root organization ID disagrees with Terraform state"
   fi
@@ -799,6 +824,7 @@ PAT="$(terraform -chdir="${TERRAFORM_DIR}" output -raw pat)"
 [[ -n "${ROOT_ORG_ID}" && -n "${PROJECT_ID}" && -n "${CLIENT_ID}" && -n "${PAT}" ]] \
   || die "Terraform did not return all required ZITADEL outputs"
 
+replace_root_org_placeholder
 replace_project_placeholders
 replace_frontend_client_placeholders
 replace_kong_project_placeholder
