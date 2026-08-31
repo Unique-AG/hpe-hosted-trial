@@ -19,3 +19,7 @@ spec:
             host: harbor.unique.svc.cluster.local
             port:
               number: 80
+          headers:
+            request:
+              set:
+                x-forwarded-proto: https

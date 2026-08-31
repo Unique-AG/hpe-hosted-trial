@@ -190,9 +190,9 @@ login_harbor() {
   fi
 
   printf 'Authenticating mirror tools with Harbor %s\n' "$registry"
-  printf '%s' "$password" | oras login "${oras_options[@]}" -u admin --password-stdin "$registry"
-  printf '%s' "$password" | helm registry login "${helm_options[@]}" -u admin --password-stdin "$registry"
-  printf '%s' "$password" | skopeo login "${skopeo_options[@]}" -u admin --password-stdin "$registry"
+  printf '%s' "$password" | oras login ${oras_options[@]+"${oras_options[@]}"} -u admin --password-stdin "$registry"
+  printf '%s' "$password" | helm registry login ${helm_options[@]+"${helm_options[@]}"} -u admin --password-stdin "$registry"
+  printf '%s' "$password" | skopeo login ${skopeo_options[@]+"${skopeo_options[@]}"} -u admin --password-stdin "$registry"
 }
 
 chart_source_reference() {
@@ -328,7 +328,7 @@ copy_chart() {
   fi
 
   printf 'Mirroring chart %s: local cache -> %s:%s\n' "$chart" "$destination" "$version"
-  oras copy --from-oci-layout "${destination_options[@]}" "$cache_layout:$version" "$(strip_oci_scheme "$destination"):${version}"
+  oras copy --from-oci-layout ${destination_options[@]+"${destination_options[@]}"} "$cache_layout:$version" "$(strip_oci_scheme "$destination"):${version}"
 }
 
 copy_image() {
@@ -357,7 +357,7 @@ copy_image() {
   fi
 
   printf 'Mirroring image %s: local cache -> %s\n' "$image" "$destination"
-  skopeo copy --all --preserve-digests "oci:$cache_layout:cached" "${destination_options[@]}" "$destination"
+  skopeo copy --all --preserve-digests "oci:$cache_layout:cached" ${destination_options[@]+"${destination_options[@]}"} "$destination"
 }
 
 verify_chart() {
@@ -373,7 +373,7 @@ verify_chart() {
   fi
 
   printf 'Verifying chart %s at %s:%s\n' "$chart" "$destination" "$version"
-  descriptor="$(oras manifest fetch "${destination_options[@]}" --descriptor "$(strip_oci_scheme "$destination"):${version}")"
+  descriptor="$(oras manifest fetch ${destination_options[@]+"${destination_options[@]}"} --descriptor "$(strip_oci_scheme "$destination"):${version}")"
   actual_digest="$(printf '%s' "$descriptor" | yq -p=json -r '.digest')"
 
   if [ -n "$digest" ] && [ "$actual_digest" != "$digest" ]; then
@@ -439,8 +439,8 @@ mirror_git_chart() {
     printf 'Using cached git chart %s\n' "$chart"
   fi
 
-  helm push "${helm_destination_options[@]}" "$package_file" "oci://$(strip_oci_scheme "${destination%/*}")"
-  descriptor="$(oras manifest fetch "${oras_destination_options[@]}" --descriptor "$(strip_oci_scheme "$destination"):${version}")"
+  helm push ${helm_destination_options[@]+"${helm_destination_options[@]}"} "$package_file" "oci://$(strip_oci_scheme "${destination%/*}")"
+  descriptor="$(oras manifest fetch ${oras_destination_options[@]+"${oras_destination_options[@]}"} --descriptor "$(strip_oci_scheme "$destination"):${version}")"
   digest="$(printf '%s' "$descriptor" | yq -p=json -r '.digest')"
   yq -i ".gitCharts.\"$chart\".digest = \"$digest\"" "$VERSIONS_FILE"
 }

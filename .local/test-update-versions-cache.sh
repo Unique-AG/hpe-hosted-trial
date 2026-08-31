@@ -204,7 +204,17 @@ if [[ "$COMMANDS" == az\ * || "$COMMANDS" == *$'\naz '* ]]; then
   exit 1
 fi
 
-yq -i '.images.sample.destination = "docker://harbor.localhost/other/sample:1"' "$FIXTURE_DIR/versions.yaml"
+# HTTPS destinations need no CLI transport flags. On Bash 3.2, expanding an
+# empty array with nounset enabled fails unless the expansion is guarded.
+yq -i '
+  .harbor.registry = "harbor.example.com" |
+  .charts.sample-chart.destination = "oci://harbor.example.com/library/helm/sample" |
+  .gitCharts.sample-git-chart.destination = "oci://harbor.example.com/library/helm/sample-git" |
+  .images.sample.destination = "docker://harbor.example.com/library/images/sample:1"
+' "$FIXTURE_DIR/versions.yaml"
+"$FIXTURE_DIR/update-versions.sh" --mirror >/dev/null
+
+yq -i '.images.sample.destination = "docker://harbor.example.com/other/sample:1"' "$FIXTURE_DIR/versions.yaml"
 if "$FIXTURE_DIR/update-versions.sh" --validate >/dev/null 2>&1; then
   printf 'FAIL: validation accepted a proprietary image outside library/images\n' >&2
   exit 1

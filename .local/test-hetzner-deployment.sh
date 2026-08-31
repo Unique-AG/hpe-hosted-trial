@@ -25,6 +25,8 @@ assert_file_contains "${REPOSITORY_DIR}/up.sh" 'provision\.sh'
 assert_file_contains "${REPOSITORY_DIR}/up.sh" 'deploy\.sh'
 assert_file_contains "${REPOSITORY_DIR}/seal-secrets.sh" 'tls\\\.crt'
 assert_file_contains "${REPOSITORY_DIR}/set-hostname.sh" 'service_names'
+assert_file_contains "${REPOSITORY_DIR}/set-hostname.sh" 'x-forwarded-proto'
+assert_file_contains "${REPOSITORY_DIR}/1-system/5-harbor/harbor.virtual-service.yaml" 'x-forwarded-proto: https'
 assert_file_contains "${HETZNER_DIR}/provision.sh" 'HETZNER_SERVER_TYPE:-ccx43'
 assert_file_contains "${HETZNER_DIR}/deploy.sh" 'rollout status deployment/metrics-server'
 assert_file_contains "${HETZNER_DIR}/deploy.sh" "sed 's/,/, /g'"

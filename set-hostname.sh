@@ -76,6 +76,19 @@ if updated != content:
     if "1-system/7-zitadel/app.yaml" not in changed:
         changed.append("1-system/7-zitadel/app.yaml")
 
+harbor_virtual_service = repository / "1-system/5-harbor/harbor.virtual-service.yaml"
+content = harbor_virtual_service.read_text()
+forwarded_proto = "http" if domain == "localhost" else "https"
+updated = re.sub(
+    r"(x-forwarded-proto:\s*)(?:http|https)",
+    rf"\g<1>{forwarded_proto}",
+    content,
+)
+if updated != content:
+    harbor_virtual_service.write_text(updated)
+    if "1-system/5-harbor/harbor.virtual-service.yaml" not in changed:
+        changed.append("1-system/5-harbor/harbor.virtual-service.yaml")
+
 hostname_file.write_text(domain + "\n")
 print(f"Configured hostname suffix: .{domain}")
 print(f"Argo CD: {'http' if domain == 'localhost' else 'https'}://argocd.{domain}")
