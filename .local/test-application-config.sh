@@ -138,6 +138,8 @@ assert_yaml_value "2-applications/2-node-webhook-worker/app.yaml" '.spec.source.
 assert_yaml_value "2-applications/1-node-scope-management/app.yaml" '.spec.source.helm.valuesObject.env.CORS_ALLOWED_ORIGINS' ""
 assert_yaml_value "2-applications/1-node-scope-management/app.yaml" '.spec.source.helm.valuesObject.env.MAX_HEAP_MB' "700"
 assert_yaml_value "2-applications/1-node-scope-management/app.yaml" '.spec.source.helm.valuesObject.env.ZITADEL_HOST' "${CONFIGURED_SCHEME}://id.${CONFIGURED_DOMAIN}"
+assert_yaml_value "2-applications/1-gatekeeper/app.yaml" '.spec.source.helm.valuesObject.internalServices.dependencies.scopeManagement.name' "node-scope-management"
+assert_yaml_value "2-applications/1-gatekeeper/app.yaml" '.spec.source.helm.valuesObject.internalServices.dependencies.chat.name' "node-chat"
 assert_yaml_value "2-applications/1-node-scope-management/app.yaml" '.spec.source.helm.valuesObject.extraEnvSecrets[]' "node-scope-management-secrets"
 assert_yaml_value "2-applications/1-node-scope-management/node-scope-management.secret.yaml.example" '.stringData.ZITADEL_ROOT_ORG_ID' ""
 assert_yaml_value "2-applications/4-client-insights-exporter/app.yaml" '.spec.source.helm.valuesObject.env.MAX_HEAP_MB' "200"
@@ -234,7 +236,11 @@ fi
 project_placeholder_count=0
 while IFS= read -r file; do
   [ -n "$file" ] || continue
-  value="$(sed -nE 's/^[[:space:]]*ZITADEL_PROJECT_ID:[[:space:]]*([^[:space:]]+).*$/\1/p' "$file" | head -n1)"
+  value="$(sed -nE 's/^[[:space:]]*ZITADEL_PROJECT_ID:[[:space:]]*([^[:space:]]+).*$/\1/p' "$file" | head -n1 | tr -d '"')"
+  if [ "$(yq -r '.spec.source.helm.valuesObject.env.ZITADEL_PROJECT_ID | tag' "$file")" != '!!str' ]; then
+    printf 'FAIL: %s ZITADEL_PROJECT_ID must be a YAML string\n' "$file" >&2
+    exit 1
+  fi
   case "$value" in
     __ZITADEL_PROJECT_ID__|change-me|hpe-hosted-trial)
       project_placeholder_count=$((project_placeholder_count + 1))
