@@ -200,6 +200,8 @@ assert_yaml_value "2-applications/1-node-scope-management/app.yaml" '.spec.sourc
 assert_yaml_value "2-applications/1-node-scope-management/app.yaml" '.spec.source.helm.valuesObject.env.GATEKEEPER_RUNNING_MODE' "enforce"
 assert_yaml_value "2-applications/1-node-scope-management/app.yaml" '.spec.source.helm.valuesObject.env.MAX_HEAP_MB' "700"
 assert_yaml_value "2-applications/1-node-scope-management/app.yaml" '.spec.source.helm.valuesObject.env.ZITADEL_HOST' "${CONFIGURED_SCHEME}://id.${CONFIGURED_DOMAIN}"
+assert_yaml_value "2-applications/1-node-scope-management/app.yaml" '.spec.source.helm.valuesObject.internalServices.dependencies.gatekeeper.enabled' "true"
+assert_yaml_value "2-applications/1-node-scope-management/app.yaml" '.spec.source.helm.valuesObject.internalServices.dependencies.gatekeeper.namespace' "unique"
 assert_yaml_value "2-applications/1-gatekeeper/app.yaml" '.spec.source.helm.valuesObject.internalServices.dependencies.scopeManagement.name // ""' ""
 assert_yaml_value "2-applications/1-gatekeeper/app.yaml" '.spec.source.helm.valuesObject.internalServices.dependencies.chat.name // ""' ""
 assert_yaml_value "2-applications/1-node-scope-management/app.yaml" '.spec.source.helm.valuesObject.extraEnvSecrets[]' "node-scope-management-secrets"
