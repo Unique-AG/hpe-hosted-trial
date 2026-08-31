@@ -51,7 +51,11 @@ HCLOUD_TOKEN='<token>' ./down.sh hetzner
 ```
 
 `./down.sh` without a provider selects Hetzner when Hetzner state exists and
-Kind otherwise.
+Kind otherwise. After the provider teardown succeeds, it also removes the
+cluster-bound `.local/zitadel-bootstrap` Terraform state and
+`.local/unique-admin.token`. This prevents credentials and ZITADEL object IDs
+from a deleted cluster being reused by its replacement. The reusable artifact
+mirror cache and `.hostname` configuration bookkeeping are retained.
 
 ## Kind
 

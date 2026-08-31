@@ -2,6 +2,7 @@
 .hostname
 .local/mirror-cache/
 .local/hetzner/state/
+.local/unique-admin.token
 .local/zitadel-bootstrap/
 superuser.pem
 superuser.pub

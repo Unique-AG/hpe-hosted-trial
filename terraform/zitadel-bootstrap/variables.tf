@@ -65,10 +65,9 @@ variable "scope_management_user_name" {
 }
 
 variable "scope_management_pat_expiration_date" {
-  description = "Optional RFC3339 expiration for the node-scope-management PAT."
+  description = "RFC3339 expiration for the node-scope-management PAT. The explicit provider maximum avoids perpetual replacement after ZITADEL normalizes an omitted value."
   type        = string
-  default     = null
-  nullable    = true
+  default     = "9999-12-31T23:59:59Z"
 }
 
 variable "frontend_base_url" {

@@ -31,8 +31,8 @@ Usage: ./setup-zitadel.sh [--check] [--seal] [--rotate-secret]
 
 Reconcile the operator-owned ZITADEL objects for this deployment and patch the
 runtime placeholders in 2-applications. The default is a mutating bootstrap;
---check runs refresh-only and normal Terraform plans with detailed-exitcode and
-validates repository consistency without patching files or sealing anything.
+--check runs a normal Terraform plan with detailed-exitcode and validates
+repository consistency without patching files or sealing anything.
 
 Options:
   --check  Do not apply Terraform, patch manifests, or seal a Secret.
@@ -378,7 +378,7 @@ validate_repository_reference_shape() {
   local root_org_value
 
   while IFS= read -r -d '' file; do
-    value="$(sed -nE 's/^[[:space:]]*ZITADEL_PROJECT_ID:[[:space:]]*([^[:space:]]+).*$/\1/p' "${file}" | head -n1)"
+    value="$(yq -r '.spec.source.helm.valuesObject.env.ZITADEL_PROJECT_ID // ""' "${file}")"
     [[ -n "${value}" ]] || continue
     project_file_count=$((project_file_count + 1))
     case "${value}" in
@@ -400,7 +400,7 @@ validate_repository_reference_shape() {
     "${REPOSITORY_DIR}/2-applications/3-knowledge-upload-app/app.yaml" \
     "${REPOSITORY_DIR}/2-applications/3-theme-app/app.yaml"; do
     [[ -f "${file}" ]] || die "missing frontend application manifest: ${file}"
-    value="$(sed -nE 's/^[[:space:]]*ZITADEL_CLIENT_ID:[[:space:]]*([^[:space:]]+).*$/\1/p' "${file}" | head -n1)"
+    value="$(yq -r '.spec.source.helm.valuesObject.env.ZITADEL_CLIENT_ID // ""' "${file}")"
     [[ -n "${value}" ]] || die "ZITADEL_CLIENT_ID is missing from ${file}"
     case "${value}" in
       __ZITADEL_CLIENT_ID__|change-me)
@@ -548,21 +548,6 @@ run_detailed_plan() {
   esac
 }
 
-run_refresh_only_check() {
-  local result
-  set +e
-  terraform -chdir="${TERRAFORM_DIR}" plan \
-    -refresh-only \
-    -input=false \
-    -detailed-exitcode
-  result=$?
-  set -e
-  case "${result}" in
-    0|2) REFRESH_EXIT_CODE="${result}" ;;
-    *) die "Terraform refresh-only plan failed (exit ${result})" ;;
-  esac
-}
-
 check_plan_candidates() {
   local candidate_count
   local address
@@ -635,7 +620,7 @@ replace_frontend_client_placeholders() {
     "${REPOSITORY_DIR}/2-applications/3-knowledge-upload-app/app.yaml" \
     "${REPOSITORY_DIR}/2-applications/3-theme-app/app.yaml"; do
     [[ -f "${file}" ]] || die "missing frontend application manifest: ${file}"
-    current="$(sed -nE 's/^[[:space:]]*ZITADEL_CLIENT_ID:[[:space:]]*([^[:space:]]+).*$/\1/p' "${file}" | head -n1)"
+    current="$(yq -r '.spec.source.helm.valuesObject.env.ZITADEL_CLIENT_ID // ""' "${file}")"
     if [[ "${current}" != __ZITADEL_CLIENT_ID__ && "${current}" != change-me &&
       "${current}" != "${CLIENT_ID}" ]]; then
       die "unexpected ZITADEL_CLIENT_ID in ${file}; refusing to overwrite ${current}"
@@ -791,9 +776,6 @@ start_zitadel_port_forward
 run_terraform_init
 secure_local_state_files
 check_state_safety_before_plan
-if [[ "${MODE}" == check ]]; then
-  run_refresh_only_check
-fi
 run_detailed_plan
 check_plan_candidates
 
@@ -808,7 +790,7 @@ if [[ "${MODE}" == check ]]; then
     CHECK_CLIENT_ID=""
   fi
   validate_repository_consistency "${CHECK_ROOT_ORG_ID}" "${CHECK_PROJECT_ID}" "${CHECK_CLIENT_ID}"
-  if [[ "${PLAN_EXIT_CODE}" == 2 || "${REFRESH_EXIT_CODE:-0}" == 2 ]]; then
+  if [[ "${PLAN_EXIT_CODE}" == 2 ]]; then
     warn "Terraform reports drift or pending changes (detailed-exitcode=2)"
     exit 2
   fi
@@ -816,7 +798,10 @@ if [[ "${MODE}" == check ]]; then
   exit 0
 fi
 
-terraform -chdir="${TERRAFORM_DIR}" apply -input=false "${PLAN_FILE}"
+# ZITADEL serializes event writes through its event store. Applying independent
+# projects, roles, users, and applications concurrently can race on a fresh
+# PostgreSQL database and produce duplicate events2 primary keys.
+terraform -chdir="${TERRAFORM_DIR}" apply -parallelism=1 -input=false "${PLAN_FILE}"
 ROOT_ORG_ID="$(terraform -chdir="${TERRAFORM_DIR}" output -raw root_org_id)"
 PROJECT_ID="$(terraform -chdir="${TERRAFORM_DIR}" output -raw project_id)"
 CLIENT_ID="$(terraform -chdir="${TERRAFORM_DIR}" output -raw client_id)"
