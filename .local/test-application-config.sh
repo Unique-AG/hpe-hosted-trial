@@ -209,6 +209,17 @@ assert_yaml_value "2-applications/3-chat-app/app.yaml" '.spec.source.helm.values
 assert_yaml_value "2-applications/3-chat-app/app.yaml" '.spec.source.helm.valuesObject.env.REFLECTOR_BACKEND_API_URL' "${CONFIGURED_SCHEME}://api.${CONFIGURED_DOMAIN}"
 assert_yaml_value "2-applications/3-knowledge-upload-app/app.yaml" '.spec.source.helm.valuesObject.env.INGESTION_BACKEND_API_URL' "${CONFIGURED_SCHEME}://api.${CONFIGURED_DOMAIN}/ingestion"
 
+for frontend in admin-app chat-app knowledge-upload-app theme-app; do
+  csp="$(yq -r '.spec.source.helm.valuesObject.env.CONTENT_SECURITY_POLICY_VALUE' \
+    "${REPOSITORY_DIR}/2-applications/3-${frontend}/app.yaml")"
+  for endpoint in "${CONFIGURED_SCHEME}://api.${CONFIGURED_DOMAIN}" "${CONFIGURED_SCHEME}://id.${CONFIGURED_DOMAIN}"; do
+    if [[ " ${csp} " != *" ${endpoint} "* ]]; then
+      printf 'FAIL: %s CSP connect-src does not allow %s\n' "${frontend}" "${endpoint}" >&2
+      exit 1
+    fi
+  done
+done
+
 while IFS= read -r file; do
   relative_file="${file#"${REPOSITORY_DIR}/"}"
   assert_yaml_value "${relative_file}" '.spec.source.helm.valuesObject.env.NODE_EXTRA_CA_CERTS' "/etc/ssl/postgres/ca.crt"
