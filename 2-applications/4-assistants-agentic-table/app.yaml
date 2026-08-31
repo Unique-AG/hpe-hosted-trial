@@ -28,7 +28,14 @@ spec:
           # HPE: https://id.ingress.pcai0201.fr2.hpecolo.net
           ZITADEL_ISSUER: https://id.2.28.18.215.sslip.io
           ZITADEL_PROJECT_ID: "388746568834023667"
+        # Helm replaces the chart's default lists when these are overridden.
+        # Preserve the writable cache required by tiktoken and Prometheus.
         volumes:
+          - name: tmp-volume
+            emptyDir:
+              sizeLimit: 5Gi
+          - name: gunicorn-runtime
+            emptyDir: {}
           - name: postgres-ca
             secret:
               secretName: postgres-ca
@@ -36,6 +43,10 @@ spec:
                 - key: ca.crt
                   path: ca.crt
         volumeMounts:
+          - name: tmp-volume
+            mountPath: /tmp
+          - name: gunicorn-runtime
+            mountPath: /home/app/.gunicorn
           - name: postgres-ca
             mountPath: /etc/ssl/postgres/ca.crt
             subPath: ca.crt

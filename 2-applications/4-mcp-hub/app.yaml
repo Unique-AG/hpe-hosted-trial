@@ -22,6 +22,10 @@ spec:
         image:
           repository: library/images/mcp-hub
           useDigest: false
+        # The standalone hub must use the same credential-encryption key as
+        # node-chat so both services can read existing MCP credentials.
+        extraEnvSecrets:
+          - node-chat-secrets
         workloadIdentity:
           azure:
             enabled: false
