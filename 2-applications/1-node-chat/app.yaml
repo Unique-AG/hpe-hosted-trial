@@ -41,6 +41,10 @@ spec:
           # HPE: https://api.ingress.pcai0201.fr2.hpecolo.net
           MCP_HUB_BASE_URL: https://api.2.28.18.215.sslip.io
           OPENAI_PROVIDER: litellm
+          # node-chat still initializes its legacy OpenAI factory when LiteLLM
+          # is enabled. External model definitions are registered separately by
+          # setup-models.sh, so an empty valid endpoint map is sufficient.
+          AZURE_OPENAI_API_ENDPOINTS_JSON: "{}"
           S3_BUCKET_ENDPOINT: http://rustfs-svc.unique.svc.cluster.local:9000
           S3_BUCKET_NAME: unique-ingestion-bucket
           S3_BUCKET_REGION: us-east-1
