@@ -47,6 +47,7 @@ tracked = subprocess.run(
     text=True,
 ).stdout.splitlines()
 
+scheme = "http" if domain == "localhost" else "https"
 changed = []
 for relative_path in tracked:
     path = repository / relative_path
@@ -56,13 +57,20 @@ for relative_path in tracked:
         continue
     updated = content
     for service in service_names:
+        # This also updates service origins embedded in frontend CSP values.
         updated = updated.replace(f"{service}.{old_domain}", f"{service}.{domain}")
-        scheme = "http" if domain == "localhost" else "https"
         updated = re.sub(
             rf"https?://{re.escape(service)}\.{re.escape(domain)}(?=[:/\s\"']|$)",
             f"{scheme}://{service}.{domain}",
             updated,
         )
+    if re.search(r"^\s+CONTENT_SECURITY_POLICY_VALUE:\s*", updated, re.MULTILINE):
+        for service in ("api", "id"):
+            origin = f"{scheme}://{service}.{domain}"
+            if origin not in updated:
+                raise SystemExit(
+                    f"frontend CSP in {relative_path} does not allow {origin}"
+                )
     if updated != content:
         path.write_text(updated)
         changed.append(relative_path)
