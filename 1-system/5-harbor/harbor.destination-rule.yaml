@@ -1,0 +1,14 @@
+apiVersion: networking.istio.io/v1beta1
+kind: DestinationRule
+metadata:
+  name: harbor-internal-tls
+spec:
+  host: harbor.unique.svc.cluster.local
+  trafficPolicy:
+    portLevelSettings:
+      - port:
+          number: 443
+        tls:
+          mode: SIMPLE
+          sni: harbor.unique.svc.cluster.local
+          insecureSkipVerify: true

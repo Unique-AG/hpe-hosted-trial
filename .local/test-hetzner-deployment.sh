@@ -26,9 +26,22 @@ assert_file_contains "${REPOSITORY_DIR}/up.sh" 'deploy\.sh'
 assert_file_contains "${REPOSITORY_DIR}/seal-secrets.sh" 'tls\\\.crt'
 assert_file_contains "${REPOSITORY_DIR}/set-hostname.sh" 'service_names'
 assert_file_contains "${REPOSITORY_DIR}/set-hostname.sh" 'x-forwarded-proto'
-assert_file_contains "${REPOSITORY_DIR}/1-system/5-harbor/harbor.virtual-service.yaml" 'x-forwarded-proto: https'
+assert_file_contains "${REPOSITORY_DIR}/set-hostname.sh" 'harbor-internal-tls'
+assert_file_contains "${REPOSITORY_DIR}/1-system/5-harbor/app.yaml" 'secretName: harbor-internal-tls'
+harbor_forwarded_proto="$(
+  yq -r '.spec.http[0].route[0].headers.request.set."x-forwarded-proto"' \
+    "${REPOSITORY_DIR}/1-system/5-harbor/harbor.virtual-service.yaml"
+)"
+if [[ "${harbor_forwarded_proto}" != "https" ]]; then
+  printf 'FAIL: Harbor x-forwarded-proto is %s, expected https\n' \
+    "${harbor_forwarded_proto}" >&2
+  exit 1
+fi
+assert_file_contains "${REPOSITORY_DIR}/1-system/5-harbor/harbor.destination-rule.yaml" 'insecureSkipVerify: true'
 assert_file_contains "${HETZNER_DIR}/provision.sh" 'HETZNER_SERVER_TYPE:-ccx43'
 assert_file_contains "${HETZNER_DIR}/deploy.sh" 'rollout status deployment/metrics-server'
+assert_file_contains "${HETZNER_DIR}/deploy.sh" 'create_harbor_internal_tls'
+assert_file_contains "${HETZNER_DIR}/deploy.sh" 'configs\.tls\.certificates\.harbor'
 assert_file_contains "${HETZNER_DIR}/deploy.sh" "sed 's/,/, /g'"
 assert_file_contains "${HETZNER_DIR}/deploy.sh" 'reverse_proxy 127\.0\.0\.1:30080'
 assert_file_contains "${HETZNER_DIR}/common.sh" '409|422'

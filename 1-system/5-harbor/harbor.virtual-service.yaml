@@ -18,7 +18,7 @@ spec:
         - destination:
             host: harbor.unique.svc.cluster.local
             port:
-              number: 80
+              number: 443
           headers:
             request:
               set:

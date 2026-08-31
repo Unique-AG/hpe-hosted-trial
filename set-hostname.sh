@@ -76,13 +76,40 @@ if updated != content:
     if "1-system/7-zitadel/app.yaml" not in changed:
         changed.append("1-system/7-zitadel/app.yaml")
 
+harbor_app = repository / "1-system/5-harbor/app.yaml"
+content = harbor_app.read_text()
+if domain == "localhost":
+    harbor_tls = """            tls:
+              enabled: false
+              certSource: none"""
+else:
+    harbor_tls = """            tls:
+              enabled: true
+              certSource: secret
+              secret:
+                secretName: harbor-internal-tls"""
+updated = re.sub(
+    r"            tls:\n              enabled: (?:true|false)\n"
+    r"              certSource: (?:secret|none)"
+    r"(?:\n              secret:\n                secretName: harbor-internal-tls)?",
+    harbor_tls,
+    content,
+    count=1,
+)
+if updated != content:
+    harbor_app.write_text(updated)
+    if "1-system/5-harbor/app.yaml" not in changed:
+        changed.append("1-system/5-harbor/app.yaml")
+
 harbor_virtual_service = repository / "1-system/5-harbor/harbor.virtual-service.yaml"
 content = harbor_virtual_service.read_text()
 forwarded_proto = "http" if domain == "localhost" else "https"
+harbor_port = "80" if domain == "localhost" else "443"
+updated = re.sub(r"(number:\s*)(?:80|443)", rf"\g<1>{harbor_port}", content)
 updated = re.sub(
-    r"(x-forwarded-proto:\s*)(?:http|https)",
+    r"(x-forwarded-proto:\s*)\S+",
     rf"\g<1>{forwarded_proto}",
-    content,
+    updated,
 )
 if updated != content:
     harbor_virtual_service.write_text(updated)

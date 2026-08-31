@@ -119,9 +119,10 @@ Mirror all pinned OCI charts, Git-hosted charts, and container images:
 
 The command records mirrored chart digests and updates runtime references.
 For local Kind, the mirror clients use plain HTTP for the in-cluster Harbor
-exposed at `harbor.localhost` and store artifacts in its `library` project;
-Argo CD pulls those charts through `harbor.unique.svc.cluster.local`.
-Non-local registry destinations continue to use HTTPS.
+exposed at `harbor.localhost` and store artifacts in its `library` project.
+Argo CD pulls charts through `harbor.unique.svc.cluster.local`: Kind uses HTTP,
+while Hetzner provisions a private CA and uses HTTPS for this cluster-internal
+connection. Only workstation-to-Harbor mirroring uses the public Hetzner route.
 Downloaded images and OCI charts, along with packaged Git charts, are cached in
 the git-ignored `.local/mirror-cache` directory. After recreating the Kind
 cluster, the same command restores artifacts from this cache without contacting
