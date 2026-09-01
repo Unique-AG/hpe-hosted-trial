@@ -25,6 +25,13 @@ The current compatibility baseline is Unique `2026.32.4`.
   duplicate objects or missing state. It never opens or syncs the Argo
   `application-secrets` gate; `--seal` is explicitly limited to the
   node-scope-management Secret.
+- `setup-demo.sh` prepares the demo content on a deployed trial: the HPE theme,
+  the demo human user, and one space bound to the LiteLLM GLM model, replacing
+  the two spaces node-chat creates on company bootstrap. It reuses
+  `setup-zitadel.sh`'s token resolution, reads its brand assets from
+  `assets/hpe/`, and mints a short-lived machine-user JWT for the application
+  APIs instead of holding a long-lived application credential. It never writes
+  secrets to tracked files and does not touch Terraform state.
 - `versions.yaml` is the image-version source for the HPE Harbor mirror.
 
 ## ArgoCD

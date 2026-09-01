@@ -168,7 +168,47 @@ argocd app sync application-secrets
 Argo CD then rolls out the prerequisite, core, worker, and frontend application
 groups. Specialist Applications remain paused until they are explicitly synced.
 
-### 7. Verify the deployment
+### 7. Prepare the demo
+
+Register the GLM chat model and the E5 embedding model for the company, then
+configure the demo itself:
+
+```bash
+./setup-models.sh
+./setup-demo.sh
+```
+
+`setup-demo.sh` reconciles the HPE theme, creates the demo user, and replaces
+the two spaces node-chat creates on company bootstrap with a single space bound
+to the LiteLLM-served GLM model. It resolves the ZITADEL admin token exactly as
+`setup-zitadel.sh` does, and calls the application APIs with a short-lived JWT
+minted for a machine user it creates on first run; that key is revoked before
+the script exits.
+
+`DEMO_USER_PASSWORD` (or `DEMO_USER_PASSWORD_FILE`, owner-only) is required the
+first time, when the user is created:
+
+```bash
+DEMO_USER_PASSWORD='<password>' ./setup-demo.sh
+```
+
+Use `./setup-demo.sh --check` for a read-only report. Re-running is safe: every
+step reconciles rather than recreates. `--keep-default-spaces` leaves the
+bootstrap spaces in place; `--skip-theme`, `--skip-user`, and `--skip-spaces`
+narrow the run. Theme assets and the HPE palette live in
+[`assets/hpe/`](assets/hpe/README.md).
+
+The space model is selected with `DEMO_SPACE_MODEL`, which defaults to the
+`litellm:unique-chat-glm-5.3` alias from `1-system/7-litellm`. Note that
+node-chat only offers a model in the admin *Space* form when it appears in its
+`UNIQUEAI_SUPPORTED_MODELS` allowlist or in `UNIQUEAI_ALLOWED_MODELS`; to make
+this deployment's alias selectable in that form, set it on node-chat:
+
+```yaml
+UNIQUEAI_ALLOWED_MODELS: "*:litellm:unique-chat-glm-5.3"
+```
+
+### 8. Verify the deployment
 
 ```bash
 kubectl -n unique get applications.argoproj.io
