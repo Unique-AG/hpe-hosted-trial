@@ -34,17 +34,23 @@ Update Argo CD repository and revision references to use that fork and branch:
 rg -n 'https://github.com/Unique-AG/hpe-hosted-trial|feat/upgrade-to-2026' .
 ```
 
-Review the deployment-specific values:
+Configure every public hostname from the checked-in `localhost` placeholders:
 
 ```bash
-rg -n 'storageClass|storageClassName|gl4f-filesystem|localhost|HPE:' \
+./set-hostname.sh 'https://<deployment-domain>'
+```
+
+Then review the remaining deployment-specific values:
+
+```bash
+rg -n 'storageClass|storageClassName|gl4f-filesystem|change-me|localhost|HPE:' \
   1-system 2-applications
 ```
 
-Set supported RWO and RWX storage classes, replace the local hostnames with the
-HPE ingress domains, and confirm that DNS resolves to the ingress endpoint.
-Comments beginning with `HPE:` mark values that differ from the local test
-environments.
+Set supported RWO and RWX storage classes, replace deployment identity
+placeholders such as `UNIQUE_INSTALLATION_ID`, and confirm that DNS resolves to
+the ingress endpoint. Comments beginning with `HPE:` mark values that differ
+from the local test environments.
 
 Commit and push the configuration before syncing Argo CD.
 
@@ -62,12 +68,8 @@ Argo CD deploys the first system components and then pauses at the manual
 
 Copy each required `*.secret.yaml.example` to the adjacent `*.secret.yaml` and
 replace the placeholders. Plaintext `*.secret.yaml` files are ignored by Git.
-
-Do not create
-`2-applications/1-node-scope-management/node-scope-management.secret.yaml` yet;
-`setup-zitadel.sh` creates it later. Database, RabbitMQ, RustFS, and LiteLLM
-connection credentials are derived from system Secrets and should not be copied
-into application Secrets.
+Database, RabbitMQ, RustFS, and LiteLLM connection credentials are derived from
+system Secrets and should not be copied into application Secrets.
 
 Seal the Secrets with the cluster's production certificate:
 
@@ -75,8 +77,12 @@ Seal the Secrets with the cluster's production certificate:
 ./seal-secrets.sh --all
 ```
 
-Review, commit, and push the generated `*.sealed-secret.yaml` files, then open
-the system gate:
+Review, commit, and push the generated `*.sealed-secret.yaml` files.
+
+### 4. Open the system gate
+
+Open the `secrets` gate and watch Argo CD sync the remaining system
+Applications, including the `application-stack` system Application:
 
 ```bash
 argocd app sync secrets
@@ -87,7 +93,7 @@ Wait until the system Applications are Healthy and the
 `application-secrets` Application exists. That Application is the next manual
 gate and must remain OutOfSync for now.
 
-### 4. Mirror release artifacts
+### 5. Mirror release artifacts
 
 Populate the HPE Harbor registry with all pinned charts and images:
 
@@ -103,7 +109,7 @@ been populated.
 Do not sync `application-secrets` or commit these changes yet. The next step
 also updates tracked manifests.
 
-### 5. Configure ZITADEL
+### 6. Configure ZITADEL
 
 Wait for the ZITADEL Application to be Healthy, then run:
 
@@ -148,7 +154,16 @@ must be deliberate:
 ./setup-zitadel.sh --seal --rotate-secret
 ```
 
-### 6. Open the application gate
+### 7. Open the application gate
+
+> [!WARNING]
+> Scope management and gatekeeper have a circular bootstrap dependency.
+> For the first application rollout, configure `GATEKEEPER_RUNNING_MODE` in
+> `2-applications/1-node-scope-management/app.yaml` so that scope management
+> does **not** enforce gatekeeper. Roll out scope management and gatekeeper, allow
+> gatekeeper to finish the migrations that depend on scope management, and only
+> then enable gatekeeper enforcement in scope management. If enforcement is
+> enabled from the start, gatekeeper cannot complete those migrations.
 
 Review all changes and confirm that no plaintext Secret, Terraform state, or PAT
 is staged:
@@ -170,7 +185,7 @@ argocd app sync application-secrets
 Argo CD then rolls out the prerequisite, core, worker, and frontend application
 groups. Specialist Applications remain paused until they are explicitly synced.
 
-### 7. Prepare the demo
+### 8. Prepare the demo
 
 Register the GLM chat model and the E5 embedding model for the company, then
 configure the demo itself:
@@ -216,7 +231,7 @@ this deployment's alias selectable in that form, set it on node-chat:
 UNIQUEAI_ALLOWED_MODELS: "*:litellm:unique-chat-glm-5.3"
 ```
 
-### 8. Verify the deployment
+### 9. Verify the deployment
 
 ```bash
 kubectl -n unique get applications.argoproj.io

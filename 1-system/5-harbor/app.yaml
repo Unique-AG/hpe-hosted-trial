@@ -57,13 +57,10 @@ spec:
           expose:
             type: clusterIP
             tls:
-              enabled: true
-              certSource: secret
-              secret:
-                secretName: harbor-internal-tls
+              enabled: false
+              certSource: none
 
-          # HPE: https://harbor.ingress.pcai0201.fr2.hpecolo.net
-          externalURL: https://harbor.2.28.18.215.sslip.io
+          externalURL: http://harbor.localhost
 
           existingSecretAdminPassword: harbor-password-secret
 

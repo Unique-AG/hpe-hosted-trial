@@ -6,8 +6,7 @@ spec:
   gateways:
     - istio-system/ezaf-gateway
   hosts:
-    # HPE: harbor.ingress.pcai0201.fr2.hpecolo.net
-    - harbor.2.28.18.215.sslip.io
+    - harbor.localhost
   http:
     - match:
         - uri:
@@ -18,8 +17,8 @@ spec:
         - destination:
             host: harbor.unique.svc.cluster.local
             port:
-              number: 443
+              number: 80
           headers:
             request:
               set:
-                x-forwarded-proto: https
+                x-forwarded-proto: http

@@ -5,7 +5,6 @@ spec:
   destination:
     namespace: unique
   source:
-    # HPE: oci://harbor.ingress.pcai0201.fr2.hpecolo.net/unique/helm/scope-management
     repoURL: oci://harbor.unique.svc.cluster.local/library/helm/scope-management
     targetRevision: sha256:e198a519de8482669724b006175052134c16c8cdef83ca82f49e7ee4974376ef
     path: .
@@ -15,8 +14,7 @@ spec:
       valuesObject:
         global:
           image:
-            # HPE: harbor.ingress.pcai0201.fr2.hpecolo.net
-            registry: harbor.2.28.18.215.sslip.io
+            registry: harbor.localhost
             pullSecrets:
               - name: harbor-pull-secret
         image:
@@ -27,13 +25,11 @@ spec:
           CORS_ALLOWED_ORIGINS: ""
           GATEKEEPER_RUNNING_MODE: enforce
           MAX_HEAP_MB: 700
-          UNIQUE_INSTALLATION_ID: hpe-hosted-trial
-          # HPE: https://id.ingress.pcai0201.fr2.hpecolo.net
-          ZITADEL_HOST: https://id.2.28.18.215.sslip.io
-          # HPE: https://id.ingress.pcai0201.fr2.hpecolo.net
-          ZITADEL_ISSUER: https://id.2.28.18.215.sslip.io
-          ZITADEL_PROJECT_ID: "388831517784146088"
-          ZITADEL_ROOT_ORG_ID: "388830899795460272"
+          UNIQUE_INSTALLATION_ID: __UNIQUE_INSTALLATION_ID__
+          ZITADEL_HOST: http://id.localhost
+          ZITADEL_ISSUER: http://id.localhost
+          ZITADEL_PROJECT_ID: "__ZITADEL_PROJECT_ID__"
+          ZITADEL_ROOT_ORG_ID: "__ZITADEL_ROOT_ORG_ID__"
         volumes:
           - name: postgres-ca
             secret:
@@ -50,8 +46,7 @@ spec:
           gateway:
             name: unique
             namespace: unique
-          # HPE: api.ingress.pcai0201.fr2.hpecolo.net
-          hostname: api.2.28.18.215.sslip.io
+          hostname: api.localhost
         internalServices:
           dependencies:
             gatekeeper:

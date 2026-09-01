@@ -5,7 +5,6 @@ spec:
   destination:
     namespace: unique
   source:
-    # HPE: oci://harbor.ingress.pcai0201.fr2.hpecolo.net/unique/helm/theme-app
     repoURL: oci://harbor.unique.svc.cluster.local/library/helm/theme-app
     targetRevision: sha256:5a97cce07e2f2e40cb5ea018c94b740e6d5b7f082251b4c9a21869bb42314cee
     path: .
@@ -15,8 +14,7 @@ spec:
       valuesObject:
         global:
           image:
-            # HPE: harbor.ingress.pcai0201.fr2.hpecolo.net
-            registry: harbor.2.28.18.215.sslip.io
+            registry: harbor.localhost
             pullSecrets:
               - name: harbor-pull-secret
         image:
@@ -25,27 +23,19 @@ spec:
         env:
           NODE_EXTRA_CA_CERTS: /etc/ssl/postgres/ca.crt
           CONTENT_SECURITY_POLICY_VALUE: >-
-            default-src 'self'; img-src https: blob: data:; script-src 'self' 'unsafe-inline' data: blob:; style-src 'self' 'unsafe-inline'; font-src 'self' data:; connect-src 'self' blob: https://api.2.28.18.215.sslip.io https://id.2.28.18.215.sslip.io wss://api.2.28.18.215.sslip.io *.unique.app wss://*.stt.speech.microsoft.com wss://*.unique.app; media-src 'self' blob: https://api.2.28.18.215.sslip.io https://*.unique.app; frame-ancestors 'self' http://localhost:*; frame-src 'self'; worker-src 'self' blob: data:;
-          UNIQUE_INSTALLATION_ID: hpe-hosted-trial
-          # HPE: https://id.ingress.pcai0201.fr2.hpecolo.net
-          ZITADEL_ISSUER: https://id.2.28.18.215.sslip.io
-          ZITADEL_PROJECT_ID: "388831517784146088"
-          # HPE: https://unique.ingress.pcai0201.fr2.hpecolo.net/admin
-          ADMIN_APP_URL: https://unique.2.28.18.215.sslip.io/admin
-          # HPE: https://api.ingress.pcai0201.fr2.hpecolo.net/apps
-          APP_REPOSITORY_BACKEND_API_URL: https://api.2.28.18.215.sslip.io/apps
-          # HPE: https://unique.ingress.pcai0201.fr2.hpecolo.net/chat
-          CHAT_APP_URL: https://unique.2.28.18.215.sslip.io/chat
-          # HPE: https://api.ingress.pcai0201.fr2.hpecolo.net/chat
-          CHAT_BACKEND_API_URL: https://api.2.28.18.215.sslip.io/chat
-          # HPE: https://unique.ingress.pcai0201.fr2.hpecolo.net/knowledge-upload
-          KNOWLEDGE_UPLOAD_APP_URL: https://unique.2.28.18.215.sslip.io/knowledge-upload
-          # HPE: https://api.ingress.pcai0201.fr2.hpecolo.net/scope-management
-          SCOPE_MANAGEMENT_BACKEND_API_URL: https://api.2.28.18.215.sslip.io/scope-management
+            default-src 'self'; img-src https: blob: data:; script-src 'self' 'unsafe-inline' data: blob:; style-src 'self' 'unsafe-inline'; font-src 'self' data:; connect-src 'self' blob: http://api.localhost http://id.localhost wss://api.localhost *.unique.app wss://*.stt.speech.microsoft.com wss://*.unique.app; media-src 'self' blob: http://api.localhost https://*.unique.app; frame-ancestors 'self' http://localhost:*; frame-src 'self'; worker-src 'self' blob: data:;
+          UNIQUE_INSTALLATION_ID: __UNIQUE_INSTALLATION_ID__
+          ZITADEL_ISSUER: http://id.localhost
+          ZITADEL_PROJECT_ID: "__ZITADEL_PROJECT_ID__"
+          ADMIN_APP_URL: http://unique.localhost/admin
+          APP_REPOSITORY_BACKEND_API_URL: http://api.localhost/apps
+          CHAT_APP_URL: http://unique.localhost/chat
+          CHAT_BACKEND_API_URL: http://api.localhost/chat
+          KNOWLEDGE_UPLOAD_APP_URL: http://unique.localhost/knowledge-upload
+          SCOPE_MANAGEMENT_BACKEND_API_URL: http://api.localhost/scope-management
           STATIC_TAB_NAME: Unique HPE
-          # HPE: https://api.ingress.pcai0201.fr2.hpecolo.net/configuration
-          THEME_BACKEND_API_URL: https://api.2.28.18.215.sslip.io/configuration
-          ZITADEL_CLIENT_ID: "388831521340981416"
+          THEME_BACKEND_API_URL: http://api.localhost/configuration
+          ZITADEL_CLIENT_ID: "__ZITADEL_CLIENT_ID__"
         volumes:
           - name: postgres-ca
             secret:
@@ -62,8 +52,7 @@ spec:
           gateway:
             name: unique
             namespace: unique
-          # HPE: unique.ingress.pcai0201.fr2.hpecolo.net
-          hostname: unique.2.28.18.215.sslip.io
+          hostname: unique.localhost
         postgresql:
           connection:
             host: postgres-rw.unique.svc.cluster.local

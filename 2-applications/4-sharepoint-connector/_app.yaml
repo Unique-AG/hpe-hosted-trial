@@ -5,7 +5,6 @@ spec:
   destination:
     namespace: unique
   source:
-    # HPE: oci://harbor.ingress.pcai0201.fr2.hpecolo.net/unique/helm/sharepoint-connector
     repoURL: oci://harbor.unique.svc.cluster.local/library/helm/sharepoint-connector
     path: .
     targetRevision: sha256:864db4659b3112aa10622db62df762555bafbc9f374b811d6077e12df772edf8
@@ -13,8 +12,7 @@ spec:
       releaseName: sharepoint-connector
       valuesObject:
         image:
-          # HPE: harbor.ingress.pcai0201.fr2.hpecolo.net
-          registry: harbor.2.28.18.215.sslip.io
+          registry: harbor.localhost
           repository: library/images/sharepoint-connector
           tag: 3.1.0
           useDigest: false

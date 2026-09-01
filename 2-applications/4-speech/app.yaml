@@ -5,7 +5,6 @@ spec:
   destination:
     namespace: unique
   source:
-    # HPE: oci://harbor.ingress.pcai0201.fr2.hpecolo.net/unique/helm/speech
     repoURL: oci://harbor.unique.svc.cluster.local/library/helm/speech
     targetRevision: sha256:5adbe193d85e03d1f1b784add1edc515745d086703c75bc5a310c368c83bb5ab
     path: .
@@ -15,8 +14,7 @@ spec:
       valuesObject:
         global:
           image:
-            # HPE: harbor.ingress.pcai0201.fr2.hpecolo.net
-            registry: harbor.2.28.18.215.sslip.io
+            registry: harbor.localhost
             pullSecrets:
               - name: harbor-pull-secret
         image:
@@ -24,10 +22,9 @@ spec:
           useDigest: false
         env:
           NODE_EXTRA_CA_CERTS: /etc/ssl/postgres/ca.crt
-          UNIQUE_INSTALLATION_ID: hpe-hosted-trial
-          # HPE: https://id.ingress.pcai0201.fr2.hpecolo.net
-          ZITADEL_ISSUER: https://id.2.28.18.215.sslip.io
-          ZITADEL_PROJECT_ID: "388831517784146088"
+          UNIQUE_INSTALLATION_ID: __UNIQUE_INSTALLATION_ID__
+          ZITADEL_ISSUER: http://id.localhost
+          ZITADEL_PROJECT_ID: "__ZITADEL_PROJECT_ID__"
         volumes:
           - name: postgres-ca
             secret:
@@ -44,8 +41,7 @@ spec:
           gateway:
             name: unique
             namespace: unique
-          # HPE: api.ingress.pcai0201.fr2.hpecolo.net
-          hostname: api.2.28.18.215.sslip.io
+          hostname: api.localhost
         postgresql:
           connection:
             host: postgres-rw.unique.svc.cluster.local

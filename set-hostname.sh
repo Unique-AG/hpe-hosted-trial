@@ -37,7 +37,7 @@ if not old_domain:
     old_domain = "localhost"
 
 service_names = (
-    "api", "argocd", "grafana", "harbor", "id", "litellm",
+    "api", "argocd", "grafana", "harbor", "id", "litellm", "qdrant",
     "rabbitmq", "rustfs", "unique",
 )
 tracked = subprocess.run(

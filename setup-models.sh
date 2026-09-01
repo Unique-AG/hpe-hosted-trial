@@ -6,7 +6,14 @@ CHAT_MODEL_ALIAS="${CHAT_MODEL_ALIAS:-unique-chat-glm-5.3}"
 CHAT_MODEL_GROUP="${CHAT_MODEL_GROUP:-TOGETHER_GLM_5_3}"
 EMBEDDING_MODEL_ALIAS="${EMBEDDING_MODEL_ALIAS:-unique-embedding-e5}"
 EMBEDDING_DIMENSION="${EMBEDDING_DIMENSION:-1024}"
-UNIQUE_API_BASE_URL="${UNIQUE_API_BASE_URL:-https://api.2.28.18.215.sslip.io}"
+CONFIGURED_DOMAIN=localhost
+if [[ -f "${REPOSITORY_DIR}/.hostname" ]]; then
+  CONFIGURED_DOMAIN="$(tr -d '[:space:]' <"${REPOSITORY_DIR}/.hostname")"
+fi
+[[ -n "${CONFIGURED_DOMAIN}" ]] || { printf 'ERROR: .hostname is empty; run ./set-hostname.sh first\n' >&2; exit 1; }
+DEFAULT_SCHEME=https
+[[ "${CONFIGURED_DOMAIN}" == localhost ]] && DEFAULT_SCHEME=http
+UNIQUE_API_BASE_URL="${UNIQUE_API_BASE_URL:-${DEFAULT_SCHEME}://api.${CONFIGURED_DOMAIN}}"
 CHAT_GRAPHQL_URL="${CHAT_GRAPHQL_URL:-${UNIQUE_API_BASE_URL}/chat/graphql}"
 INGESTION_GRAPHQL_URL="${INGESTION_GRAPHQL_URL:-${UNIQUE_API_BASE_URL}/ingestion/graphql}"
 ZITADEL_URL="${ZITADEL_URL:-${UNIQUE_API_BASE_URL/api./id.}}"

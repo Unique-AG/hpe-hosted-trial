@@ -5,7 +5,6 @@ spec:
   destination:
     namespace: unique
   source:
-    # HPE: oci://harbor.ingress.pcai0201.fr2.hpecolo.net/unique/helm/webhook-worker
     repoURL: oci://harbor.unique.svc.cluster.local/library/helm/webhook-worker
     targetRevision: sha256:14c6c95f11ec607cb1f83625c0eb30677ff9b9b65423e8d3fb649244a0615360
     path: .
@@ -15,8 +14,7 @@ spec:
       valuesObject:
         global:
           image:
-            # HPE: harbor.ingress.pcai0201.fr2.hpecolo.net
-            registry: harbor.2.28.18.215.sslip.io
+            registry: harbor.localhost
             pullSecrets:
               - name: harbor-pull-secret
         image:
@@ -25,10 +23,9 @@ spec:
         env:
           NODE_EXTRA_CA_CERTS: /etc/ssl/postgres/ca.crt
           MAX_HEAP_MB: 200
-          UNIQUE_INSTALLATION_ID: hpe-hosted-trial
-          # HPE: https://id.ingress.pcai0201.fr2.hpecolo.net
-          ZITADEL_ISSUER: https://id.2.28.18.215.sslip.io
-          ZITADEL_PROJECT_ID: "388831517784146088"
+          UNIQUE_INSTALLATION_ID: __UNIQUE_INSTALLATION_ID__
+          ZITADEL_ISSUER: http://id.localhost
+          ZITADEL_PROJECT_ID: "__ZITADEL_PROJECT_ID__"
         volumes:
           - name: postgres-ca
             secret:
@@ -45,8 +42,7 @@ spec:
           gateway:
             name: unique
             namespace: unique
-          # HPE: api.ingress.pcai0201.fr2.hpecolo.net
-          hostname: api.2.28.18.215.sslip.io
+          hostname: api.localhost
         postgresql:
           connection:
             host: postgres-rw.unique.svc.cluster.local

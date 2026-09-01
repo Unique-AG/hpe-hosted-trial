@@ -7,7 +7,6 @@ spec:
   gateways:
     - istio-system/ezaf-gateway
   hosts:
-    # HPE: qdrant.ingress.pcai0201.fr2.hpecolo.net
     - qdrant.localhost
   http:
     - match:

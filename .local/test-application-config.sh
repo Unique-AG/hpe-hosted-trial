@@ -164,8 +164,8 @@ for file in \
 done
 
 assert_yaml_value "2-applications/1-gatekeeper/app.yaml" '.spec.source.helm.valuesObject.postgresql.connection.database' "gatekeeper"
-assert_yaml_value "2-applications/1-gatekeeper/app.yaml" '.spec.source.helm.valuesObject.env.ADMIN_ROOT_USER_ID' "hpe-hosted-trial-root-user"
-assert_yaml_value "2-applications/1-gatekeeper/app.yaml" '.spec.source.helm.valuesObject.env.ADMIN_ROOT_COMPANY_ID' "hpe-hosted-trial-root-company"
+assert_yaml_value "2-applications/1-gatekeeper/app.yaml" '.spec.source.helm.valuesObject.env.ADMIN_ROOT_USER_ID' "__ADMIN_ROOT_USER_ID__"
+assert_yaml_value "2-applications/1-gatekeeper/app.yaml" '.spec.source.helm.valuesObject.env.ADMIN_ROOT_COMPANY_ID' "__ADMIN_ROOT_COMPANY_ID__"
 assert_yaml_value "2-applications/1-configuration-backend/app.yaml" '.spec.source.helm.valuesObject.autoscaling.enabled' "false"
 assert_yaml_value "2-applications/1-node-chat/app.yaml" '.spec.source.helm.valuesObject.autoscaling.enabled' "false"
 assert_yaml_value "2-applications/4-unique-api/app.yaml" '.spec.source.helm.valuesObject.autoscaling.enabled' "false"

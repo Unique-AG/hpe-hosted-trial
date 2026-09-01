@@ -9,9 +9,7 @@ config:
   uri_param_names:
     - "token"
   allowed_iss:
-    # HPE: "https://id.ingress.pcai0201.fr2.hpecolo.net"
-    - "https://id.2.28.18.215.sslip.io"
+    - "http://id.localhost"
   algorithm: RS256
-  # HPE: "https://id.ingress.pcai0201.fr2.hpecolo.net/.well-known/openid-configuration"
-  well_known_template: "https://id.2.28.18.215.sslip.io/.well-known/openid-configuration"
-  zitadel_project_id: "388831517784146088"
+  well_known_template: "http://id.localhost/.well-known/openid-configuration"
+  zitadel_project_id: "__ZITADEL_PROJECT_ID__"

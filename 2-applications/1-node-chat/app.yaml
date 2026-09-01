@@ -5,7 +5,6 @@ spec:
   destination:
     namespace: unique
   source:
-    # HPE: oci://harbor.ingress.pcai0201.fr2.hpecolo.net/unique/helm/chat
     repoURL: oci://harbor.unique.svc.cluster.local/library/helm/chat
     targetRevision: sha256:54bfb97ef6de9dd4206c44955c8c6129fd9ded1b3bf7a598eeff93f51a204108
     path: .
@@ -15,8 +14,7 @@ spec:
       valuesObject:
         global:
           image:
-            # HPE: harbor.ingress.pcai0201.fr2.hpecolo.net
-            registry: harbor.2.28.18.215.sslip.io
+            registry: harbor.localhost
             pullSecrets:
               - name: harbor-pull-secret
         image:
@@ -26,20 +24,16 @@ spec:
           enabled: false
         env:
           NODE_EXTRA_CA_CERTS: /etc/ssl/postgres/ca.crt
-          UNIQUE_INSTALLATION_ID: hpe-hosted-trial
-          # HPE: https://id.ingress.pcai0201.fr2.hpecolo.net
-          ZITADEL_ISSUER: https://id.2.28.18.215.sslip.io
-          ZITADEL_PROJECT_ID: "388831517784146088"
-          # HPE: https://unique.ingress.pcai0201.fr2.hpecolo.net/admin
-          ADMIN_FRONTEND_URL: https://unique.2.28.18.215.sslip.io/admin
-          # HPE: https://unique.ingress.pcai0201.fr2.hpecolo.net/chat
-          CHAT_FRONTEND_URL: https://unique.2.28.18.215.sslip.io/chat
+          UNIQUE_INSTALLATION_ID: __UNIQUE_INSTALLATION_ID__
+          ZITADEL_ISSUER: http://id.localhost
+          ZITADEL_PROJECT_ID: "__ZITADEL_PROJECT_ID__"
+          ADMIN_FRONTEND_URL: http://unique.localhost/admin
+          CHAT_FRONTEND_URL: http://unique.localhost/chat
           ENABLE_EXTERNAL_ASSISTANT: "true"
           FEATURE_FLAG_USE_OPENAI_V1_13819: "true"
           GATEKEEPER_RUNNING_MODE: enforce
           MAX_HEAP_MB: 1400
-          # HPE: https://api.ingress.pcai0201.fr2.hpecolo.net
-          MCP_HUB_BASE_URL: https://api.2.28.18.215.sslip.io
+          MCP_HUB_BASE_URL: http://api.localhost
           OPENAI_PROVIDER: litellm
           S3_BUCKET_ENDPOINT: http://rustfs-svc.unique.svc.cluster.local:9000
           S3_BUCKET_NAME: unique-ingestion-bucket
@@ -60,8 +54,7 @@ spec:
           gateway:
             name: unique
             namespace: unique
-          # HPE: api.ingress.pcai0201.fr2.hpecolo.net
-          hostname: api.2.28.18.215.sslip.io
+          hostname: api.localhost
         internalServices:
           dependencies:
             appRepository:
