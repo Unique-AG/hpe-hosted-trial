@@ -66,6 +66,8 @@ assert_yaml_value "2-applications/1-node-ingestion/app.yaml" '.spec.source.helm.
 assert_yaml_value "2-applications/1-node-chat/app.yaml" '.spec.source.helm.valuesObject.env.FEATURE_FLAG_USE_OPENAI_V1_13819' "true"
 assert_yaml_value "2-applications/1-ingestor/app.yaml" '.spec.source.helm.valuesObject.resources.requests.cpu' "500m"
 assert_yaml_value "2-applications/1-ingestor/app.yaml" '.spec.source.helm.valuesObject.volumeMounts | map(.name) | join(",")' "tmp-volume,artifacts-cache,postgres-ca"
+assert_yaml_value "2-applications/1-assistants-core/app.yaml" '.spec.source.helm.valuesObject.volumeMounts[] | select(.name == "tmp") | .mountPath' "/tmp"
+assert_yaml_value "2-applications/1-assistants-core/app.yaml" '.spec.source.helm.valuesObject.volumes[] | select(.name == "tmp") | has("emptyDir")' "true"
 assert_yaml_value "2-applications/4-sbx-gateway/app.yaml" '.spec.source.helm.valuesObject.volumeMounts | map(.name) | join(",")' "egress-config,egress-ca,egress-audit,mitmproxy-confdir,tmp,postgres-ca"
 assert_yaml_value "2-applications/4-assistants-agentic-table/app.yaml" '.spec.source.helm.valuesObject.volumeMounts | map(.name) | join(",")' "tmp-volume,gunicorn-runtime,postgres-ca"
 assert_yaml_value "2-applications/4-mcp-hub/app.yaml" '.spec.source.helm.valuesObject.extraEnvSecrets[]' "node-chat-secrets"

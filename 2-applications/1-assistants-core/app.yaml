@@ -41,11 +41,15 @@ spec:
               items:
                 - key: ca.crt
                   path: ca.crt
+          - name: tmp
+            emptyDir: {}
         volumeMounts:
           - name: postgres-ca
             mountPath: /etc/ssl/postgres/ca.crt
             subPath: ca.crt
             readOnly: true
+          - name: tmp
+            mountPath: /tmp
         routes:
           gateway:
             name: unique
