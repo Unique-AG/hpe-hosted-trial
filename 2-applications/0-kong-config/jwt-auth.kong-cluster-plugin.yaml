@@ -1,0 +1,15 @@
+apiVersion: configuration.konghq.com/v1
+kind: KongClusterPlugin
+metadata:
+  name: unique-jwt-auth
+  annotations:
+    kubernetes.io/ingress.class: kong
+plugin: unique-jwt-auth
+config:
+  uri_param_names:
+    - "token"
+  allowed_iss:
+    - "http://id.localhost"
+  algorithm: RS256
+  well_known_template: "http://id.localhost/.well-known/openid-configuration"
+  zitadel_project_id: "__ZITADEL_PROJECT_ID__"

@@ -1,0 +1,15 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: connection-secret-reader
+  namespace: unique
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+subjects:
+  - kind: ServiceAccount
+    name: connection-secret-reader
+    namespace: unique
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: connection-secret-reader

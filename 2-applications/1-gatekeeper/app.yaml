@@ -1,0 +1,84 @@
+spec:
+  name: gatekeeper
+  rolloutGroup: core
+  autoSync: true
+  destination:
+    namespace: unique
+  source:
+    repoURL: oci://harbor.unique.svc.cluster.local/library/helm/gatekeeper
+    targetRevision: sha256:6c8fade5d98809ba669d9ecc1e5d0a119d04d274c0f0d0831a9352068dc7443e
+    path: .
+    helm:
+      passCredentials: true
+      releaseName: gatekeeper
+      valuesObject:
+        global:
+          image:
+            registry: harbor.localhost
+            pullSecrets:
+              - name: harbor-pull-secret
+        image:
+          repository: library/images/gatekeeper
+          useDigest: false
+        env:
+          NODE_EXTRA_CA_CERTS: /etc/ssl/postgres/ca.crt
+          ADMIN_ROOT_COMPANY_ID: __ADMIN_ROOT_COMPANY_ID__
+          ADMIN_ROOT_USER_ID: __ADMIN_ROOT_USER_ID__
+          UNIQUE_INSTALLATION_ID: __UNIQUE_INSTALLATION_ID__
+          ZITADEL_ISSUER: http://id.localhost
+          ZITADEL_PROJECT_ID: "__ZITADEL_PROJECT_ID__"
+        volumes:
+          - name: postgres-ca
+            secret:
+              secretName: postgres-ca
+              items:
+                - key: ca.crt
+                  path: ca.crt
+        volumeMounts:
+          - name: postgres-ca
+            mountPath: /etc/ssl/postgres/ca.crt
+            subPath: ca.crt
+            readOnly: true
+        routes:
+          gateway:
+            name: unique
+            namespace: unique
+          hostname: api.localhost
+        postgresql:
+          connection:
+            host: postgres-rw.unique.svc.cluster.local
+            port: 5432
+            database: gatekeeper
+            username:
+              fromSecret:
+                name: postgres-secret
+                key: username
+            password:
+              fromSecret:
+                name: postgres-secret
+                key: password
+            sslMode: disable
+        redis:
+          connection:
+            host: redis-master.unique.svc.cluster.local
+            port: 6379
+        rabbitmq:
+          connection:
+            host: rabbitmq.unique.svc.cluster.local
+            username:
+              fromSecret:
+                name: rabbitmq-password-secret
+                key: username
+            password:
+              fromSecret:
+                name: rabbitmq-password-secret
+                key: password
+        objectStorage:
+          endpoint: http://rustfs-svc.unique.svc.cluster.local:9000
+          region: us-east-1
+        litellm:
+          enabled: true
+          connection:
+            host: litellm.unique.svc.cluster.local
+            port: 4000
+        namespaceOverride: unique

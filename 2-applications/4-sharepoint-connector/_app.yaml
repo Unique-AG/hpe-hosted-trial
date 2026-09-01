@@ -1,0 +1,28 @@
+spec:
+  name: sharepoint-connector
+  rolloutGroup: specialist
+  autoSync: false
+  destination:
+    namespace: unique
+  source:
+    repoURL: oci://harbor.unique.svc.cluster.local/library/helm/sharepoint-connector
+    path: .
+    targetRevision: sha256:864db4659b3112aa10622db62df762555bafbc9f374b811d6077e12df772edf8
+    helm:
+      releaseName: sharepoint-connector
+      valuesObject:
+        image:
+          registry: harbor.localhost
+          repository: library/images/sharepoint-connector
+          tag: 3.1.0
+          useDigest: false
+        internalServices:
+          dependencies:
+            ingestion:
+              name: ingestion
+              namespace: unique
+            scopeManagement:
+              name: scope-management
+              namespace: unique
+        networkPolicy:
+          enabled: true

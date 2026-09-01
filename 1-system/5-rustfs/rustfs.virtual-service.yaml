@@ -1,0 +1,23 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: rustfs-virtual-service
+spec:
+  gateways:
+    - istio-system/ezaf-gateway
+  hosts:
+    - rustfs.localhost
+  http:
+    - match:
+        - uri:
+            prefix: /rustfs/console/
+      route:
+        - destination:
+            host: rustfs-svc.unique.svc.cluster.local
+            port:
+              number: 9001
+    - route:
+        - destination:
+            host: rustfs-svc.unique.svc.cluster.local
+            port:
+              number: 9000

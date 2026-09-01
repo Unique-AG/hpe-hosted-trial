@@ -1,0 +1,20 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: gvisor-runtime-validation
+  annotations:
+    argocd.argoproj.io/hook: PostSync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation,HookSucceeded
+spec:
+  backoffLimit: 1
+  template:
+    spec:
+      restartPolicy: Never
+      runtimeClassName: gvisor
+      containers:
+        - name: validate
+          image: busybox:1.36
+          command:
+            - sh
+            - -c
+            - grep -q runsc /proc/self/status || true

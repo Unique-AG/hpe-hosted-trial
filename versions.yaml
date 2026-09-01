@@ -1,47 +1,348 @@
-# Unique Applications Versions
-# This file defines the versions of all applications and services used in the Unique platform.
-# It serves as the single source of truth for image versions.
-
-# Usage:
-# 1. To sync docker images to Harbor:
-#    skopeo sync --src yaml --dest docker --all versions.yaml harbor.ingress.pcai0201.fr2.hpecolo.net/library/
+# Unique Applications Release Snapshot
 #
-# 2. To update versions in app.yaml files:
-#    ./update-versions.sh
+# This is the single source of truth for the HPE Harbor mirror and the Argo CD
+# chart references in the ordered `1-system/*/app.yaml` and
+# `2-applications/[0-4]-*/app.yaml` specs.
+#
+# Usage:
+#   ./update-versions.sh --mirror
+#   ./update-versions.sh --validate
+#
+# The source chart digests come from the modern `unique/uat01` 2026.34 rollout.
 
-# Syntax Reference for skopeo: https://github.com/containers/skopeo/blob/main/docs/skopeo-sync.1.md#yaml-file-content-used-source-for---src-yaml
-
-
-uniqueapp.azurecr.io:
-  images:
-    # Backend Services
-    app-repository:
-      - 2025.17-1c5de
-    ingestion-worker:
-      - 2025.17-736d0
-    ingestion:
-      - 2025.17-1c5de
-    node-chat:
-      - 2025.17-4fed2
-    node-scope-management:
-      - 2025.17-b6e55
-    node-theme:
-      - 2025.09-1a6e7
-    webhook-scheduler:
-      - 2025.17-1c5de
-    webhook-worker:
-      - 2025.17-1c5de
-    # Frontend Web Apps
-    admin:
-      - 2025.17-5a8af
-    chat:
-      - 2025.17-ab449
-    knowledge-upload:
-      - 2025.17-ab449
-    theme:
-      - 2025.17-ab449
-    # AI Services
-    assistants-core:
-      - 2025.17-f944c
-    assistants-reranker:
-      - 2025.17-1c5de
+release: "2026.34"
+harbor:
+  registry: harbor.localhost
+  runtimeRegistry: harbor.unique.svc.cluster.local
+  chartProject: library/helm
+  imageProject: library/images
+charts:
+  assistants-core:
+    source: oci://uniqueapp.azurecr.io/helm/assistants-core
+    digest: sha256:62e47f917370253dcb2b9494120a45100ba91f8083582a3b2e7dffcaebf425de
+    version: "2026.34.0-c2cb33"
+    destination: oci://harbor.localhost/library/helm/assistants-core
+    runtimeFile: 2-applications/1-assistants-core/app.yaml
+  ingestor:
+    source: oci://uniqueapp.azurecr.io/helm/ingestor
+    digest: sha256:890fb4af83a9a8abec24f1b5ec4f43d25cec0ed4f6d323530086293783a9fb32
+    version: "2026.34.0-628a58"
+    destination: oci://harbor.localhost/library/helm/ingestor
+    runtimeFile: 2-applications/1-ingestor/app.yaml
+  agentic-ingestion:
+    source: oci://uniqueapp.azurecr.io/helm/agentic-ingestion
+    digest: sha256:8ede2b15c5d7a7c41b6f661874c5ce35a220fc85f8534e78170a844369cb381a
+    version: "2026.34.0-628a58"
+    destination: oci://harbor.localhost/library/helm/agentic-ingestion
+    runtimeFile: 2-applications/1-agentic-ingestion/app.yaml
+  assistants-agentic-table:
+    source: oci://uniqueapp.azurecr.io/helm/assistants-agentic-table
+    digest: sha256:ed6ddf1bc03be40d5b32f3cacb5af96dcb99cba6ebf45ba10defff20b95e1b52
+    version: "2026.34.0-c2cb33"
+    destination: oci://harbor.localhost/library/helm/assistants-agentic-table
+    runtimeFile: 2-applications/4-assistants-agentic-table/app.yaml
+  client-insights-exporter:
+    source: oci://uniqueapp.azurecr.io/helm/client-insights-exporter
+    digest: sha256:e4cdefe7bb82f51708b72b27722fcb7b130f0b55c59d2aba443ed1dbbc21032d
+    version: "2026.34.0-628a58"
+    destination: oci://harbor.localhost/library/helm/client-insights-exporter
+    runtimeFile: 2-applications/4-client-insights-exporter/app.yaml
+  configuration-backend:
+    source: oci://uniqueapp.azurecr.io/helm/configuration
+    digest: sha256:bbf92a66c394f363400ed9549006d59e1cecb1f25510db823d52888562837306
+    version: "2026.34.0-628a58"
+    destination: oci://harbor.localhost/library/helm/configuration
+    runtimeFile: 2-applications/1-configuration-backend/app.yaml
+  admin-app:
+    source: oci://uniqueapp.azurecr.io/helm/admin-app
+    digest: sha256:619419d4f1e130b7522627d4ea393ebc520c4371175786729fb0520f9950a487
+    version: "2026.34.0-00119a"
+    destination: oci://harbor.localhost/library/helm/admin-app
+    runtimeFile: 2-applications/3-admin-app/app.yaml
+  chat-app:
+    source: oci://uniqueapp.azurecr.io/helm/chat-app
+    digest: sha256:194aee523332634385f649f98b64e7f31e28d409bf72d12774e9c9c5f9b5e7e8
+    version: "2026.34.0-00119a"
+    destination: oci://harbor.localhost/library/helm/chat-app
+    runtimeFile: 2-applications/3-chat-app/app.yaml
+  knowledge-upload-app:
+    source: oci://uniqueapp.azurecr.io/helm/knowledge-upload-app
+    digest: sha256:13a7577ec6b36ac12b5b7c710cc2d2ebdedb067b906f02bdd74c5b0f9014c0c7
+    version: "2026.34.0-00119a"
+    destination: oci://harbor.localhost/library/helm/knowledge-upload-app
+    runtimeFile: 2-applications/3-knowledge-upload-app/app.yaml
+  theme-app:
+    source: oci://uniqueapp.azurecr.io/helm/theme-app
+    digest: sha256:5a97cce07e2f2e40cb5ea018c94b740e6d5b7f082251b4c9a21869bb42314cee
+    version: "2026.34.0-00119a"
+    destination: oci://harbor.localhost/library/helm/theme-app
+    runtimeFile: 2-applications/3-theme-app/app.yaml
+  node-app-repository:
+    source: oci://uniqueapp.azurecr.io/helm/app-repository
+    digest: sha256:16551dc19bb3b2f5da90d2259d161f28838859773b2cd7f2f92e7ec3a40c5b25
+    version: "2026.34.0-628a58"
+    destination: oci://harbor.localhost/library/helm/app-repository
+    runtimeFile: 2-applications/1-node-app-repository/app.yaml
+  node-chat:
+    source: oci://uniqueapp.azurecr.io/helm/chat
+    digest: sha256:54bfb97ef6de9dd4206c44955c8c6129fd9ded1b3bf7a598eeff93f51a204108
+    version: "2026.34.0-628a58"
+    destination: oci://harbor.localhost/library/helm/chat
+    runtimeFile: 2-applications/1-node-chat/app.yaml
+  node-ingestion:
+    source: oci://uniqueapp.azurecr.io/helm/ingestion
+    digest: sha256:7392ecb2c290640d8c1b9219940afa52cdaf5fd272508b29b703d8f3d2f33fa8
+    version: "2026.34.0-628a58"
+    destination: oci://harbor.localhost/library/helm/ingestion
+    runtimeFile: 2-applications/1-node-ingestion/app.yaml
+  node-ingestion-worker:
+    source: oci://uniqueapp.azurecr.io/helm/ingestion-worker
+    digest: sha256:973b19e89e847b6b5f9e0f67fc2cf9cf0f8590dae06225b2a442f5c3b2b7ef6c
+    version: "2026.34.0-628a58"
+    destination: oci://harbor.localhost/library/helm/ingestion-worker
+    runtimeFile: 2-applications/2-node-ingestion-worker/app.yaml
+  node-ingestion-worker-chat:
+    source: oci://uniqueapp.azurecr.io/helm/ingestion-chat-worker
+    digest: sha256:e0da1c82eace7fa1b462faefa58675f06beb8ec01d4d790d1214cf23e2b17516
+    version: "2026.34.0-628a58"
+    destination: oci://harbor.localhost/library/helm/ingestion-chat-worker
+    runtimeFile: 2-applications/2-node-ingestion-worker-chat/app.yaml
+  node-scope-management:
+    source: oci://uniqueapp.azurecr.io/helm/scope-management
+    digest: sha256:e198a519de8482669724b006175052134c16c8cdef83ca82f49e7ee4974376ef
+    version: "2026.34.0-628a58"
+    destination: oci://harbor.localhost/library/helm/scope-management
+    runtimeFile: 2-applications/1-node-scope-management/app.yaml
+  node-webhook-scheduler:
+    source: oci://uniqueapp.azurecr.io/helm/webhook-scheduler
+    digest: sha256:c6825bbbc628ca3fa922fbf06a9e6f593d4343e59dfb75ac6364b9659028eabc
+    version: "2026.34.0-628a58"
+    destination: oci://harbor.localhost/library/helm/webhook-scheduler
+    runtimeFile: 2-applications/2-node-webhook-scheduler/app.yaml
+  node-webhook-worker:
+    source: oci://uniqueapp.azurecr.io/helm/webhook-worker
+    digest: sha256:14c6c95f11ec607cb1f83625c0eb30677ff9b9b65423e8d3fb649244a0615360
+    version: "2026.34.0-628a58"
+    destination: oci://harbor.localhost/library/helm/webhook-worker
+    runtimeFile: 2-applications/2-node-webhook-worker/app.yaml
+  typescript-service-event-socket:
+    source: oci://uniqueapp.azurecr.io/helm/event-socket
+    digest: sha256:01bb27141c520a13a53e604e659c7b2b6d3f693f133850aff963c7239ef0f7a1
+    version: "2026.34.0-628a58"
+    destination: oci://harbor.localhost/library/helm/event-socket
+  speech:
+    source: oci://uniqueapp.azurecr.io/helm/speech
+    digest: sha256:5adbe193d85e03d1f1b784add1edc515745d086703c75bc5a310c368c83bb5ab
+    version: "2026.34.0-628a58"
+    destination: oci://harbor.localhost/library/helm/speech
+    runtimeFile: 2-applications/4-speech/app.yaml
+  chat-widget:
+    source: oci://uniqueapp.azurecr.io/helm/chat-widget-app
+    digest: sha256:1d7fedc0c778d9c3e9156b4161b1e479de58021b4ab6f5f1d078db3dd93bf20f
+    version: "2026.34.0-628a58"
+    destination: oci://harbor.localhost/library/helm/chat-widget-app
+  shell-host:
+    source: oci://uniqueapp.azurecr.io/helm/shell-host-app
+    digest: sha256:d0161d90ca433fb40977355a2d1cf937f14ccc290fabe6abc9cdce32c40e5067
+    version: "2026.34.0-628a58"
+    destination: oci://harbor.localhost/library/helm/shell-host-app
+  reflector:
+    source: oci://uniqueapp.azurecr.io/helm/reflector
+    digest: sha256:e9e31175b05b3aedaf9895ac8e68efe9bda8816ee6140c8fa7987de27677fb13
+    version: "2026.34.0-628a58"
+    destination: oci://harbor.localhost/library/helm/reflector
+    runtimeFile: 2-applications/1-reflector/app.yaml
+  gatekeeper:
+    source: oci://uniqueapp.azurecr.io/helm/gatekeeper
+    digest: sha256:6c8fade5d98809ba669d9ecc1e5d0a119d04d274c0f0d0831a9352068dc7443e
+    version: "2026.34.0-628a58"
+    destination: oci://harbor.localhost/library/helm/gatekeeper
+    runtimeFile: 2-applications/1-gatekeeper/app.yaml
+  mcp-hub:
+    source: oci://uniqueapp.azurecr.io/helm/mcp-hub
+    digest: sha256:6a2db0a140cc4975b70238e22a54a9a6a7f66d2fd0fb9cf16d21de5e0e9dac3e
+    version: "2026.34.0-628a58"
+    destination: oci://harbor.localhost/library/helm/mcp-hub
+    runtimeFile: 2-applications/4-mcp-hub/app.yaml
+  unique-api:
+    source: oci://uniqueapp.azurecr.io/helm/unique-api
+    digest: sha256:e8ca5416a0b26f50bdee34d935d2287c3cbe0a9d9ca7ba0bf0b5b1f4e9ce0075
+    version: "2026.34.0-628a58"
+    destination: oci://harbor.localhost/library/helm/unique-api
+    runtimeFile: 2-applications/4-unique-api/app.yaml
+  sbx-gateway:
+    source: oci://uniqueapp.azurecr.io/helm/sbx-gateway
+    digest: sha256:d8a5423303b7d48ff012c8ed235b768468a10499735fe5837b8d1499075cf9da
+    version: "2026.34.0"
+    destination: oci://harbor.localhost/library/helm/sbx-gateway
+    runtimeFile: 2-applications/4-sbx-gateway/app.yaml
+  sbx-storage:
+    source: oci://uniqueapp.azurecr.io/helm/sbx-storage
+    digest: sha256:2e6c59b2f8fc05b0ad9e9af30eb81d5cf99f1dbeebace87578a11df28136cf79
+    version: "2026.34.0"
+    destination: oci://harbor.localhost/library/helm/sbx-storage
+    runtimeFile: 2-applications/4-sbx-storage/app.yaml
+  search-proxy:
+    source: oci://uniqueapp.azurecr.io/ghcr.io/unique-ag/ai/helm/search-proxy
+    digest: sha256:55aa4e73712c4996b7f41fae49d2e4f8b35a4aee4b1e26fec80e0c9b1545dd47
+    version: "2026.30.0"
+    destination: oci://harbor.localhost/library/helm/search-proxy
+    runtimeFile: 2-applications/4-search-proxy/_app.yaml
+  agent-sandbox-controller:
+    source: oci://ghcr.io/unique-ag/helm-charts/agent-sandbox-controller
+    version: 0.4.6-rc.1
+    destination: oci://harbor.localhost/library/helm/agent-sandbox-controller
+    runtimeFile: 2-applications/0-agent-sandbox-controller/app.yaml
+    digest: sha256:2eca7f113777f44129562cdcfaaac2d2132496c8b338d0ae5e0b0c62fdc9f11e
+gitCharts:
+  teams-mcp:
+    repoURL: git@github.com:Unique-AG/connectors.git
+    path: services/teams-mcp/deploy/helm-charts/teams-mcp
+    revision: teams-mcp@0.4.3
+    version: 0.4.3
+    destination: oci://harbor.localhost/library/helm/teams-mcp
+    digest: sha256:f1338b82ea89cc18f372ea7a5eabac4f8415056986e284bde70abdbba1558d5e
+  outlook-semantic-mcp:
+    repoURL: git@github.com:Unique-AG/connectors.git
+    path: services/outlook-semantic-mcp/deploy/helm-charts/outlook-semantic-mcp
+    revision: 54f6f006573f82841c80d7b8cb3cf6f4f86917a5
+    version: 3.3.0
+    destination: oci://harbor.localhost/library/helm/outlook-semantic-mcp
+    runtimeFile: 2-applications/4-outlook-semantic-mcp/_app.yaml
+    digest: sha256:6a0473cbe675d4b8a1f75f56ee1315947cd27451a7de375522373c4ff45a10ad
+  backstop-mcp:
+    repoURL: git@github.com:Unique-AG/connectors.git
+    path: services/backstop-mcp/deploy/helm-charts/backstop-mcp
+    revision: backstop-mcp@0.0.1
+    version: 0.0.1
+    destination: oci://harbor.localhost/library/helm/backstop-mcp
+    digest: sha256:a6cf4f8965636fdf6206a1dcf558e8c219f270bc5d31bad05ad5c329f599d776
+  sharepoint-connector:
+    repoURL: git@github.com:Unique-AG/connectors.git
+    path: services/sharepoint-connector/deploy/helm-charts/sharepoint-connector
+    revision: sharepoint-connector@3.1.0
+    version: 3.1.0
+    destination: oci://harbor.localhost/library/helm/sharepoint-connector
+    runtimeFile: 2-applications/4-sharepoint-connector/_app.yaml
+    digest: sha256:864db4659b3112aa10622db62df762555bafbc9f374b811d6077e12df772edf8
+  confluence-connector:
+    repoURL: git@github.com:Unique-AG/connectors.git
+    path: services/confluence-connector/deploy/helm-charts/confluence-connector
+    revision: 62cb5dc892bdcc526289e5e40f73355ceac9e35a
+    version: 2.2.0
+    destination: oci://harbor.localhost/library/helm/confluence-connector
+    digest: sha256:c57ec823ba0b41fa0a06782385914a7506486c03d090a67f24396d8ffb5bae3d
+  sbx-templates:
+    repoURL: git@github.com:Unique-AG/monorepo.git
+    path: conduct/sbx/charts/sbx-templates
+    revision: release/2026.34
+    version: 0.1.0
+    destination: oci://harbor.localhost/library/helm/sbx-templates
+    runtimeFile: 2-applications/4-sbx-templates-unique-polyagent-001/app.yaml
+    digest: sha256:b2688d53af7bb2549357ae873c9c9d9d04fd2a2d0af47f51f3dab7dfe4628b6b
+images:
+  admin:
+    source: docker://uniqueapp.azurecr.io/admin:2026.34.0-00119a@sha256:ed63a96bf9f6819754da68c8459740d7fbcd5527a4461236c1c6bfef7d7c6410
+    destination: docker://harbor.localhost/library/images/admin:2026.34.0-00119a
+  agentic-ingestion:
+    source: docker://uniqueapp.azurecr.io/unique/agentic-ingestion:2026.34.0-628a58@sha256:419429d3aa15465a2dbb2e9ab99e133f15202248bb680c0a4b375b3ac234caad
+    destination: docker://harbor.localhost/library/images/agentic-ingestion:2026.34.0-628a58
+  assistants-agentic-table:
+    source: docker://uniqueapp.azurecr.io/assistants-agentic-table:2026.34.0-c2cb33@sha256:ff27106e8bdce1931c5da0ffd9bc191b89054a07055c18d2f4fabe9e414ec036
+    destination: docker://harbor.localhost/library/images/assistants-agentic-table:2026.34.0-c2cb33
+  assistants-core:
+    source: docker://uniqueapp.azurecr.io/assistants-core:2026.34.0-c2cb33@sha256:1f094a077fa991900673c61e7bf7b870eab5b2f8f2b6d838c1b89a57c7141824
+    destination: docker://harbor.localhost/library/images/assistants-core:2026.34.0-c2cb33
+  app-repository:
+    source: docker://uniqueapp.azurecr.io/app-repository:2026.34.0-628a58@sha256:b797e91f7c2eed01614f53b3fa1ace5dffc2b0bcae6e433a64853dddf53ac8fb
+    destination: docker://harbor.localhost/library/images/app-repository:2026.34.0-628a58
+  chat:
+    source: docker://uniqueapp.azurecr.io/chat:2026.34.0-00119a@sha256:ee698ef56f98a0ce0175624b79bd7da1d38d46606419327fa1a1d4f24dd5c8b2
+    destination: docker://harbor.localhost/library/images/chat:2026.34.0-00119a
+  chat-widget:
+    source: docker://uniqueapp.azurecr.io/chat-widget:2026.34.0-628a58@sha256:678c2e7f6535f0d2310401adc9fe99f7942f57a5cfb4d33d8dcf79db6a71d960
+    destination: docker://harbor.localhost/library/images/chat-widget:2026.34.0-628a58
+  client-insights-exporter:
+    source: docker://uniqueapp.azurecr.io/client-insights-exporter:2026.34.0-628a58@sha256:1430d8ddb0244d1a26d8a3455cbd4ba11fd567763607c827957bcd4f7eaf34f4
+    destination: docker://harbor.localhost/library/images/client-insights-exporter:2026.34.0-628a58
+  configuration-backend:
+    source: docker://uniqueapp.azurecr.io/configuration-backend:2026.34.0-628a58@sha256:9600cd5bcce3485bb37cb02cc205df117a9f1daaa40353ce6b6a34caa9a24c90
+    destination: docker://harbor.localhost/library/images/configuration-backend:2026.34.0-628a58
+  gatekeeper:
+    source: docker://uniqueapp.azurecr.io/unique/gatekeeper:2026.34.0-628a58@sha256:d7032c8cfb3ec826590dce8dd7f6087fb13a52662e366902c09634dc181152fc
+    destination: docker://harbor.localhost/library/images/gatekeeper:2026.34.0-628a58
+  ingestor:
+    source: docker://uniqueapp.azurecr.io/ingestor:2026.34.0-628a58@sha256:d5c09f43155549ec2571e6ce94476c29ee8ba5293160c7d21f5fb4bc3b355304
+    destination: docker://harbor.localhost/library/images/ingestor:2026.34.0-628a58
+  ingestion:
+    source: docker://uniqueapp.azurecr.io/ingestion:2026.34.0-628a58@sha256:a130688a63dbb7f4c59e43a9687beceaf6603e9ccbc48e486945bbff0b2dbae1
+    destination: docker://harbor.localhost/library/images/ingestion:2026.34.0-628a58
+  ingestion-worker:
+    source: docker://uniqueapp.azurecr.io/ingestion-worker:2026.34.0-628a58@sha256:3369c20908c5ef392deaef1e8eaaec7c0e75ff19218b2efec83a49bfb426a294
+    destination: docker://harbor.localhost/library/images/ingestion-worker:2026.34.0-628a58
+  knowledge-upload:
+    source: docker://uniqueapp.azurecr.io/knowledge-upload:2026.34.0-00119a@sha256:953c4c82b0596c875b5021d9c3a5381a2aef1aa092b1d857b20e1d52b3867eaf
+    destination: docker://harbor.localhost/library/images/knowledge-upload:2026.34.0-00119a
+  mcp-hub:
+    source: docker://uniqueapp.azurecr.io/mcp-hub:2026.34.0-628a58@sha256:da5c66691ecd71f469794100e344939e23754a4f73183e6a9efcffac5d424dc2
+    destination: docker://harbor.localhost/library/images/mcp-hub:2026.34.0-628a58
+  node-chat:
+    source: docker://uniqueapp.azurecr.io/node-chat:2026.34.0-628a58@sha256:d63e67a7529505ccce80d71ed3031ff302b5574a964eeacf5f38c6cb7f04cf94
+    destination: docker://harbor.localhost/library/images/node-chat:2026.34.0-628a58
+  node-scope-management:
+    source: docker://uniqueapp.azurecr.io/node-scope-management:2026.34.0-628a58@sha256:9dde8043272550b53ce5b4f4b057c960d270cd7005b4ce56228b9b2b04580b3d
+    destination: docker://harbor.localhost/library/images/node-scope-management:2026.34.0-628a58
+  reflector:
+    source: docker://uniqueapp.azurecr.io/unique/reflector:2026.34.0-628a58@sha256:bd0068c0fa0dc97dbd1a6a8547844f25537740d15e17e71844a5e42c20426407
+    destination: docker://harbor.localhost/library/images/reflector:2026.34.0-628a58
+  sbx-gateway:
+    source: docker://uniqueapp.azurecr.io/unique/sbx-gateway:2026.34.0-628a58@sha256:c1b267e0ba015ac17d5e7977c553d839fabec57a8763c68582528dd07bdcde93
+    destination: docker://harbor.localhost/library/images/sbx-gateway:2026.34.0-628a58
+  sbx-storage:
+    source: docker://uniqueapp.azurecr.io/unique/sbx-storage:2026.34.0-628a58@sha256:f410ef80e24aa3d2537baa6f92bd2f661f3ce9bb23ac2b4f7e99b4a7b7b3f688
+    destination: docker://harbor.localhost/library/images/sbx-storage:2026.34.0-628a58
+  shell-host:
+    source: docker://uniqueapp.azurecr.io/shell-host:2026.34.0-628a58@sha256:9767e125334083fbf7e699d125c7f00c2c06cfd0d396000cb3ea23cc0c4b03c8
+    destination: docker://harbor.localhost/library/images/shell-host:2026.34.0-628a58
+  speech:
+    source: docker://uniqueapp.azurecr.io/speech:2026.34.0-628a58@sha256:2774bab7ff6cfbebf66a67dcf158360e625076b2069725001d953f8fadff4a13
+    destination: docker://harbor.localhost/library/images/speech:2026.34.0-628a58
+  theme:
+    source: docker://uniqueapp.azurecr.io/theme:2026.34.0-00119a@sha256:aea8115023df9f23d115a9be26491e566ea4e07a61d0dffb539897fd6699a2c2
+    destination: docker://harbor.localhost/library/images/theme:2026.34.0-00119a
+  typescript-service-event-socket:
+    source: docker://uniqueapp.azurecr.io/typescript-service-event-socket:2026.34.0-628a58@sha256:731dc3cd8b82b89a9ef8b973e9b476e26749d80d3075840ffe2e81c6c8d6a222
+    destination: docker://harbor.localhost/library/images/typescript-service-event-socket:2026.34.0-628a58
+  unique-api:
+    source: docker://uniqueapp.azurecr.io/unique/unique-api:2026.34.0-628a58@sha256:12efaa45c63f8579f7363afb7b11c68ef951d5a92cd97bc0981efb0c6ec11f10
+    destination: docker://harbor.localhost/library/images/unique-api:2026.34.0-628a58
+  webhook-scheduler:
+    source: docker://uniqueapp.azurecr.io/webhook-scheduler:2026.34.0-628a58@sha256:f96ad0365908f2ac4ac962cbbcdbf83ad1f5a7251242d839c3f46fc36ff72e22
+    destination: docker://harbor.localhost/library/images/webhook-scheduler:2026.34.0-628a58
+  webhook-worker:
+    source: docker://uniqueapp.azurecr.io/webhook-worker:2026.34.0-628a58@sha256:ebce722e31b588f3492fc889db792194c6e3c734cba357f80956796617514ee0
+    destination: docker://harbor.localhost/library/images/webhook-worker:2026.34.0-628a58
+  search-proxy:
+    source: docker://uniqueapp.azurecr.io/ghcr.io/unique-ag/ai/search-proxy:2026.30.0
+    destination: docker://harbor.localhost/library/images/search-proxy:2026.30.0
+  sandbox-router:
+    source: docker://uniquecr.azurecr.io/us-central1-docker.pkg.dev/k8s-staging-images/agent-sandbox/sandbox-router:v20260514-v0.4.6
+    destination: docker://harbor.localhost/library/images/sandbox-router:v20260514-v0.4.6
+  unique-polyagent-001:
+    source: docker://uniqueapp.azurecr.io/unique-polyagent-001:2026.34.0-c2cb33
+    destination: docker://harbor.localhost/library/images/unique-polyagent-001:2026.34.0-c2cb33
+  teams-mcp:
+    source: docker://uniqueapp.azurecr.io/ghcr.io/unique-ag/connectors/services/teams-mcp:0.4.3
+    destination: docker://harbor.localhost/library/images/teams-mcp:0.4.3
+  outlook-semantic-mcp:
+    source: docker://uniqueapp.azurecr.io/ghcr.io/unique-ag/connectors/services/outlook-semantic-mcp:3.3.0
+    destination: docker://harbor.localhost/library/images/outlook-semantic-mcp:3.3.0
+  backstop-mcp:
+    source: docker://uniqueapp.azurecr.io/ghcr.io/unique-ag/connectors/services/backstop-mcp:0.0.1
+    destination: docker://harbor.localhost/library/images/backstop-mcp:0.0.1
+  sharepoint-connector:
+    source: docker://uniqueapp.azurecr.io/ghcr.io/unique-ag/connectors/services/sharepoint-connector:3.1.0
+    destination: docker://harbor.localhost/library/images/sharepoint-connector:3.1.0
+  confluence-connector:
+    source: docker://uniqueapp.azurecr.io/ghcr.io/unique-ag/connectors/services/confluence-connector:2.2.0
+    destination: docker://harbor.localhost/library/images/confluence-connector:2.2.0

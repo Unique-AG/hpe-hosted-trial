@@ -1,0 +1,24 @@
+# This file is maintained automatically by "terraform init".
+# Manual edits may be lost in future updates.
+
+provider "registry.terraform.io/zitadel/zitadel" {
+  version     = "3.4.0"
+  constraints = "3.4.0"
+  hashes = [
+    "h1:XQTcYFkjGEyYZdMO7rIOHLVpB1IFpCmOBtI7aEun7rM=",
+    "zh:011a42ed078750c87c3a1d58f3090518603d837e29a8dea5badad36fb804309e",
+    "zh:1a6df05721c68e586110fd7c144d38379857fde7754598bb0364d1ca98b904c4",
+    "zh:32745b9ae6d6259d3eb49aeb2be34c1d6c48de475ab9e70302353af518f9381d",
+    "zh:3644e04087b01e63c8118c3dd4da02c6289ef9ec12ad9d4a32c9448884e6d5ff",
+    "zh:46a505939c0b9c137ab002e8d7d15a7ee8598d2d32d75ce858f1da5ee7f5dc19",
+    "zh:67dff0fe46d064ebf8aa352f065db964450dc5fd1159aa6e634340efcda54461",
+    "zh:9266c35fcd280c4b55eb4e702df974943372ac8bd691bfa8994c9dfa59021be1",
+    "zh:946419f83cc23418fcb95c93fb9345ed29222a64c24307262a17624223c6f001",
+    "zh:a33d53acc640dc93b81352ba633cf392bc8c7614a72d320d59d3dcdb22d73fc4",
+    "zh:a5e6410dd02e614ef699d3451d3f28dc48da0607acedcab306dfa5468d4ec9fd",
+    "zh:aa811343722e7b8d65cfe208fb15b382f386b7a9db052e09a78e6289908ee67b",
+    "zh:acd2f07a8df7911a9ab63a57dec9717656207f84de988ff64cd7195e73820d12",
+    "zh:c9f1b60d9c4245a96dac2a3a3f56f7a1637f0585af68747c6d7762e3c1b7179d",
+    "zh:e3c33dd2335712ce811bf84414a3da76cb143c0118d385389028032ff68b6c9d",
+  ]
+}

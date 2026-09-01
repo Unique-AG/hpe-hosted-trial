@@ -1,86 +1,254 @@
-# hpe-hosted-trial
-Deploy Unique on an HPE hosted trial
+# HPE Hosted Trial
 
-This repository contains the ArgoCD configuration for the Unique application.
+This repository deploys Unique to an HPE Private Cloud AI Kubernetes cluster
+with Argo CD.
 
-* Step 1: Install ArgoCD
-* Step 2: Apply the bootstrap manifest
-* Step 3: Sync only the sealed-secrets operator
-* Step 4: Copy the public cert to the repo (`public.sealed-secrets.cert.pem`), encrypt the secrets with `./seal-secrets.sh --all` and commit the changes
-* Step 5: Sync the rest of the system applications
-* Step 6: Copy docker images to Harbor (see README below)
-* Step 7: Sync the applications
+## Prerequisites
 
-The integer prefixes in the system and applications folders show the sync wave for each service.
+You need:
 
-## Sealed Secrets
+- a Kubernetes cluster with Argo CD installed in the `unique` namespace;
+- a kubeconfig context that can read Secrets and Applications in `unique`;
+- `kubectl`, `argocd`, `kubeseal`, `helm`, Terraform 1.5 or newer, `git`,
+  `yq`, `jq`, `curl`, `rg`, `oras`, and `skopeo`;
+- credentials for the source container registries; and
+- DNS records for the configured ingress domains.
 
-To encrypt secrets, run:
+Argo CD must have ApplicationSet progressive syncs enabled.
 
-```
-echo -n bar | kubectl create secret generic mysecret --dry-run=client --from-file=foo=/dev/stdin -o yaml >mysecret.yaml
-kubeseal --cert ./public.sealed-secrets.cert.pem -f mysecret.yaml -o yaml -w mysealedsecret.yaml -n namespace
-```
+## Deploy
 
-There is a convenience script that will find all the secrets in the repo and encrypt them:
+### 1. Configure the repository
 
-```
-./seal-secrets.sh
-```
-
-!WARNING: Sealed secrets in the `2-applications` folder are synced too late by ArgoCD, so the secrets are not available when the application is deployed.
-To fix that you need to manually add the annotations to the sealed secrets in the `2-applications` folder.
-
-```
-annotations:
-    argocd.argoproj.io/hook: PreSync
-```
-
-Re-running `seal-secrets.sh` will override the secrets and remove the annotations. Ensure they are added back after running the script.
-
-## Use custom models with Unique
-
-Most custom model configurations are stored in environment variables and configured via LiteLLM. However you need to ensure, that the 
-default fallback model for each assistant is set to a custom litellm model as well, or it will try to use OpenAI which is not available on premise. Use this GraphQL request to update each assistant:
-
-1. Copy the JWT from the browser console network tab. Use it as a Bearer token in the following GraphQL request.
-2. Execute the following GraphQL mutation against the Unique API endpoint `https://{api-domain}/chat/graphql`:
-
-```
-mutation UpdateAssistant {
-    updateAssistant(
-        id: "{assistant-id}"
-        input: { languageModel: "litellm:{model-name}" }
-    ) {
-        id
-        name
-        languageModel
-        subtitle
-        title
-    }
-}
-```
-
-
-## Version Management
-
-The Unique platform uses a centralized approach to manage all application and service versions in a single file: `versions.yaml`. This file contains a skopeo sync configuration section for syncing images to Harbor
-
-### Updating Versions
-
-To update a component's version:
-
-1. Edit the version in `versions.yaml`
-2. Run the update script to propagate the change to all app.yaml files:
+Fork this repository and create a branch for the deployment:
 
 ```bash
-./update-versions.sh
+git clone https://github.com/<organization>/hpe-hosted-trial.git
+cd hpe-hosted-trial
+git checkout -b <deployment-branch>
 ```
 
-### Syncing Images to Harbor
-
-To sync images to Harbor:
+Update Argo CD repository and revision references to use that fork and branch:
 
 ```bash
-skopeo sync --src yaml --dest docker --all versions.yaml harbor.ingress.pcai0201.fr2.hpecolo.net/library/
+rg -n 'https://github.com/Unique-AG/hpe-hosted-trial|feat/upgrade-to-2026' .
 ```
+
+Configure every public hostname from the checked-in `localhost` placeholders:
+
+```bash
+./set-hostname.sh 'https://<deployment-domain>'
+```
+
+Then review the remaining deployment-specific values:
+
+```bash
+rg -n 'storageClass|storageClassName|gl4f-filesystem|change-me|localhost|HPE:' \
+  1-system 2-applications
+```
+
+Set supported RWO and RWX storage classes, replace deployment identity
+placeholders such as `UNIQUE_INSTALLATION_ID`, and confirm that DNS resolves to
+the ingress endpoint. Comments beginning with `HPE:` mark values that differ
+from the local test environments.
+
+Commit and push the configuration before syncing Argo CD.
+
+### 2. Bootstrap Argo CD
+
+```bash
+kubectl apply -f bootstrap.application.yaml
+argocd app sync argocd-bootstrap
+```
+
+Argo CD deploys the first system components and then pauses at the manual
+`secrets` gate.
+
+### 3. Prepare system secrets
+
+Copy each required `*.secret.yaml.example` to the adjacent `*.secret.yaml` and
+replace the placeholders. Plaintext `*.secret.yaml` files are ignored by Git.
+Database, RabbitMQ, RustFS, and LiteLLM connection credentials are derived from
+system Secrets and should not be copied into application Secrets.
+
+Seal the Secrets with the cluster's production certificate:
+
+```bash
+./seal-secrets.sh --all
+```
+
+Review, commit, and push the generated `*.sealed-secret.yaml` files.
+
+### 4. Open the system gate
+
+Open the `secrets` gate and watch Argo CD sync the remaining system
+Applications, including the `application-stack` system Application:
+
+```bash
+argocd app sync secrets
+kubectl -n unique get applications.argoproj.io -w
+```
+
+Wait until the system Applications are Healthy and the
+`application-secrets` Application exists. That Application is the next manual
+gate and must remain OutOfSync for now.
+
+### 5. Mirror release artifacts
+
+Populate the HPE Harbor registry with all pinned charts and images:
+
+```bash
+./update-versions.sh --mirror
+```
+
+The command reads `versions.yaml`, authenticates to Harbor with
+`harbor-password-secret`, mirrors the release, and updates runtime references.
+Source-registry credentials are required when the delivery cache has not already
+been populated.
+
+Do not sync `application-secrets` or commit these changes yet. The next step
+also updates tracked manifests.
+
+### 6. Configure ZITADEL
+
+Wait for the ZITADEL Application to be Healthy, then run:
+
+```bash
+./setup-zitadel.sh
+```
+
+The script:
+
+- reads the first-instance machine PAT from `unique/iam-admin-pat`;
+- reconciles the organization, project, roles, OIDC client, and scope-management
+  machine with Terraform;
+- updates the tracked ZITADEL organization ID; and
+- creates the ignored node-scope-management plaintext Secret.
+
+The default URLs are derived from `versions.yaml`. The main overrides are:
+
+- `ZITADEL_URL` and `UNIQUE_FRONTEND_BASE_URL` for custom ingress URLs;
+- `ZITADEL_TARGET_ORG_NAME` for the target organization name;
+- `ZITADEL_REDIRECT_URIS` and `ZITADEL_POST_LOGOUT_REDIRECT_URIS` for
+  comma-separated URI lists; and
+- `ZITADEL_USE_PORT_FORWARD=true` if an ingress proxy cannot preserve ZITADEL
+  provider streams.
+
+Use `./setup-zitadel.sh --check` for a read-only check. After reviewing the
+result, explicitly seal the generated Secret:
+
+```bash
+./setup-zitadel.sh --seal
+```
+
+If an existing SealedSecret already contains `ZITADEL_ROOT_ORG_ID`, rotation
+must be deliberate:
+
+```bash
+./setup-zitadel.sh --seal --rotate-secret
+```
+
+### 7. Open the application gate
+
+> [!WARNING]
+> Scope management and gatekeeper have a circular bootstrap dependency.
+> For the first application rollout, configure `GATEKEEPER_RUNNING_MODE` in
+> `2-applications/1-node-scope-management/app.yaml` so that scope management
+> does **not** enforce gatekeeper. Roll out scope management and gatekeeper, allow
+> gatekeeper to finish the migrations that depend on scope management, and only
+> then enable gatekeeper enforcement in scope management. If enforcement is
+> enabled from the start, gatekeeper cannot complete those migrations.
+
+Review all changes and confirm that no plaintext Secret, Terraform state, or PAT
+is staged:
+
+```bash
+git status --short
+git diff --cached
+```
+
+Commit and push the reviewed manifests before syncing:
+
+```bash
+git add versions.yaml 1-system 2-applications
+git commit -m "chore(release): configure HPE deployment"
+git push
+argocd app sync application-secrets
+```
+
+Argo CD then rolls out the prerequisite, core, worker, and frontend application
+groups. Specialist Applications remain paused until they are explicitly synced.
+
+### 8. Prepare the demo
+
+Register the GLM chat model and the E5 embedding model for the company, then
+configure the demo itself:
+
+```bash
+./setup-models.sh
+./setup-demo.sh
+```
+
+`DEMO_USER_PASSWORD` (or `DEMO_USER_PASSWORD_FILE`, owner-only) is required the
+first time, when the user is created:
+
+```bash
+DEMO_USER_PASSWORD='<password>' ./setup-demo.sh
+```
+
+Use `./setup-demo.sh --check` for a read-only report. Re-running is safe: every
+step reconciles rather than recreates. `--keep-default-spaces` leaves the
+bootstrap spaces in place; `--skip-theme`, `--skip-user`, and `--skip-spaces`
+narrow the run. Theme assets and the HPE palette live in
+[`assets/hpe/`](assets/hpe/README.md).
+
+The space model is selected with `DEMO_SPACE_MODEL`, which defaults to the
+`litellm:unique-chat-glm-5.3` alias from `1-system/7-litellm`. Note that
+node-chat only offers a model in the admin *Space* form when it appears in its
+`UNIQUEAI_SUPPORTED_MODELS` allowlist or in `UNIQUEAI_ALLOWED_MODELS`; to make
+this deployment's alias selectable in that form, set it on node-chat:
+
+```yaml
+UNIQUEAI_ALLOWED_MODELS: "*:litellm:unique-chat-glm-5.3"
+```
+
+### 9. Verify the deployment
+
+```bash
+kubectl -n unique get applications.argoproj.io
+kubectl -n unique get pods
+```
+
+Wait for the required Applications to be Synced and Healthy and confirm that no
+required pod is Pending or crash-looping. Sign in through the configured Unique
+domain, create a chat, and verify that the assistant responds. Also check the
+API, identity provider, Harbor, and object-storage routes.
+
+The initial ZITADEL human password is a bootstrap credential. Change it
+immediately after the first login.
+
+## Version management
+
+`versions.yaml` is the source of truth for chart versions, image versions,
+digests, and HPE Harbor destinations.
+
+After editing it, propagate and validate references:
+
+```bash
+./update-versions.sh --update
+./update-versions.sh --validate
+```
+
+Mirror OCI charts, pinned Git charts, and container images with:
+
+```bash
+./update-versions.sh --mirror
+```
+
+Runtime Argo CD manifests reference only this configuration repository, the HPE
+Harbor mirror, and approved public chart repositories.
+
+## Local testing
+
+Kind and Hetzner test-cluster instructions are internal and documented in
+[`.local/README.md`](.local/README.md).

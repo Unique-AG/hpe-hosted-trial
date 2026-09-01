@@ -1,0 +1,69 @@
+spec:
+  name: node-webhook-scheduler
+  rolloutGroup: worker
+  autoSync: true
+  destination:
+    namespace: unique
+  source:
+    repoURL: oci://harbor.unique.svc.cluster.local/library/helm/webhook-scheduler
+    targetRevision: sha256:c6825bbbc628ca3fa922fbf06a9e6f593d4343e59dfb75ac6364b9659028eabc
+    path: .
+    helm:
+      passCredentials: true
+      releaseName: webhook-scheduler
+      valuesObject:
+        global:
+          image:
+            registry: harbor.localhost
+            pullSecrets:
+              - name: harbor-pull-secret
+        image:
+          repository: library/images/webhook-scheduler
+          useDigest: false
+        env:
+          NODE_EXTRA_CA_CERTS: /etc/ssl/postgres/ca.crt
+          MAX_HEAP_MB: 200
+          UNIQUE_INSTALLATION_ID: __UNIQUE_INSTALLATION_ID__
+          ZITADEL_ISSUER: http://id.localhost
+          ZITADEL_PROJECT_ID: "__ZITADEL_PROJECT_ID__"
+        volumes:
+          - name: postgres-ca
+            secret:
+              secretName: postgres-ca
+              items:
+                - key: ca.crt
+                  path: ca.crt
+        volumeMounts:
+          - name: postgres-ca
+            mountPath: /etc/ssl/postgres/ca.crt
+            subPath: ca.crt
+            readOnly: true
+        routes:
+          gateway:
+            name: unique
+            namespace: unique
+          hostname: api.localhost
+        postgresql:
+          connection:
+            host: postgres-rw.unique.svc.cluster.local
+            port: 5432
+        redis:
+          connection:
+            host: redis-master.unique.svc.cluster.local
+            port: 6379
+        rabbitmq:
+          connection:
+            host: rabbitmq.unique.svc.cluster.local
+            url:
+              fromSecret:
+                name: node-webhook-scheduler-connections
+                key: AMQP_URL
+        objectStorage:
+          endpoint: http://rustfs-svc.unique.svc.cluster.local:9000
+          region: us-east-1
+        litellm:
+          enabled: true
+          connection:
+            host: litellm.unique.svc.cluster.local
+            port: 4000
+        namespaceOverride: unique

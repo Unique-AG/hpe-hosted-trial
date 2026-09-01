@@ -1,0 +1,11 @@
+apiVersion: rustfs.badhouseplants.net/v1beta1
+kind: RustFSInstance
+metadata:
+  name: rustfs
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  endpoint: http://rustfs-svc.unique.svc.cluster.local:9000
+  credentialsSecret:
+    namespace: unique
+    name: rustfs-credentials

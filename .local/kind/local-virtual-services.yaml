@@ -1,0 +1,16 @@
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: local-argocd
+  namespace: unique
+spec:
+  gateways:
+    - istio-system/ezaf-gateway
+  hosts:
+    - argocd.localhost
+  http:
+    - route:
+        - destination:
+            host: argocd-server.unique.svc.cluster.local
+            port:
+              number: 80

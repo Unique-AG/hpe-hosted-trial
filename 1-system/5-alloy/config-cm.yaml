@@ -1,0 +1,209 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: alloy-config
+data:
+  config.alloy: |
+    logging {
+      level  = "info"
+      format = "logfmt"
+    }
+
+    discovery.kubernetes "pods" {
+      role = "pod"
+      selectors {
+        role  = "pod"
+        field = "spec.nodeName=" + coalesce(sys.env("HOSTNAME"), constants.hostname)
+      }
+    }
+
+    discovery.relabel "pods" {
+      targets = discovery.kubernetes.pods.targets
+
+      rule {
+        source_labels = ["__meta_kubernetes_pod_label_app_kubernetes_io_name", "__meta_kubernetes_pod_label_app", "__meta_kubernetes_pod_name"]
+        regex         = "^;*([^;]+)(;.*)?$"
+        target_label  = "app"
+      }
+
+      rule {
+        source_labels = ["__meta_kubernetes_pod_label_app_kubernetes_io_instance", "__meta_kubernetes_pod_label_instance"]
+        regex         = "^;*([^;]+)(;.*)?$"
+        target_label  = "instance"
+      }
+
+      rule {
+        source_labels = ["__meta_kubernetes_pod_label_app_kubernetes_io_component", "__meta_kubernetes_pod_label_component"]
+        regex         = "^;*([^;]+)(;.*)?$"
+        target_label  = "component"
+      }
+
+      rule {
+        source_labels = ["__meta_kubernetes_pod_label_helm_sh_chart"]
+        target_label  = "helm_chart"
+      }
+
+      rule {
+        source_labels = ["__meta_kubernetes_pod_node_name"]
+        target_label  = "node_name"
+      }
+
+      rule {
+        source_labels = ["__meta_kubernetes_namespace"]
+        target_label  = "namespace"
+      }
+
+      rule {
+        source_labels = ["namespace", "app"]
+        separator     = "/"
+        target_label  = "job"
+      }
+
+      rule {
+        source_labels = ["__meta_kubernetes_pod_name"]
+        target_label  = "pod"
+      }
+
+      rule {
+        source_labels = ["__meta_kubernetes_pod_container_name"]
+        target_label  = "container"
+      }
+    }
+
+    loki.relabel "journal" {
+      forward_to = []
+
+      rule {
+        source_labels = ["__journal__hostname"]
+        target_label  = "hostname"
+      }
+
+      rule {
+        source_labels = ["__journal__systemd_unit"]
+        target_label  = "unit"
+      }
+
+      rule {
+        source_labels = ["__journal_priority_keyword"]
+        target_label  = "level"
+      }
+    }
+
+    loki.source.journal "journal" {
+      forward_to    = [loki.process.journal.receiver]
+      relabel_rules = loki.relabel.journal.rules
+      path          = "/var/log/journal"
+      matches       = "_SYSTEMD_UNIT=kubelet.service _SYSTEMD_UNIT=containerd.service"
+      max_age       = "12h"
+      labels        = {job = "systemd-journal"}
+    }
+
+    loki.process "journal" {
+      forward_to = [loki.write.loki.receiver]
+
+      stage.replace {
+        expression = "(?:token=|[?&](?:key|code)=)([^\\s&]+)"
+        replace    = "[REDACTED]"
+      }
+    }
+
+    loki.source.kubernetes "pods" {
+      targets    = discovery.relabel.pods.output
+      forward_to = [loki.process.kubernetes_pods.receiver]
+    }
+
+    loki.process "kubernetes_pods" {
+      forward_to = [loki.write.loki.receiver]
+
+      stage.cri {}
+
+      stage.replace {
+        expression = "(?:token=|[?&](?:key|code)=)([^\\s&]+)"
+        replace    = "[REDACTED]"
+      }
+
+      stage.match {
+        selector = "{helm_chart=~\"backend-service.*\"}"
+
+        stage.json {
+          expressions = {
+            context        = "context",
+            level          = "level",
+            msg            = "msg",
+            operation_name = "operationName",
+            req            = "req",
+          }
+        }
+
+        stage.json {
+          expressions = {
+            headers    = "headers",
+            req_id     = "id",
+            req_method = "method",
+            req_url    = "url",
+          }
+          source = "req"
+        }
+
+        stage.json {
+          expressions = {
+            sec_platform      = "\"sec-ch-ua-platform\"",
+            sec_ua            = "\"sec-ch-ua\"",
+            sec_ua_mobile     = "\"sec-ch-ua-mobile\"",
+            user_agent        = "\"user-agent\"",
+            x_company_domain  = "\"x-company-domain\"",
+            x_company_id      = "\"x-company-id\"",
+            x_company_name    = "\"x-company-name\"",
+            x_kong_request_id = "\"x-kong-request-id\"",
+            x_service_id      = "\"x-service-id\"",
+            x_user_id         = "\"x-user-id\"",
+            x_user_roles      = "\"x-user-roles\"",
+          }
+          source = "headers"
+        }
+
+        stage.template {
+          source   = "req_url"
+          template = "{{ regexReplaceAll \"\\\\?.*\" .req_url \"\" }}"
+        }
+
+        stage.template {
+          source   = "level_name"
+          template = "{{ if eq .level \"10\" }}trace{{ else if eq .level \"20\" }}debug{{ else if eq .level \"30\" }}info{{ else if eq .level \"40\" }}warn{{ else if eq .level \"50\" }}error{{ else if eq .level \"60\" }}fatal{{ else }}{{ .level }}{{ end }}"
+        }
+
+        stage.labels {
+          values = {
+            context        = "context",
+            level          = "level_name",
+            operation_name = "operation_name",
+            req_method     = "req_method",
+            x_service_id   = "x_service_id",
+          }
+        }
+
+        stage.structured_metadata {
+          values = {
+            helm_chart        = "helm_chart",
+            pod               = "pod",
+            req_id            = "req_id",
+            sec_platform      = "sec_platform",
+            sec_ua            = "sec_ua",
+            sec_ua_mobile     = "sec_ua_mobile",
+            user_agent        = "user_agent",
+            x_company_domain  = "x_company_domain",
+            x_company_id      = "x_company_id",
+            x_company_name    = "x_company_name",
+            x_kong_request_id = "x_kong_request_id",
+            x_user_id         = "x_user_id",
+            x_user_roles      = "x_user_roles",
+          }
+        }
+      }
+    }
+
+    loki.write "loki" {
+      endpoint {
+        url = "http://loki-gateway.unique.svc.cluster.local/loki/api/v1/push"
+      }
+    }

@@ -1,0 +1,12 @@
+spec:
+  name: application-stack
+  rolloutStep: applications
+  autoSync: true
+  destination:
+    namespace: unique
+  source:
+    repoURL: https://github.com/Unique-AG/hpe-hosted-trial
+    targetRevision: feat/upgrade-to-2026
+    path: 2-applications
+    directory:
+      include: apps.application-set.yaml

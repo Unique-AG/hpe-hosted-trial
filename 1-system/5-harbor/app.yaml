@@ -1,0 +1,163 @@
+spec:
+  name: harbor
+  rolloutStep: infrastructure
+  autoSync: true
+  syncOptions:
+    - RespectIgnoreDifferences=true
+  ignoreDifferences:
+    - group: ""
+      kind: Secret
+      name: harbor-core
+      jsonPointers:
+        - /data
+    - group: ""
+      kind: Secret
+      name: harbor-jobservice
+      jsonPointers:
+        - /data
+    - group: ""
+      kind: Secret
+      name: harbor-registry
+      jsonPointers:
+        - /data
+    - group: ""
+      kind: Secret
+      name: harbor-registry-htpasswd
+      jsonPointers:
+        - /data
+    - group: apps
+      kind: Deployment
+      name: harbor-core
+      jsonPointers:
+        - /spec/template/metadata/annotations
+    - group: apps
+      kind: Deployment
+      name: harbor-jobservice
+      jsonPointers:
+        - /spec/template/metadata/annotations
+    - group: apps
+      kind: Deployment
+      name: harbor-registry
+      jsonPointers:
+        - /spec/template/metadata/annotations
+  sources:
+    - repoURL: https://github.com/Unique-AG/hpe-hosted-trial
+      targetRevision: feat/upgrade-to-2026
+      path: "1-system/5-harbor"
+      directory:
+        recurse: true
+        include: '*.yaml'
+        exclude: '{app.yaml}'
+    - repoURL: https://helm.goharbor.io
+      chart: harbor
+      targetRevision: 1.19.2
+      helm:
+        releaseName: harbor
+        valuesObject:
+          expose:
+            type: clusterIP
+            tls:
+              enabled: false
+              certSource: none
+
+          externalURL: http://harbor.localhost
+
+          existingSecretAdminPassword: harbor-password-secret
+
+          persistence:
+            persistentVolumeClaim:
+              # HPE: use gl4f-filesystem for all claims and 500Gi for registry
+              registry:
+                storageClass: standard
+                size: 20Gi
+              chartmuseum:
+                storageClass: standard
+              jobservice:
+                storageClass: standard
+              database:
+                storageClass: standard
+              redis:
+                storageClass: standard
+              trivy:
+                storageClass: standard
+
+          nginx:
+            resources:
+              limits:
+                cpu: 100m
+                memory: 256Mi
+              requests:
+                cpu: 100m
+                memory: 128Mi
+
+          portal:
+            resources:
+              limits:
+                cpu: 200m
+                memory: 512Mi
+              requests:
+                cpu: 100m
+                memory: 256Mi
+
+          core:
+            resources:
+              limits:
+                cpu: 1000m
+                memory: 2Gi
+              requests:
+                cpu: 500m
+                memory: 1Gi
+
+          jobservice:
+            resources:
+              limits:
+                cpu: 500m
+                memory: 1Gi
+              requests:
+                cpu: 200m
+                memory: 512Mi
+
+          registry:
+            resources:
+              limits:
+                cpu: 1000m
+                memory: 2Gi
+              requests:
+                cpu: 500m
+                memory: 1Gi
+
+          trivy:
+            enabled: false
+
+          database:
+            internal:
+              livenessProbe:
+                timeoutSeconds: 5
+              readinessProbe:
+                timeoutSeconds: 5
+              resources:
+                limits:
+                  cpu: 1000m
+                  memory: 2Gi
+                requests:
+                  cpu: 500m
+                  memory: 1Gi
+
+          redis:
+            internal:
+              resources:
+                limits:
+                  cpu: 200m
+                  memory: 512Mi
+                requests:
+                  cpu: 100m
+                  memory: 256Mi
+
+          exporter:
+            resources:
+              limits:
+                cpu: 100m
+                memory: 128Mi
+              requests:
+                cpu: 50m
+                memory: 64Mi

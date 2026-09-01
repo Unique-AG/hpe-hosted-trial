@@ -1,0 +1,13 @@
+apiVersion: rustfs.badhouseplants.net/v1beta1
+kind: RustFSBucket
+metadata:
+  name: loki-chunks
+  namespace: unique
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+spec:
+  instance: rustfs
+  access: private
+  versioning: false
+  objectLock: false
+  cleanup: false

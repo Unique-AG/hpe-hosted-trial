@@ -1,0 +1,12 @@
+spec:
+  name: secrets
+  rolloutStep: secrets
+  autoSync: false
+  sources:
+    - repoURL: https://github.com/Unique-AG/hpe-hosted-trial
+      targetRevision: feat/upgrade-to-2026
+      path: "1-system/2-secrets"
+      directory:
+        recurse: true
+        include: '*.yaml'
+        exclude: '{app.yaml}'

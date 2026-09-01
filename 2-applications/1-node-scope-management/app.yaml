@@ -1,0 +1,83 @@
+spec:
+  name: node-scope-management
+  rolloutGroup: core
+  autoSync: true
+  destination:
+    namespace: unique
+  source:
+    repoURL: oci://harbor.unique.svc.cluster.local/library/helm/scope-management
+    targetRevision: sha256:e198a519de8482669724b006175052134c16c8cdef83ca82f49e7ee4974376ef
+    path: .
+    helm:
+      passCredentials: true
+      releaseName: scope-management
+      valuesObject:
+        global:
+          image:
+            registry: harbor.localhost
+            pullSecrets:
+              - name: harbor-pull-secret
+        image:
+          repository: library/images/node-scope-management
+          useDigest: false
+        env:
+          NODE_EXTRA_CA_CERTS: /etc/ssl/postgres/ca.crt
+          CORS_ALLOWED_ORIGINS: ""
+          GATEKEEPER_RUNNING_MODE: enforce
+          MAX_HEAP_MB: 700
+          UNIQUE_INSTALLATION_ID: __UNIQUE_INSTALLATION_ID__
+          ZITADEL_HOST: http://id.localhost
+          ZITADEL_ISSUER: http://id.localhost
+          ZITADEL_PROJECT_ID: "__ZITADEL_PROJECT_ID__"
+          ZITADEL_ROOT_ORG_ID: "__ZITADEL_ROOT_ORG_ID__"
+        volumes:
+          - name: postgres-ca
+            secret:
+              secretName: postgres-ca
+              items:
+                - key: ca.crt
+                  path: ca.crt
+        volumeMounts:
+          - name: postgres-ca
+            mountPath: /etc/ssl/postgres/ca.crt
+            subPath: ca.crt
+            readOnly: true
+        routes:
+          gateway:
+            name: unique
+            namespace: unique
+          hostname: api.localhost
+        internalServices:
+          dependencies:
+            gatekeeper:
+              enabled: true
+              namespace: unique
+        postgresql:
+          connection:
+            host: postgres-rw.unique.svc.cluster.local
+            port: 5432
+            url:
+              fromSecret:
+                name: node-scope-management-connections
+                key: DATABASE_URL
+        redis:
+          connection:
+            host: redis-master.unique.svc.cluster.local
+            port: 6379
+        rabbitmq:
+          connection:
+            host: rabbitmq.unique.svc.cluster.local
+            url:
+              fromSecret:
+                name: node-scope-management-connections
+                key: AMQP_URL
+        objectStorage:
+          endpoint: http://rustfs-svc.unique.svc.cluster.local:9000
+          region: us-east-1
+        litellm:
+          enabled: true
+          connection:
+            host: litellm.unique.svc.cluster.local
+            port: 4000
+        extraEnvSecrets:
+          - node-scope-management-secrets

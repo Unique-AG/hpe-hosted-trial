@@ -1,0 +1,86 @@
+spec:
+  name: ingestor
+  rolloutGroup: core
+  autoSync: true
+  destination:
+    namespace: unique
+  source:
+    repoURL: oci://harbor.unique.svc.cluster.local/library/helm/ingestor
+    targetRevision: sha256:890fb4af83a9a8abec24f1b5ec4f43d25cec0ed4f6d323530086293783a9fb32
+    path: .
+    helm:
+      passCredentials: true
+      releaseName: ingestor
+      valuesObject:
+        global:
+          image:
+            registry: harbor.localhost
+            pullSecrets:
+              - name: harbor-pull-secret
+        image:
+          repository: library/images/ingestor
+          useDigest: false
+        resources:
+          requests:
+            cpu: 500m
+            memory: 6Gi
+          limits:
+            cpu: 4
+            memory: 8Gi
+        env:
+          NODE_EXTRA_CA_CERTS: /etc/ssl/postgres/ca.crt
+          MAX_CONCURRENT_JOBS_PER_REPLICA: 2
+          NUM_THREADS_ACCELERATOR_DEVICE: 4
+          UNIQUE_INSTALLATION_ID: __UNIQUE_INSTALLATION_ID__
+          ZITADEL_ISSUER: http://id.localhost
+          ZITADEL_PROJECT_ID: "__ZITADEL_PROJECT_ID__"
+        pvc:
+          # RWX cache shared by ingestor replicas.
+          storageClassName: gl4f-filesystem
+        # Helm replaces the chart's default lists when these are overridden, so
+        # retain the writable temp and model-cache mounts required by Docling.
+        volumes:
+          - name: tmp-volume
+            emptyDir:
+              sizeLimit: 20Gi
+          - name: postgres-ca
+            secret:
+              secretName: postgres-ca
+              items:
+                - key: ca.crt
+                  path: ca.crt
+        volumeMounts:
+          - name: tmp-volume
+            mountPath: /tmp
+          - name: artifacts-cache
+            mountPath: /artifacts
+            readOnly: false
+          - name: postgres-ca
+            mountPath: /etc/ssl/postgres/ca.crt
+            subPath: ca.crt
+            readOnly: true
+        routes:
+          gateway:
+            name: unique
+            namespace: unique
+          hostname: api.localhost
+        postgresql:
+          connection:
+            host: postgres-rw.unique.svc.cluster.local
+            port: 5432
+        redis:
+          connection:
+            host: redis-master.unique.svc.cluster.local
+            port: 6379
+        rabbitmq:
+          connection:
+            host: rabbitmq.unique.svc.cluster.local
+        objectStorage:
+          endpoint: http://rustfs-svc.unique.svc.cluster.local:9000
+          region: us-east-1
+        litellm:
+          enabled: true
+          connection:
+            host: litellm.unique.svc.cluster.local
+            port: 4000
+        namespaceOverride: unique

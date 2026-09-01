@@ -1,0 +1,10 @@
+spec:
+  name: unique-kong-plugins
+  rolloutStep: kong-plugins
+  autoSync: true
+  source:
+    repoURL: ghcr.io/unique-ag/helm-charts
+    chart: kong-plugins
+    targetRevision: 2.5.0
+    helm:
+      releaseName: unique-kong-plugins

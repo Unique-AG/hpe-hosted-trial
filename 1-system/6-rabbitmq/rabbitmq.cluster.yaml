@@ -1,0 +1,28 @@
+apiVersion: rabbitmq.com/v1beta1
+kind: RabbitmqCluster
+metadata:
+  name: rabbitmq
+  namespace: unique
+spec:
+  replicas: 1
+  image: rabbitmq:4.3.4-management
+  secretBackend:
+    externalSecret:
+      name: rabbitmq-password-secret
+  persistence:
+    # HPE: use gl4f-filesystem
+    storageClassName: standard
+    storage: 50Gi
+  rabbitmq:
+    additionalConfig: |
+      vm_memory_high_watermark.absolute = 1Gi
+    additionalPlugins:
+      - rabbitmq_management
+      - rabbitmq_prometheus
+  resources:
+    requests:
+      cpu: 500m
+      memory: 1Gi
+    limits:
+      cpu: 1
+      memory: 2Gi

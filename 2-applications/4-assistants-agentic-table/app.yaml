@@ -1,0 +1,75 @@
+spec:
+  name: assistants-agentic-table
+  rolloutGroup: specialist
+  autoSync: false
+  destination:
+    namespace: unique
+  source:
+    repoURL: oci://harbor.unique.svc.cluster.local/library/helm/assistants-agentic-table
+    targetRevision: sha256:ed6ddf1bc03be40d5b32f3cacb5af96dcb99cba6ebf45ba10defff20b95e1b52
+    path: .
+    helm:
+      passCredentials: true
+      releaseName: assistants-agentic-table
+      valuesObject:
+        global:
+          image:
+            registry: harbor.localhost
+            pullSecrets:
+              - name: harbor-pull-secret
+        image:
+          repository: library/images/assistants-agentic-table
+          useDigest: false
+        env:
+          NODE_EXTRA_CA_CERTS: /etc/ssl/postgres/ca.crt
+          UNIQUE_INSTALLATION_ID: __UNIQUE_INSTALLATION_ID__
+          ZITADEL_ISSUER: http://id.localhost
+          ZITADEL_PROJECT_ID: "__ZITADEL_PROJECT_ID__"
+        # Helm replaces the chart's default lists when these are overridden.
+        # Preserve the writable cache required by tiktoken and Prometheus.
+        volumes:
+          - name: tmp-volume
+            emptyDir:
+              sizeLimit: 5Gi
+          - name: gunicorn-runtime
+            emptyDir: {}
+          - name: postgres-ca
+            secret:
+              secretName: postgres-ca
+              items:
+                - key: ca.crt
+                  path: ca.crt
+        volumeMounts:
+          - name: tmp-volume
+            mountPath: /tmp
+          - name: gunicorn-runtime
+            mountPath: /home/app/.gunicorn
+          - name: postgres-ca
+            mountPath: /etc/ssl/postgres/ca.crt
+            subPath: ca.crt
+            readOnly: true
+        routes:
+          gateway:
+            name: unique
+            namespace: unique
+          hostname: api.localhost
+        postgresql:
+          connection:
+            host: postgres-rw.unique.svc.cluster.local
+            port: 5432
+        redis:
+          connection:
+            host: redis-master.unique.svc.cluster.local
+            port: 6379
+        rabbitmq:
+          connection:
+            host: rabbitmq.unique.svc.cluster.local
+        objectStorage:
+          endpoint: http://rustfs-svc.unique.svc.cluster.local:9000
+          region: us-east-1
+        litellm:
+          enabled: true
+          connection:
+            host: litellm.unique.svc.cluster.local
+            port: 4000
+        namespaceOverride: unique

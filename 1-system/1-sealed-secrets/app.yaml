@@ -1,0 +1,20 @@
+spec:
+  name: sealed-secrets
+  rolloutStep: sealed-secrets
+  autoSync: true
+  sources:
+    - repoURL: https://bitnami.github.io/sealed-secrets
+      chart: sealed-secrets
+      targetRevision: 2.19.1
+      helm:
+        releaseName: sealed-secrets
+        valuesObject:
+          fullnameOverride: sealed-secrets-controller
+          namespace: unique
+          resources:
+            limits:
+              cpu: 150m
+              memory: 256Mi
+            requests:
+              cpu: 100m
+              memory: 128Mi

@@ -1,0 +1,4 @@
+server = "http://harbor.localhost"
+
+[host."http://harbor.localhost"]
+  capabilities = ["pull", "resolve", "push"]

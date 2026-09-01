@@ -1,0 +1,23 @@
+spec:
+  name: sbx-storage
+  rolloutGroup: specialist
+  autoSync: false
+  destination:
+    namespace: unique
+  source:
+    repoURL: oci://harbor.unique.svc.cluster.local/library/helm/sbx-storage
+    targetRevision: sha256:2e6c59b2f8fc05b0ad9e9af30eb81d5cf99f1dbeebace87578a11df28136cf79
+    path: .
+    helm:
+      passCredentials: true
+      releaseName: sbx-storage
+      valuesObject:
+        global:
+          image:
+            registry: harbor.localhost
+        image:
+          repository: library/images/sbx-storage
+          useDigest: false
+        pvc:
+          accessMode: ReadWriteMany
+          storageClassName: gl4f-filesystem

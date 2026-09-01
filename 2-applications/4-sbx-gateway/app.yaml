@@ -1,0 +1,135 @@
+spec:
+  name: sbx-gateway
+  rolloutGroup: specialist
+  autoSync: false
+  destination:
+    namespace: unique
+  source:
+    repoURL: oci://harbor.unique.svc.cluster.local/library/helm/sbx-gateway
+    targetRevision: sha256:d8a5423303b7d48ff012c8ed235b768468a10499735fe5837b8d1499075cf9da
+    path: .
+    helm:
+      passCredentials: true
+      releaseName: sbx-gateway
+      valuesObject:
+        global:
+          image:
+            registry: harbor.localhost
+            pullSecrets:
+              - name: harbor-pull-secret
+        image:
+          repository: library/images/sbx-gateway
+          useDigest: false
+        autoscaling:
+          enabled: false
+        env:
+          NODE_EXTRA_CA_CERTS: /etc/ssl/postgres/ca.crt
+          UNIQUE_INSTALLATION_ID: __UNIQUE_INSTALLATION_ID__
+          ZITADEL_ISSUER: http://id.localhost
+          ZITADEL_PROJECT_ID: "__ZITADEL_PROJECT_ID__"
+        # Helm replaces the chart's default lists when these are overridden.
+        # Keep the gateway configuration and writable runtime directories.
+        volumes:
+          - name: egress-config
+            configMap:
+              name: sbx-gateway-config
+          - name: egress-ca
+            secret:
+              secretName: egress-mitm-ca
+          - name: egress-audit
+            emptyDir: {}
+          - name: mitmproxy-confdir
+            emptyDir: {}
+          - name: tmp
+            emptyDir: {}
+          - name: postgres-ca
+            secret:
+              secretName: postgres-ca
+              items:
+                - key: ca.crt
+                  path: ca.crt
+        volumeMounts:
+          - name: egress-config
+            mountPath: /etc/egress-gateway
+            readOnly: true
+          - name: egress-ca
+            mountPath: /run/egress-ca
+            readOnly: true
+          - name: egress-audit
+            mountPath: /var/log/egress-gateway
+          - name: mitmproxy-confdir
+            mountPath: /home/app/.mitmproxy
+          - name: tmp
+            mountPath: /tmp
+          - name: postgres-ca
+            mountPath: /etc/ssl/postgres/ca.crt
+            subPath: ca.crt
+            readOnly: true
+        routes:
+          gateway:
+            name: unique
+            namespace: unique
+          hostname: api.localhost
+        postgresql:
+          connection:
+            host: postgres-rw.unique.svc.cluster.local
+            port: 5432
+        redis:
+          connection:
+            host: redis-master.unique.svc.cluster.local
+            port: 6379
+        rabbitmq:
+          connection:
+            host: rabbitmq.unique.svc.cluster.local
+        objectStorage:
+          endpoint: http://rustfs-svc.unique.svc.cluster.local:9000
+          region: us-east-1
+        litellm:
+          enabled: true
+          connection:
+            host: litellm.unique.svc.cluster.local
+            port: 4000
+        egressGateway:
+          allowHostsConfig: |
+            chat.unique.svc.cluster.local: true
+            ingestion.unique.svc.cluster.local: true
+            api.localhost: true
+            rustfs-svc.unique.svc.cluster.local: true
+            sbx-storage.unique.svc.cluster.local: true
+            pypi.org: true
+            files.pythonhosted.org: true
+          allowPathsConfig: |
+            chat.unique.svc.cluster.local:
+              - /public/*
+            ingestion.unique.svc.cluster.local:
+              - /scoped/upload
+            api.localhost:
+              - /scoped/ingestion/upload
+            rustfs-svc.unique.svc.cluster.local:
+              - /unique-ingestion-bucket/*
+            sbx-storage.unique.svc.cluster.local:
+              - /v1/checkpoint
+              - /v1/skill-cache-base
+            pypi.org:
+              - /simple*
+            files.pythonhosted.org:
+              - /packages/*
+          allowMethodsConfig: |
+            ingestion.unique.svc.cluster.local:
+              - PUT
+            api.localhost:
+              - PUT
+            rustfs-svc.unique.svc.cluster.local:
+              - GET
+              - HEAD
+              - PUT
+            sbx-storage.unique.svc.cluster.local:
+              - GET
+              - HEAD
+              - PUT
+            pypi.org:
+              - GET
+              - HEAD
+            files.pythonhosted.org:
+              - GET
+              - HEAD

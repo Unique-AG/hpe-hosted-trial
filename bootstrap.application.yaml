@@ -8,16 +8,14 @@ spec:
   project: default
   sources:
     # The system dependencies like kong, databases, redis, etc.
-    # Reserved Sync Waves: 0-5
+    # Managed by the 1-system ApplicationSet rollout steps.
     - repoURL: https://github.com/Unique-AG/hpe-hosted-trial
-      targetRevision: main
+      targetRevision: feat/upgrade-to-2026
       path: 1-system
-    # The application services
-    # Reserved Sync Waves: 6-10
-    - repoURL: https://github.com/Unique-AG/hpe-hosted-trial
-      targetRevision: main
-      path: 2-applications
   destination:
     server: https://kubernetes.default.svc
     namespace: unique
-  syncPolicy: {}
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true

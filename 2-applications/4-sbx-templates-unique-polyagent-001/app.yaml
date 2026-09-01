@@ -1,0 +1,51 @@
+spec:
+  name: sbx-templates-unique-polyagent-001
+  rolloutGroup: specialist
+  autoSync: false
+  destination:
+    namespace: unique
+  source:
+    repoURL: oci://harbor.unique.svc.cluster.local/library/helm/sbx-templates
+    targetRevision: sha256:b2688d53af7bb2549357ae873c9c9d9d04fd2a2d0af47f51f3dab7dfe4628b6b
+    path: .
+    helm:
+      releaseName: unique-polyagent-001
+      valuesObject:
+        sandboxTemplate:
+          name: unique-polyagent-001
+          service: true
+          runtimeClassName: gvisor
+          image:
+            repository: harbor.localhost/library/images/unique-polyagent-001
+            tag: 2026.34.0-c2cb33
+            digest: ""
+            pullPolicy: IfNotPresent
+          imagePullSecrets:
+            - name: harbor-pull-secret
+          env:
+            - name: LOG_LEVEL
+              value: INFO
+            - name: HTTP_PROXY
+              value: http://sbx-gateway.unique.svc.cluster.local:3128
+            - name: HTTPS_PROXY
+              value: http://sbx-gateway.unique.svc.cluster.local:3128
+            - name: NO_PROXY
+              value: localhost,127.0.0.1,::1
+            - name: UNIQUE_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: sbx-templates-unique-polyagent-001-secrets
+                  key: UNIQUE_API_KEY
+            - name: UNIQUE_API_BASE
+              value: http://chat.unique.svc.cluster.local:8093/public
+            - name: INGESTION_UPLOAD_API_URL_INTERNAL
+              value: http://ingestion.unique.svc.cluster.local:8091/scoped/upload
+            - name: SBX_STORAGE_URL
+              value: http://sbx-storage.unique.svc.cluster.local:80
+          tmpVolume:
+            enabled: true
+            mountPath: /tmp
+            sizeLimit: 2Gi
+          warmPool:
+            enabled: true
+            replicas: 1

@@ -1,0 +1,32 @@
+spec:
+  name: agent-sandbox-controller
+  rolloutGroup: prerequisites
+  autoSync: true
+  destination:
+    namespace: unique
+  syncOptions:
+    - ServerSideApply=true
+  source:
+    repoURL: oci://harbor.unique.svc.cluster.local/library/helm/agent-sandbox-controller
+    path: .
+    targetRevision: sha256:2eca7f113777f44129562cdcfaaac2d2132496c8b338d0ae5e0b0c62fdc9f11e
+    helm:
+      releaseName: agent-sandbox-controller
+      valuesObject:
+        router:
+          image:
+            repository: harbor.localhost/library/images/sandbox-router
+            tag: v20260514-v0.4.6
+            digest: ""
+          networkPolicy:
+            enabled: true
+            ingress:
+              allowedSources:
+                - podSelector:
+                    app.kubernetes.io/name: assistants-core
+                  namespaceSelector:
+                    kubernetes.io/metadata.name: unique
+            egress:
+              sandboxPort: 8888
+              sandboxNamespaceSelector:
+                kubernetes.io/metadata.name: unique

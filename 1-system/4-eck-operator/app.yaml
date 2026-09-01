@@ -1,0 +1,15 @@
+spec:
+  name: eck-operator
+  rolloutStep: operators
+  autoSync: true
+  syncOptions:
+    - ServerSideApply=true
+  source:
+    repoURL: https://helm.elastic.co
+    chart: eck-operator
+    targetRevision: 3.5.0
+    helm:
+      releaseName: eck-operator
+      valuesObject:
+        managedNamespaces:
+          - unique

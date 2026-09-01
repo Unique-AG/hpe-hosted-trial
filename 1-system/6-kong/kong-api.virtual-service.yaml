@@ -1,0 +1,20 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: kong-api-virtual-service
+spec:
+  gateways:
+    - istio-system/ezaf-gateway
+  hosts:
+    - api.localhost
+  http:
+    - match:
+        - uri:
+            prefix: /
+      rewrite:
+        uri: /
+      route:
+        - destination:
+            host: kong-gateway-proxy.unique.svc.cluster.local
+            port:
+              number: 80

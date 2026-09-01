@@ -1,0 +1,25 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: grafana-virtual-service
+spec:
+  gateways:
+    - istio-system/ezaf-gateway
+  hosts:
+    - grafana.localhost
+  http:
+    - match:
+        - uri:
+            prefix: /public/plugins/grafana-lokiexplore-app/static/js/
+      rewrite:
+        uri: /public/plugins/grafana-lokiexplore-app/
+      route:
+        - destination:
+            host: kube-prometheus-stack-grafana.unique.svc.cluster.local
+            port:
+              number: 80
+    - route:
+        - destination:
+            host: kube-prometheus-stack-grafana.unique.svc.cluster.local
+            port:
+              number: 80

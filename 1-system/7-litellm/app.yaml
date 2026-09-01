@@ -1,0 +1,59 @@
+spec:
+  name: litellm
+  rolloutStep: platform-services
+  autoSync: true
+  sources:
+    - repoURL: https://github.com/Unique-AG/hpe-hosted-trial
+      targetRevision: feat/upgrade-to-2026
+      ref: values
+      path: "1-system/7-litellm"
+      directory:
+        recurse: true
+        include: '*.yaml'
+        exclude: '{app.yaml,litellm.values.yaml}'
+    - repoURL: oci://ghcr.io/berriai/litellm-helm
+      path: .
+      targetRevision: 1.96.0
+      helm:
+        releaseName: litellm
+        valueFiles:
+          - $values/1-system/7-litellm/litellm.values.yaml
+        valuesObject:
+          replicaCount: 1
+
+          envVars:
+            LITELLM_LOG: "INFO"
+            REDIS_URL: "redis://redis-master.unique.svc.cluster.local:6379/5"
+
+          environmentSecrets:
+            - litellm
+
+          extraEnvVars:
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: litellm-connections
+                  key: DATABASE_URL
+
+          masterkeySecretName: litellm
+          masterkeySecretKey: PROXY_MASTER_KEY
+
+          db:
+            deployStandalone: false
+            useExisting: false
+
+          postgresql:
+            enabled: false
+
+          redis:
+            enabled: false
+
+          resources:
+            requests:
+              memory: 4Gi
+              cpu: 1
+            limits:
+              memory: 4Gi
+  
+          ingress:
+            enabled: false
