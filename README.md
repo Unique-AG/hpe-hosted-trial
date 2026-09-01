@@ -125,12 +125,6 @@ The script:
 - updates the tracked ZITADEL organization ID; and
 - creates the ignored node-scope-management plaintext Secret.
 
-It stores Terraform state under the ignored `.local/zitadel-bootstrap`
-directory and never writes a PAT to tracked files. Existing tracked ZITADEL IDs
-are replaced with IDs from the current cluster, allowing bootstrap to be rerun
-after `down.sh` destroys a previous cluster. It does not open the
-`application-secrets` gate.
-
 The default URLs are derived from `versions.yaml`. The main overrides are:
 
 - `ZITADEL_URL` and `UNIQUE_FRONTEND_BASE_URL` for custom ingress URLs;
