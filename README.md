@@ -180,6 +180,12 @@ configure the demo itself:
 ./setup-demo.sh
 ```
 
+`setup-models.sh` requires no manually supplied user token. By default it reads
+the existing ZITADEL admin PAT from `unique/iam-admin-pat`, creates or reuses
+the `hpe-trial-setup` machine user, and calls the application APIs with a
+short-lived JWT. Its temporary machine key is revoked on exit. A protected
+`UNIQUE_ACCESS_TOKEN_FILE` remains available as an explicit override.
+
 `setup-demo.sh` reconciles the HPE theme, creates the demo user, and replaces
 the two spaces node-chat creates on company bootstrap with a single space bound
 to the LiteLLM-served GLM model. It resolves the ZITADEL admin token exactly as
