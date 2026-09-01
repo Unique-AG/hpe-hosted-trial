@@ -476,34 +476,14 @@ start_zitadel_port_forward() {
   printf 'Using local h2c port-forward for ZITADEL provider API calls.\n'
 }
 
-has_repository_placeholders() {
-  rg -q --glob 'app.yaml' '^[[:space:]]*ZITADEL_PROJECT_ID:[[:space:]]*(__ZITADEL_PROJECT_ID__|change-me|hpe-hosted-trial)[[:space:]]*$' \
-    "${REPOSITORY_DIR}/2-applications" ||
-    rg -q --glob 'app.yaml' '^[[:space:]]*ZITADEL_CLIENT_ID:[[:space:]]*(__ZITADEL_CLIENT_ID__|change-me)[[:space:]]*$' \
-      "${REPOSITORY_DIR}/2-applications" ||
-    rg -q '^[[:space:]]*zitadel_project_id:[[:space:]]*"(__ZITADEL_PROJECT_ID__|change-me|hpe-hosted-trial)"[[:space:]]*$' \
-      "${REPOSITORY_DIR}/2-applications/0-kong-config" ||
-    [[ "$(yq -r '.spec.source.helm.valuesObject.env.ZITADEL_ROOT_ORG_ID // ""' \
-      "${REPOSITORY_DIR}/2-applications/1-node-scope-management/app.yaml")" == __ZITADEL_ROOT_ORG_ID__ ]] \
-    || return 1
-}
-
 state_contains_address() {
   local address="$1"
   printf '%s\n' "${STATE_ADDRESSES:-}" | grep -Fqx "${address}"
 }
 
 check_state_safety_before_plan() {
-  local placeholder_state=0
   if [[ -f "${STATE_MARKER}" && ! -f "${STATE_FILE}" ]]; then
     die "state marker exists but Terraform state is missing; recover/import the state before continuing"
-  fi
-  if [[ ! -f "${STATE_FILE}" ]]; then
-    if has_repository_placeholders; then
-      placeholder_state=1
-    fi
-    (( placeholder_state == 1 )) \
-      || die "Terraform state is missing while manifests contain populated ZITADEL IDs; refusing to create duplicate managed resources"
   fi
 
   STATE_ADDRESSES=""
@@ -585,9 +565,6 @@ replace_root_org_placeholder() {
 
   current="$(yq -r '.spec.source.helm.valuesObject.env.ZITADEL_ROOT_ORG_ID // ""' "${file}")"
   [[ -n "${current}" ]] || die "ZITADEL_ROOT_ORG_ID is missing from ${file}"
-  if [[ "${current}" != __ZITADEL_ROOT_ORG_ID__ && "${current}" != "${ROOT_ORG_ID}" ]]; then
-    die "unexpected ZITADEL_ROOT_ORG_ID in ${file}; refusing to overwrite ${current}"
-  fi
   [[ "${current}" == "${ROOT_ORG_ID}" ]] && return 0
   ZITADEL_BOOTSTRAP_ROOT_ORG_ID="${ROOT_ORG_ID}" yq -i \
     '.spec.source.helm.valuesObject.env.ZITADEL_ROOT_ORG_ID = strenv(ZITADEL_BOOTSTRAP_ROOT_ORG_ID)' \
@@ -600,10 +577,6 @@ replace_project_placeholders() {
   while IFS= read -r -d '' file; do
     current="$(yq -r '.spec.source.helm.valuesObject.env.ZITADEL_PROJECT_ID // ""' "${file}")"
     [[ -n "${current}" ]] || continue
-    if [[ "${current}" != __ZITADEL_PROJECT_ID__ && "${current}" != change-me &&
-      "${current}" != hpe-hosted-trial && "${current}" != "${PROJECT_ID}" ]]; then
-      die "unexpected ZITADEL_PROJECT_ID in ${file}; refusing to overwrite ${current}"
-    fi
     [[ "${current}" == "${PROJECT_ID}" ]] && continue
     ZITADEL_BOOTSTRAP_PROJECT_ID="${PROJECT_ID}" yq -i \
       '.spec.source.helm.valuesObject.env.ZITADEL_PROJECT_ID = strenv(ZITADEL_BOOTSTRAP_PROJECT_ID)' \
@@ -621,10 +594,6 @@ replace_frontend_client_placeholders() {
     "${REPOSITORY_DIR}/2-applications/3-theme-app/app.yaml"; do
     [[ -f "${file}" ]] || die "missing frontend application manifest: ${file}"
     current="$(yq -r '.spec.source.helm.valuesObject.env.ZITADEL_CLIENT_ID // ""' "${file}")"
-    if [[ "${current}" != __ZITADEL_CLIENT_ID__ && "${current}" != change-me &&
-      "${current}" != "${CLIENT_ID}" ]]; then
-      die "unexpected ZITADEL_CLIENT_ID in ${file}; refusing to overwrite ${current}"
-    fi
     if [[ "${current}" == "${CLIENT_ID}" ]]; then
       continue
     fi
@@ -639,10 +608,6 @@ replace_kong_project_placeholder() {
   local current
   [[ -f "${file}" ]] || die "missing Kong JWT plugin manifest"
   current="$(yq -r '.config.zitadel_project_id // ""' "${file}")"
-  if [[ "${current}" != __ZITADEL_PROJECT_ID__ && "${current}" != change-me &&
-    "${current}" != hpe-hosted-trial && "${current}" != "${PROJECT_ID}" ]]; then
-    die "unexpected Kong zitadel_project_id; refusing to overwrite ${current}"
-  fi
   [[ "${current}" == "${PROJECT_ID}" ]] && return 0
   ZITADEL_BOOTSTRAP_PROJECT_ID="${PROJECT_ID}" yq -i \
     '.config.zitadel_project_id = strenv(ZITADEL_BOOTSTRAP_PROJECT_ID)' "${file}"

@@ -120,7 +120,9 @@ The script:
 - creates the ignored node-scope-management plaintext Secret.
 
 It stores Terraform state under the ignored `.local/zitadel-bootstrap`
-directory and never writes a PAT to tracked files. It does not open the
+directory and never writes a PAT to tracked files. Existing tracked ZITADEL IDs
+are replaced with IDs from the current cluster, allowing bootstrap to be rerun
+after `down.sh` destroys a previous cluster. It does not open the
 `application-secrets` gate.
 
 The default URLs are derived from `versions.yaml`. The main overrides are:

@@ -22,7 +22,9 @@ The current compatibility baseline is Unique `2026.32.4`.
   first-instance PAT from `unique/iam-admin-pat` unless an operator provides a
   protected env/file override, keeps Terraform state and `TF_DATA_DIR` under
   ignored `.local/zitadel-bootstrap` (mode 0700/0600), and refuses ambiguous
-  duplicate objects or missing state. It never opens or syncs the Argo
+  duplicate objects in the active ZITADEL instance. Existing tracked IDs do not
+  prevent bootstrapping a replacement cluster and are overwritten after apply.
+  It never opens or syncs the Argo
   `application-secrets` gate; `--seal` is explicitly limited to the
   node-scope-management Secret.
 - `setup-demo.sh` prepares the demo content on a deployed trial: the HPE theme,
